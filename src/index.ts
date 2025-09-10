@@ -5,11 +5,10 @@ import startEDDNListenerProcess from "./eddn/eddn.js"
 import { initMQ } from "./mq/index.js"
 import logger from "./utils/logger.js"
 import { Redis } from "./utils/redis.js"
-import { db } from "./db/db.js"
-
-const result = await db.execute("select 1")
-
-console.log(result)
+import Koa from "koa"
+import { pgl } from "./utils/pgl.js"
+import { grafserv } from "postgraphile/grafserv/koa/v2"
+import { createServer } from "node:http"
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -26,16 +25,18 @@ Redis.on("ready", async () => {
 	}
 })
 
-// const KoaApp = new Koa()
-// KoaApp.use((ctx) => {
-//   ctx.body = {
-//     status: 'ok',
-//     timestamp: new Date().toISOString(),
-//   }
-// })
-// KoaApp.listen(process.env.PORT, () => {
-//   logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
-// })
+const KoaApp = new Koa()
+const serv = pgl.createServ(grafserv)
+serv.addTo(KoaApp, null)
+KoaApp.use((ctx) => {
+	ctx.body = {
+		status: "ok",
+		timestamp: new Date().toISOString(),
+	}
+})
+KoaApp.listen(process.env.PORT, () => {
+	logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
+})
 
 // Graceful shutdown
 let isShuttingDown = false
@@ -66,11 +67,11 @@ const shutdown = async () => {
 	logger.info("[Redis] Connection closed")
 
 	// Close Koa server
-	// logger.info('[Koa] Closing server...')
-	// await new Promise<void>((resolve) => {
-	//   KoaApp.listen().close(() => resolve())
-	// })
-	// logger.info('[Koa] Server closed')
+	logger.info('[Koa] Closing server...')
+	await new Promise<void>((resolve) => {
+	  KoaApp.listen().close(() => resolve())
+	})
+	logger.info('[Koa] Server closed')
 
 	// Give time for connections to close
 	await new Promise((resolve) => {

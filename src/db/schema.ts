@@ -3,7 +3,6 @@ import {
 	integer,
 	uuid,
 	timestamp,
-	text,
 	pgEnum,
 	real,
 	jsonb,
@@ -72,7 +71,7 @@ export const FactionGovernment = pgEnum("factionGovernmentEnum", [
 	"Feudal",
 	"Imperial",
 	"Patronage",
-	"Prison Colony",
+	"PrisonColony",
 	"Theocracy",
 	"Workshop",
 ])
