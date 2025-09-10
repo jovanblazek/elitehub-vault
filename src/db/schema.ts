@@ -23,6 +23,13 @@ const cube3 = customType<{ data: [number, number, number] }>({
 	},
 })
 
+export const SystemSecurity = pgEnum("systemSecurityEnum", [
+	"Anarchy",
+	"Low",
+	"Medium",
+	"High",
+])
+
 export const StationType = pgEnum("stationTypeEnum", [
 	"Coriolis",
 	"Orbis",
@@ -41,7 +48,6 @@ export const FactionHappiness = pgEnum("factionHappinessEnum", [
 	"Discontented",
 	"Unhappy",
 	"Despondent",
-	"None",
 ])
 
 export const FactionConflictType = pgEnum("factionConflictTypeEnum", [
@@ -55,21 +61,39 @@ export const FactionConflictStatus = pgEnum("factionConflictStatusEnum", [
 	"Active",
 ])
 
-export const FactionEconomy = pgEnum("factionEconomyEnum", [
+export const FactionGovernment = pgEnum("factionGovernmentEnum", [
+	"Anarchy",
+	"Communism",
+	"Confederacy",
+	"Cooperative",
+	"Corporate",
+	"Democracy",
+	"Dictatorship",
+	"Feudal",
+	"Imperial",
+	"Patronage",
+	"Prison Colony",
+	"Theocracy",
+	"Workshop",
+])
+
+export const Economy = pgEnum("economyEnum", [
 	"Agriculture",
 	"Colony",
+	"Damaged",
+	"Engineer",
 	"Extraction",
 	"HighTech",
 	"Industrial",
 	"Military",
-	"None",
+	"Prison",
+	"PrivateEnterprise",
 	"Refinery",
+	"Repair",
+	"Rescue",
 	"Service",
 	"Terraforming",
 	"Tourism",
-	"Repair",
-	"Rescue",
-	"Damaged",
 ])
 
 export const Allegiance = pgEnum("allegianceEnum", [
@@ -77,50 +101,56 @@ export const Allegiance = pgEnum("allegianceEnum", [
 	"Empire",
 	"Federation",
 	"Independent",
-	"None",
 	"Pirate",
 	"PilotsFederation",
-	"Thargoid",
-	"Guardian",
+	"Thargoids",
+	"Guardians",
 ])
 
 export const FactionState = pgEnum("factionStateEnum", [
-	"None",
+	"Blight",
 	"Boom",
 	"Bust",
+	"CivilLiberty",
 	"CivilUnrest",
 	"CivilWar",
-	"CivilLiberty",
+	"ColdWar",
+	"Colonisation",
+	"Drought",
 	"Election",
 	"Expansion",
 	"Famine",
+	"HistoricEvent",
+	"Incursion",
+	"Infested",
+	"InfrastructureFailure",
 	"Investment",
 	"Lockdown",
+	"NaturalDisaster",
 	"Outbreak",
 	"PirateAttack",
-	"Retreat",
-	"War",
-	"Blight",
-	"Drought",
-	"InfrastructureFailure",
-	"NaturalDisaster",
 	"PublicHoliday",
+	"Revolution",
+	"Retreat",
+	"TechnologicalLeap",
 	"TerroristAttack",
+	"TradeWar",
+	"War",
 ])
 
 export const Systems = pgTable("systems", {
 	id: uuid().primaryKey().defaultRandom(),
-	name: citext().notNull(),
+	name: citext().notNull().unique(),
 	position: cube3().notNull(),
 	x: integer().notNull(),
 	y: integer().notNull(),
 	z: integer().notNull(),
-	population: integer().notNull(),
-	goverment: text().notNull(),
-	allegiance: Allegiance("allegianceEnum").notNull(),
-	economy: FactionEconomy("factionEconomyEnum").notNull(),
-	secondEconomy: FactionEconomy("factionEconomyEnum"),
-	security: text().notNull(),
+	population: integer().default(0).notNull(),
+	goverment: FactionGovernment("factionGovernmentEnum"),
+	allegiance: Allegiance("allegianceEnum"),
+	economy: Economy("factionEconomyEnum"),
+	secondEconomy: Economy("factionEconomyEnum"),
+	security: SystemSecurity("systemSecurityEnum"),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
 })
@@ -128,7 +158,7 @@ export const Systems = pgTable("systems", {
 export const Factions = pgTable("factions", {
 	id: uuid().primaryKey().defaultRandom(),
 	name: citext().notNull(),
-	goverment: text().notNull(),
+	goverment: FactionGovernment("factionGovernmentEnum").notNull(),
 	allegiance: Allegiance("allegianceEnum").notNull(),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
@@ -153,9 +183,18 @@ export const FactionStates = pgTable("factionStates", {
 	systemId: uuid().references(() => Systems.id, { onDelete: "cascade" }),
 	happiness: FactionHappiness("factionHappinessEnum").notNull(),
 	influence: real().notNull(),
-	activeStates: FactionState("factionStateEnum").array().default([]).notNull(),
-	recoveringStates: FactionState("factionStateEnum").array().default([]).notNull(),
-	pendingStates: FactionState("factionStateEnum").array().default([]).notNull(),
+	activeStates: FactionState("factionStateEnum")
+		.array()
+		.default([])
+		.notNull(),
+	recoveringStates: FactionState("factionStateEnum")
+		.array()
+		.default([])
+		.notNull(),
+	pendingStates: FactionState("factionStateEnum")
+		.array()
+		.default([])
+		.notNull(),
 	activeStatesRaw: jsonb().default([]).notNull(),
 	recoveringStatesRaw: jsonb().default([]).notNull(),
 	pendingStatesRaw: jsonb().default([]).notNull(),
@@ -194,6 +233,8 @@ export const Stations = pgTable("stations", {
 	controllingFactionId: uuid().references(() => Factions.id, {
 		onDelete: "set null",
 	}),
+	distanceFromStar: real().notNull(),
+	economy: Economy("factionEconomyEnum"),
 	services: jsonb().default([]).notNull(),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),

@@ -6,6 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --tsconfig ./tsconfig.json watch src/index.ts",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:studio": "drizzle-kit studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
