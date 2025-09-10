@@ -5,7 +5,7 @@ import startEDDNListenerProcess from "./eddn/eddn.js"
 import { initMQ } from "./mq/index.js"
 import logger from "./utils/logger.js"
 import { Redis } from "./utils/redis.js"
-import { db } from "./utils/db.js"
+import { db } from "./db/db.js"
 
 const result = await db.execute("select 1")
 
