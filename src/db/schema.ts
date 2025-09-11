@@ -1,13 +1,14 @@
+import { SQL, sql } from "drizzle-orm"
 import {
 	pgTable,
 	integer,
 	uuid,
 	timestamp,
 	pgEnum,
-	real,
 	jsonb,
 	primaryKey,
 	customType,
+	doublePrecision,
 } from "drizzle-orm/pg-core"
 
 const citext = customType<{ data: string }>({
@@ -140,10 +141,12 @@ export const FactionState = pgEnum("factionStateEnum", [
 export const Systems = pgTable("systems", {
 	id: uuid().primaryKey().defaultRandom(),
 	name: citext().notNull().unique(),
-	position: cube3().notNull(),
-	x: integer().notNull(),
-	y: integer().notNull(),
-	z: integer().notNull(),
+	position: cube3().generatedAlwaysAs(
+		(): SQL => sql`cube(ARRAY[${Systems.x}, ${Systems.y}, ${Systems.z}])`
+	),
+	x: doublePrecision().notNull(),
+	y: doublePrecision().notNull(),
+	z: doublePrecision().notNull(),
 	population: integer().default(0).notNull(),
 	goverment: FactionGovernment("factionGovernmentEnum"),
 	allegiance: Allegiance("allegianceEnum"),
@@ -181,7 +184,7 @@ export const FactionStates = pgTable("factionStates", {
 	factionId: uuid().references(() => Factions.id, { onDelete: "cascade" }),
 	systemId: uuid().references(() => Systems.id, { onDelete: "cascade" }),
 	happiness: FactionHappiness("factionHappinessEnum").notNull(),
-	influence: real().notNull(),
+	influence: doublePrecision().notNull(),
 	activeStates: FactionState("factionStateEnum")
 		.array()
 		.default([])
@@ -232,7 +235,7 @@ export const Stations = pgTable("stations", {
 	controllingFactionId: uuid().references(() => Factions.id, {
 		onDelete: "set null",
 	}),
-	distanceFromStar: real().notNull(),
+	distanceFromStar: doublePrecision().notNull(),
 	economy: Economy("factionEconomyEnum"),
 	services: jsonb().default([]).notNull(),
 	createdAt: timestamp().notNull().defaultNow(),
