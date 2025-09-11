@@ -1,4 +1,4 @@
-export interface HttpsEddnEdcdIoSchemasJournal1 {
+export interface EDDNJournalMessage {
   $schemaRef: string
   header: {
     uploaderID: string

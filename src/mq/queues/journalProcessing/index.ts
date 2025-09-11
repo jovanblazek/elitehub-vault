@@ -3,7 +3,7 @@ import type { EDDNEventToProcess } from '../../../types/eddn.js'
 import { Redis } from '../../../utils/redis.js'
 import { QueueNames } from '../../constants.js'
 
-export const SystemProcessingQueue = new Queue(QueueNames.systemProcessing, {
+export const JournalProcessingQueue = new Queue(QueueNames.journalProcessing, {
   connection: Redis,
   defaultJobOptions: {
     attempts: 3,
@@ -16,10 +16,10 @@ export const SystemProcessingQueue = new Queue(QueueNames.systemProcessing, {
   },
 })
 
-export const SystemProcessingWorker = new Worker<EDDNEventToProcess>(
-  QueueNames.systemProcessing,
+export const JournalProcessingWorker = new Worker<EDDNEventToProcess>(
+  QueueNames.journalProcessing,
   async (job) => {
-    console.log('SystemProcessingWorker running')
+    console.log('JournalProcessingWorker running')
   },
   { connection: Redis }
 )

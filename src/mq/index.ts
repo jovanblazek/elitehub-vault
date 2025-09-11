@@ -1,8 +1,8 @@
 import logger from '../utils/logger.js'
-import { SystemProcessingWorker } from './queues/systemProcessing/index.js'
+import { JournalProcessingWorker } from './queues/journalProcessing/index.js'
 
 export const initMQ = () => {
-  const bullMQWorkers = [SystemProcessingWorker]
+  const bullMQWorkers = [JournalProcessingWorker]
   bullMQWorkers.forEach((worker) => {
     worker.on('failed', (job) => {
       if (job) {
