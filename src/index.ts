@@ -1,89 +1,86 @@
-import "./utils/environment.js"
+import './utils/environment.js'
 
-import type { Worker } from "bullmq"
-import startEDDNListenerProcess from "./eddn/eddn.js"
-import { initMQ } from "./mq/index.js"
-import logger from "./utils/logger.js"
-import { Redis } from "./utils/redis.js"
-import Koa from "koa"
-import { pgl } from "./utils/pgl.js"
-import { grafserv } from "postgraphile/grafserv/koa/v2"
-import { createServer } from "node:http"
+import type { Worker } from 'bullmq'
+import startEDDNListenerProcess from './eddn/eddn.js'
+import { initMQ } from './mq/index.js'
+import logger from './utils/logger.js'
+import { Redis } from './utils/redis.js'
+import Koa from 'koa'
+import { pgl } from './utils/pgl.js'
+import { grafserv } from 'postgraphile/grafserv/koa/v2'
+import { createServer } from 'node:http'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-Redis.on("ready", async () => {
-	logger.info("[Redis] Connection established")
-	BullMQWorkers = initMQ()
-	if (
-		process.env.NODE_ENV === "production" ||
-		process.env.DEBUG_EDDN_LISTENER === "true"
-	) {
-		eddnProcess = startEDDNListenerProcess()
-	}
+Redis.on('ready', async () => {
+  logger.info('[Redis] Connection established')
+  BullMQWorkers = initMQ()
+  if (process.env.NODE_ENV === 'production' || process.env.DEBUG_EDDN_LISTENER === 'true') {
+    eddnProcess = startEDDNListenerProcess()
+  }
 })
 
 const KoaApp = new Koa()
 const serv = pgl.createServ(grafserv)
 serv.addTo(KoaApp, null)
 KoaApp.use((ctx) => {
-	ctx.body = {
-		status: "ok",
-		timestamp: new Date().toISOString(),
-	}
+  ctx.body = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  }
 })
 KoaApp.listen(process.env.PORT, () => {
-	logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
+  logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
 })
 
 // Graceful shutdown
 let isShuttingDown = false
 
 const shutdown = async () => {
-	if (isShuttingDown) {
-		return
-	}
-	isShuttingDown = true
+  if (isShuttingDown) {
+    return
+  }
+  isShuttingDown = true
 
-	logger.info("Shutting down...")
+  logger.info('Shutting down...')
 
-	// Close EDDN worker
-	if (eddnProcess) {
-		logger.info("[EDDN] Initiating worker shutdown")
-		await eddnProcess.shutdown()
-		logger.info("[EDDN] Worker terminated")
-	}
+  // Close EDDN worker
+  if (eddnProcess) {
+    logger.info('[EDDN] Initiating worker shutdown')
+    await eddnProcess.shutdown()
+    logger.info('[EDDN] Worker terminated')
+  }
 
-	// Close BullMQ workers
-	logger.info("[BullMQ] Closing workers...")
-	await Promise.all(BullMQWorkers.map((worker) => worker.close()))
-	logger.info("[BullMQ] All workers closed")
+  // Close BullMQ workers
+  logger.info('[BullMQ] Closing workers...')
+  await Promise.all(BullMQWorkers.map((worker) => worker.close()))
+  logger.info('[BullMQ] All workers closed')
 
-	// Close Redis connection
-	logger.info("[Redis] Closing connection...")
-	await Redis.quit()
-	logger.info("[Redis] Connection closed")
+  // Close Redis connection
+  logger.info('[Redis] Closing connection...')
+  await Redis.quit()
+  logger.info('[Redis] Connection closed')
 
-	// Close Koa server
-	logger.info('[Koa] Closing server...')
-	await new Promise<void>((resolve) => {
-	  KoaApp.listen().close(() => resolve())
-	})
-	logger.info('[Koa] Server closed')
+  // Close Koa server
+  logger.info('[Koa] Closing server...')
+  await new Promise<void>((resolve) => {
+    KoaApp.listen().close(() => resolve())
+  })
+  logger.info('[Koa] Server closed')
 
-	// Give time for connections to close
-	await new Promise((resolve) => {
-		setTimeout(resolve, 500)
-	})
+  // Give time for connections to close
+  await new Promise((resolve) => {
+    setTimeout(resolve, 500)
+  })
 
-	process.exit(0)
+  process.exit(0)
 }
 
-process.on("SIGTERM", () => {
-	void shutdown()
+process.on('SIGTERM', () => {
+  void shutdown()
 })
-process.on("SIGINT", () => {
-	void shutdown()
+process.on('SIGINT', () => {
+  void shutdown()
 })

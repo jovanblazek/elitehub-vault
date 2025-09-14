@@ -32,7 +32,7 @@ export interface EDDNJournalMessage {
 export interface EDDNJournalLocationMessage {
   Body: string
   BodyID: number
-  BodyType: "Star" | "PlanetaryRing" | "Station" | "Planet" | "Null"
+  BodyType: 'Star' | 'PlanetaryRing' | 'Station' | 'Planet' | 'Null'
   Docked: boolean
   Factions?: FactionElement[]
   Population: number
@@ -48,7 +48,7 @@ export interface EDDNJournalLocationMessage {
   SystemGovernment: string
   SystemSecondEconomy: string
   SystemSecurity: string
-  event: "Location"
+  event: 'Location'
   horizons?: boolean
   odyssey?: boolean
   timestamp: Date
@@ -76,7 +76,7 @@ export interface EDDNJournalLocationMessage {
 export interface EDDNJournalFSDJumpMessage {
   Body: string
   BodyID: number
-  BodyType: "Star"
+  BodyType: 'Star'
   Population: number
   StarPos: number[]
   StarSystem: string
@@ -86,7 +86,7 @@ export interface EDDNJournalFSDJumpMessage {
   SystemGovernment: string
   SystemSecondEconomy: string
   SystemSecurity: string
-  event: "FSDJump"
+  event: 'FSDJump'
   horizons?: boolean
   odyssey?: boolean
   timestamp: Date
@@ -186,4 +186,4 @@ type FactionInConflict = {
   WonDays: number
 }
 
-type PowerplayState = "Unoccupied" | "Stronghold" | "Exploited" | "Fortified"
+type PowerplayState = 'Unoccupied' | 'Stronghold' | 'Exploited' | 'Fortified'
