@@ -9,6 +9,7 @@ import {
   primaryKey,
   customType,
   doublePrecision,
+  bigint,
 } from 'drizzle-orm/pg-core'
 
 function enumToPgEnum<T extends Record<string, any>>(myEnum: T): [T[keyof T], ...T[keyof T][]] {
@@ -45,7 +46,6 @@ export enum StationType {
   PlanetaryOutpost = 'PlanetaryOutpost',
   AsteroidBase = 'AsteroidBase',
   MegaShip = 'MegaShip',
-  FleetCarrier = 'FleetCarrier',
 }
 
 export const StationTypeEnum = pgEnum('stationTypeEnum', enumToPgEnum(StationType))
@@ -169,9 +169,19 @@ export enum FactionState {
 
 export const FactionStateEnum = pgEnum('factionStateEnum', enumToPgEnum(FactionState))
 
+export enum PowerplayState {
+  Unoccupied = 'Unoccupied',
+  Stronghold = 'Stronghold',
+  Exploited = 'Exploited',
+  Fortified = 'Fortified',
+}
+
+export const PowerplayStateEnum = pgEnum('powerplayStateEnum', enumToPgEnum(PowerplayState))
+
 export const Systems = pgTable('systems', {
   id: uuid().primaryKey().defaultRandom(),
   name: citext().notNull().unique(),
+  systemAddress: bigint({ mode: 'number' }).notNull().unique(),
   position: cube3().generatedAlwaysAs(
     (): SQL => sql`cube(ARRAY[${Systems.x}, ${Systems.y}, ${Systems.z}])`
   ),
@@ -184,6 +194,11 @@ export const Systems = pgTable('systems', {
   economy: EconomyEnum('factionEconomyEnum'),
   secondEconomy: EconomyEnum('factionEconomyEnum'),
   security: SystemSecurityEnum('systemSecurityEnum'),
+  controllingPowerId: uuid().references(() => PowerplayPowers.id, { onDelete: 'set null' }),
+  powerplayState: PowerplayStateEnum('powerplayStateEnum'),
+  powerplayStateControlProgress: doublePrecision(),
+  powerplayStateReinforcement: doublePrecision(),
+  powerplayStateUndermining: doublePrecision(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })
@@ -200,8 +215,8 @@ export const Factions = pgTable('factions', {
 export const SystemFactions = pgTable(
   'systemFactions',
   {
-    systemId: uuid().references(() => Systems.id, { onDelete: 'cascade' }),
-    factionId: uuid().references(() => Factions.id, {
+    systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+    factionId: uuid().notNull().references(() => Factions.id, {
       onDelete: 'cascade',
     }),
     createdAt: timestamp().notNull().defaultNow(),
@@ -212,8 +227,8 @@ export const SystemFactions = pgTable(
 
 export const FactionStates = pgTable('factionStates', {
   id: uuid().primaryKey().defaultRandom(),
-  factionId: uuid().references(() => Factions.id, { onDelete: 'cascade' }),
-  systemId: uuid().references(() => Systems.id, { onDelete: 'cascade' }),
+  factionId: uuid().notNull().references(() => Factions.id, { onDelete: 'cascade' }),
+  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
   happiness: FactionHappinessEnum('factionHappinessEnum').notNull(),
   influence: doublePrecision().notNull(),
   activeStates: FactionStateEnum('factionStateEnum').array().default([]).notNull(),
@@ -228,8 +243,8 @@ export const FactionStates = pgTable('factionStates', {
 
 export const FactionConflicts = pgTable('factionConflicts', {
   id: uuid().primaryKey().defaultRandom(),
-  systemId: uuid().references(() => Systems.id, { onDelete: 'cascade' }),
-  factionId: uuid().references(() => Factions.id, { onDelete: 'cascade' }),
+  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+  factionId: uuid().notNull().references(() => Factions.id, { onDelete: 'cascade' }),
   opponentFactionId: uuid().references(() => Factions.id, {
     onDelete: 'cascade',
   }),
@@ -237,11 +252,11 @@ export const FactionConflicts = pgTable('factionConflicts', {
   status: FactionConflictStatusEnum('factionConflictStatusEnum').notNull(),
   factionWonDays: integer().notNull().default(0),
   opponentWonDays: integer().notNull().default(0),
-  factionStake: citext().notNull(),
+  factionStake: citext(),
   factionStakeStationId: uuid().references(() => Stations.id, {
     onDelete: 'set null',
   }),
-  opponentStake: citext().notNull(),
+  opponentStake: citext(),
   opponentStakeStationId: uuid().references(() => Stations.id, {
     onDelete: 'set null',
   }),
@@ -252,14 +267,43 @@ export const FactionConflicts = pgTable('factionConflicts', {
 export const Stations = pgTable('stations', {
   id: uuid().primaryKey().defaultRandom(),
   name: citext().notNull(),
+  marketId: integer().unique(),
   stationType: StationTypeEnum('stationTypeEnum'),
-  systemId: uuid().references(() => Systems.id, { onDelete: 'cascade' }),
-  controllingFactionId: uuid().references(() => Factions.id, {
+  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+  controllingFactionId: uuid().notNull().references(() => Factions.id, {
     onDelete: 'set null',
   }),
   distanceFromStar: doublePrecision().notNull(),
+  allegiance: AllegianceEnum('allegianceEnum'),
+  government: FactionGovernmentEnum('factionGovernmentEnum'),
   economy: EconomyEnum('factionEconomyEnum'),
+  economies: jsonb().default([]).notNull(),
   services: jsonb().default([]).notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
+})
+
+export const PowerplayPowers = pgTable('powerplayPowers', {
+  id: uuid().primaryKey().defaultRandom(),
+  name: citext().notNull().unique(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
+})
+
+export const SystemPowerplayPowers = pgTable(
+  'systemPowerplayPowers',
+  {
+    systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+    powerId: uuid().notNull().references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
+  },
+  (table) => [primaryKey({ columns: [table.systemId, table.powerId] })]
+)
+
+export const PowerplayConflicts = pgTable('powerplayConflicts', {
+  id: uuid().primaryKey().defaultRandom(),
+  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+  powerId: uuid().notNull().references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
+  conflictProgress: doublePrecision().notNull(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })
