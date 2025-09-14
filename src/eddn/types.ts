@@ -130,7 +130,7 @@ export interface EDDNJournalCarrierJumpMessage {
   SystemSecondEconomy: string
   SystemSecurity: string
   Taxi?: boolean
-  event: string
+  event: "CarrierJump"
   horizons: boolean
   odyssey: boolean
   timestamp: Date

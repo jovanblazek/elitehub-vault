@@ -46,6 +46,7 @@ export enum StationType {
   PlanetaryOutpost = 'PlanetaryOutpost',
   AsteroidBase = 'AsteroidBase',
   MegaShip = 'MegaShip',
+  // FleetCarrier = 'FleetCarrier', // We do not store fleet carriers
 }
 
 export const StationTypeEnum = pgEnum('stationTypeEnum', enumToPgEnum(StationType))
@@ -189,7 +190,7 @@ export const Systems = pgTable('systems', {
   y: doublePrecision().notNull(),
   z: doublePrecision().notNull(),
   population: integer().default(0).notNull(),
-  goverment: FactionGovernmentEnum('factionGovernmentEnum'),
+  government: FactionGovernmentEnum('factionGovernmentEnum'),
   allegiance: AllegianceEnum('allegianceEnum'),
   economy: EconomyEnum('factionEconomyEnum'),
   secondEconomy: EconomyEnum('factionEconomyEnum'),
@@ -206,7 +207,7 @@ export const Systems = pgTable('systems', {
 export const Factions = pgTable('factions', {
   id: uuid().primaryKey().defaultRandom(),
   name: citext().notNull(),
-  goverment: FactionGovernmentEnum('factionGovernmentEnum').notNull(),
+  government: FactionGovernmentEnum('factionGovernmentEnum').notNull(),
   allegiance: AllegianceEnum('allegianceEnum').notNull(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
