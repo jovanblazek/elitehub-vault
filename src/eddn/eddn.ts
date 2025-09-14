@@ -32,6 +32,7 @@ export default function startEDDNListenerProcess() {
 		process.on(
 			"message",
 			async (eddnJournalMessage: EDDNJournalMessage) => {
+				// Only check for presence of StarSystem to be sure, other checks are done in the worker
 				if (eddnJournalMessage?.message?.StarSystem) {
 					await JournalProcessingQueue.add(
 						`${SYSTEM_PROCESS_JOB_NAME}:${eddnJournalMessage.message.event}:${eddnJournalMessage.message.StarSystem}`,

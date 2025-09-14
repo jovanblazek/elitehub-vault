@@ -1,3 +1,8 @@
+/**
+ * This file contains the types extracted from the messages sent by the EDDN Gateway.
+ * Exported types and interfaces should be prefixed with EDDNJournal or similar prefix.
+ */
+
 export interface EDDNJournalMessage {
   $schemaRef: string
   header: {
@@ -21,72 +26,164 @@ export interface EDDNJournalMessage {
   /**
    * Contains all properties from the listed events in the client's journal minus Localised strings and the properties marked below as 'disallowed'
    */
-  message: {
-    timestamp: string
-    event:
-      | 'Docked'
-      | 'FSDJump'
-      | 'Scan'
-      | 'Location'
-      | 'SAASignalsFound'
-      | 'CarrierJump'
-      | 'CodexEntry'
-    /**
-     * Whether the sending Cmdr has a Horizons pass.
-     */
-    horizons?: boolean
-    /**
-     * Whether the sending Cmdr has an Odyssey expansion.
-     */
-    odyssey?: boolean
-    /**
-     * Must be added by the sender if not present in the journal event
-     */
-    StarSystem: string
-    /**
-     * Must be added by the sender if not present in the journal event
-     */
-    StarPos: [number, number, number]
-    /**
-     * Should be added by the sender if not present in the journal event
-     */
-    SystemAddress: number
-    /**
-     * Present in Location, FSDJump and CarrierJump messages
-     */
-    Factions?: {
-      HappiestSystem: Disallowed
-      HomeSystem: Disallowed
-      MyReputation: Disallowed
-      SquadronFaction: Disallowed
-      [k: string]: Disallowed
-    }[]
-    ActiveFine?: Disallowed
-    CockpitBreach?: Disallowed
-    BoostUsed?: Disallowed
-    FuelLevel?: Disallowed
-    FuelUsed?: Disallowed
-    JumpDist?: Disallowed
-    Latitude?: Disallowed
-    Longitude?: Disallowed
-    Wanted?: Disallowed
-    IsNewEntry?: Disallowed
-    NewTraitsDiscovered?: Disallowed
-    Traits?: Disallowed
-    VoucherAmount?: Disallowed
-    [k: string]: unknown
-  }
+  message: EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage | EDDNJournalCarrierJumpMessage
 }
-/**
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` "_Localised$".
- *
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` "_Localised$".
- *
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` "_Localised$".
- */
-export interface Disallowed {
-  [k: string]: unknown
+
+export interface EDDNJournalLocationMessage {
+  Body: string
+  BodyID: number
+  BodyType: "Star" | "PlanetaryRing" | "Station" | "Planet" | "Null"
+  Docked: boolean
+  Factions?: FactionElement[]
+  Population: number
+  PowerplayConflictProgress?: PowerplayConflictProgress[]
+  PowerplayState?: PowerplayState
+  Powers?: string[]
+  StarPos: number[]
+  StarSystem: string
+  SystemAddress: number
+  SystemAllegiance: string
+  SystemEconomy: string
+  SystemFaction?: ShortFactionInfo
+  SystemGovernment: string
+  SystemSecondEconomy: string
+  SystemSecurity: string
+  event: "Location"
+  horizons?: boolean
+  odyssey?: boolean
+  timestamp: Date
+  ControllingPower?: string
+  DistFromStarLS?: number
+  Multicrew?: boolean
+  PowerplayStateControlProgress?: number
+  PowerplayStateReinforcement?: number
+  PowerplayStateUndermining?: number
+  Taxi?: boolean
+  Conflicts?: Conflict[]
+  MarketID?: number
+  StationAllegiance?: string
+  StationEconomies?: StationEconomy[]
+  StationEconomy?: string
+  StationFaction?: ShortFactionInfo
+  StationGovernment?: string
+  StationName?: string
+  StationServices?: string[]
+  StationType?: string
+  InSRV?: boolean
+  OnFoot?: boolean
 }
+
+export interface EDDNJournalFSDJumpMessage {
+  Body: string
+  BodyID: number
+  BodyType: "Star"
+  Population: number
+  StarPos: number[]
+  StarSystem: string
+  SystemAddress: number
+  SystemAllegiance: string
+  SystemEconomy: string
+  SystemGovernment: string
+  SystemSecondEconomy: string
+  SystemSecurity: string
+  event: "FSDJump"
+  horizons?: boolean
+  odyssey?: boolean
+  timestamp: Date
+  Factions?: FactionElement[]
+  Multicrew?: boolean
+  PowerplayConflictProgress?: PowerplayConflictProgress[]
+  PowerplayState?: PowerplayState
+  Powers?: string[]
+  SystemFaction?: ShortFactionInfo
+  Taxi?: boolean
+  Conflicts?: Conflict[]
+  ControllingPower?: string
+  PowerplayStateControlProgress?: number
+  PowerplayStateReinforcement?: number
+  PowerplayStateUndermining?: number
+}
+
+export interface EDDNJournalCarrierJumpMessage {
+  Body: string
+  BodyID: number
+  BodyType: string
+  Docked: boolean
+  Factions?: FactionElement[]
+  MarketID: number
+  Multicrew?: boolean
+  Population: number
+  StarPos: number[]
+  StarSystem: string
+  StationEconomies: StationEconomy[]
+  StationEconomy: string
+  StationFaction: ShortFactionInfo
+  StationGovernment: string
+  StationName: string
+  StationServices: string[]
+  StationType: string
+  SystemAddress: number
+  SystemAllegiance: string
+  SystemEconomy: string
+  SystemFaction: ShortFactionInfo
+  SystemGovernment: string
+  SystemSecondEconomy: string
+  SystemSecurity: string
+  Taxi?: boolean
+  event: string
+  horizons: boolean
+  odyssey: boolean
+  timestamp: Date
+  Conflicts?: Conflict[]
+}
+
+type StationEconomy = {
+  Name: string
+  Proportion: number
+}
+
+type PowerplayConflictProgress = {
+  ConflictProgress: number
+  Power: string
+}
+
+type ShortFactionInfo = {
+  FactionState?: string
+  Name: string
+}
+
+type FactionElement = {
+  Allegiance: string
+  FactionState: string
+  Government: string
+  Happiness: string
+  Influence: number
+  Name: string
+  ActiveStates?: ActiveState[]
+  PendingStates?: StateWithTrend[]
+  RecoveringStates?: StateWithTrend[]
+}
+
+type ActiveState = {
+  State: string
+}
+
+type StateWithTrend = {
+  State: string
+  Trend: number
+}
+
+type Conflict = {
+  Faction1: FactionInConflict
+  Faction2: FactionInConflict
+  Status: string
+  WarType: string
+}
+
+type FactionInConflict = {
+  Name: string
+  Stake: string
+  WonDays: number
+}
+
+type PowerplayState = "Unoccupied" | "Stronghold" | "Exploited" | "Fortified"

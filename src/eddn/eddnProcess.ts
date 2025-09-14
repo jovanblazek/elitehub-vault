@@ -6,8 +6,8 @@ import type { EDDNJournalMessage } from './types.js'
 const EDDN_URL = 'tcp://eddn.edcd.io:9500'
 const JOURNAL_EVENT_SCHEMA = 'https://eddn.edcd.io/schemas/journal/1'
 const MAJOR_GAME_VERSION = '4'
-const SOFTWARE = 'E:D Market Connector'
-const EVENTS = ['FSDJump', 'Location'] // TODO: Support "CarrierJump" carrier jumps
+const SUPPORTED_SOFTWARE_PREFIXES = ['E:D Market Connector', 'EDDiscovery', 'EDO Materials Helper', 'EDDI', 'EDDLite']
+const EVENTS = ['FSDJump', 'Location', 'CarrierJump']
 const IGNORE_OLDER_THAN_MS = 10 * 60 * 1000 // 10 minutes
 
 let socket: Subscriber
@@ -62,7 +62,7 @@ async function run() {
         if (
           message.$schemaRef !== JOURNAL_EVENT_SCHEMA ||
           !message.header.gameversion?.startsWith(MAJOR_GAME_VERSION) ||
-          !message.header.softwareName.startsWith(SOFTWARE) ||
+          !SUPPORTED_SOFTWARE_PREFIXES.some((prefix) => message.header.softwareName.startsWith(prefix)) ||
           !EVENTS.includes(message.message.event) ||
           new Date(message.message.timestamp).getTime() < Date.now() - IGNORE_OLDER_THAN_MS
         ) {
