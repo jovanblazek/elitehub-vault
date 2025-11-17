@@ -1,6 +1,8 @@
 /**
  * This file contains the types extracted from the messages sent by the EDDN Gateway.
  * Exported types and interfaces should be prefixed with EDDNJournal or similar prefix.
+ *
+ * Also see: https://jixxed.github.io/ed-journal-schemas/index.html
  */
 
 export interface EDDNJournalMessage {
@@ -26,7 +28,11 @@ export interface EDDNJournalMessage {
   /**
    * Contains all properties from the listed events in the client's journal minus Localised strings and the properties marked below as 'disallowed'
    */
-  message: EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage | EDDNJournalCarrierJumpMessage
+  message:
+    | EDDNJournalLocationMessage
+    | EDDNJournalFSDJumpMessage
+    | EDDNJournalCarrierJumpMessage
+    | EDDNJournalDockedMessage
 }
 
 export interface EDDNJournalLocationMessage {
@@ -114,7 +120,7 @@ export interface EDDNJournalCarrierJumpMessage {
   Multicrew?: boolean
   Population: number
   StarPos: number[]
-  StarSystem: string
+  StarSystem: string // Destination system
   StationEconomies: StationEconomy[]
   StationEconomy: string
   StationFaction: ShortFactionInfo
@@ -130,11 +136,36 @@ export interface EDDNJournalCarrierJumpMessage {
   SystemSecondEconomy: string
   SystemSecurity: string
   Taxi?: boolean
-  event: "CarrierJump"
+  event: 'CarrierJump'
   horizons: boolean
   odyssey: boolean
   timestamp: Date
   Conflicts?: Conflict[]
+}
+
+export interface EDDNJournalDockedMessage {
+  DistFromStarLS: number
+  LandingPads: LandingPads
+  MarketID: number
+  Multicrew?: boolean
+  StarPos: number[]
+  StarSystem: string
+  StationEconomies: StationEconomy[]
+  StationEconomy: string
+  StationFaction: StationFaction
+  StationGovernment: string
+  StationName: string
+  StationServices: string[]
+  StationType: string
+  SystemAddress: number
+  Taxi?: boolean
+  event: 'Docked'
+  horizons: boolean
+  odyssey: boolean
+  timestamp: Date
+  Body?: string
+  BodyType?: string
+  StationAllegiance?: string
 }
 
 type StationEconomy = {
@@ -187,3 +218,14 @@ type FactionInConflict = {
 }
 
 type PowerplayState = 'Unoccupied' | 'Stronghold' | 'Exploited' | 'Fortified'
+
+export type LandingPads = {
+  Large: number
+  Medium: number
+  Small: number
+}
+
+export type StationFaction = {
+  Name: string
+  FactionState?: string
+}
