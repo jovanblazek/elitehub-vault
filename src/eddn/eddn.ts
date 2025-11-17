@@ -5,7 +5,7 @@ import { JournalProcessingQueue } from '../mq/queues/journalProcessing/index.js'
 import logger from '../utils/logger.js'
 import { EDDNJournalMessage } from './types.js'
 
-const SYSTEM_PROCESS_JOB_NAME = 'system-processing'
+const JOURNAL_PROCESS_JOB_NAME = 'journal-processing'
 const FILE_NAME = 'eddnProcess.js'
 const MAX_RESTARTS = 3
 
@@ -33,7 +33,7 @@ export default function startEDDNListenerProcess() {
       // Only check for presence of StarSystem to be sure, other checks are done in the worker
       if (eddnJournalMessage?.message?.StarSystem) {
         await JournalProcessingQueue.add(
-          `${SYSTEM_PROCESS_JOB_NAME}:${eddnJournalMessage.message.event}:${eddnJournalMessage.message.StarSystem}`,
+          `${JOURNAL_PROCESS_JOB_NAME}:${eddnJournalMessage.message.event}:${eddnJournalMessage.message.StarSystem}`,
           eddnJournalMessage
         )
       }

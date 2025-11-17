@@ -1,7 +1,9 @@
 import { Queue, Worker } from 'bullmq'
-import type { EDDNEventToProcess } from '../../../types/eddn.js'
 import { Redis } from '../../../utils/redis.js'
 import { QueueNames } from '../../constants.js'
+import type { EDDNJournalMessage } from '../../../eddn/types.js'
+import logger from '../../../utils/logger.js'
+import { processFSDJumpEvent } from './events/fsdJump.js'
 
 export const JournalProcessingQueue = new Queue(QueueNames.journalProcessing, {
   connection: Redis,
@@ -16,10 +18,23 @@ export const JournalProcessingQueue = new Queue(QueueNames.journalProcessing, {
   },
 })
 
-export const JournalProcessingWorker = new Worker<EDDNEventToProcess>(
+export const JournalProcessingWorker = new Worker<EDDNJournalMessage>(
   QueueNames.journalProcessing,
   async (job) => {
     console.log('JournalProcessingWorker running')
+
+    const { event } = job.data.message
+
+    switch (event) {
+      case 'FSDJump':
+        return processFSDJumpEvent(job.data.message)
+      // case 'Location':
+      //   return processLocationEvent(job.data.message)
+      // case 'CarrierJump':
+      //   return processCarrierJumpEvent(job.data.message)
+      default:
+        logger.warn(`[JournalProcessingWorker] Unknown event type: ${event}`)
+    }
   },
   { connection: Redis }
 )
