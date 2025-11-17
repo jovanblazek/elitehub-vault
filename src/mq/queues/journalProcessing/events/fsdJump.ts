@@ -6,16 +6,24 @@ import {
   Systems,
   Factions,
   SystemFactions,
+  FactionStates,
+  FactionConflicts,
+  Stations,
   PowerplayState,
   PowerplayPowers,
   SystemPowerplayPowers,
   PowerplayConflicts,
+  FactionConflictType,
+  FactionConflictStatus,
+  FactionState,
 } from '../../../../db/schema.js'
 import { db } from '../../../../db/db.js'
 import {
   AllegianceMap,
   EconomyMap,
   FactionGovernmentMap,
+  FactionHappinessMap,
+  FactionStateMap,
   PowerplayStateMap,
   SystemSecurityMap,
   ValidPowerplayPowers,
@@ -24,6 +32,8 @@ import {
 const SystemsInsertSchema = createInsertSchema(Systems)
 const FactionsInsertSchema = createInsertSchema(Factions)
 const SystemFactionsInsertSchema = createInsertSchema(SystemFactions)
+const FactionStatesInsertSchema = createInsertSchema(FactionStates)
+const FactionConflictsInsertSchema = createInsertSchema(FactionConflicts)
 const PowerplayConflictsInsertSchema = createInsertSchema(PowerplayConflicts)
 
 // TODO: Add transactions when done with implementing all the logic
@@ -82,53 +92,47 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
 
   const systemId = system.id
 
-  // upsert system powerplay powers and cleanup if needed
-  if (message.Powers || message.ControllingPower) {
-    await db
-      .insert(SystemPowerplayPowers)
-      .values(powerplayPowers.map((power) => ({ systemId, powerId: power.id })))
-      .onConflictDoNothing()
+  // upsert system powerplay powers and cleanup
+  await db
+    .insert(SystemPowerplayPowers)
+    .values(powerplayPowers.map((power) => ({ systemId, powerId: power.id })))
+    .onConflictDoNothing()
 
-    await db.delete(SystemPowerplayPowers).where(
-      and(
-        eq(SystemPowerplayPowers.systemId, systemId),
-        notInArray(
-          SystemPowerplayPowers.powerId,
-          powerplayPowers.map((power) => power.id)
-        )
+  await db.delete(SystemPowerplayPowers).where(
+    and(
+      eq(SystemPowerplayPowers.systemId, systemId),
+      notInArray(
+        SystemPowerplayPowers.powerId,
+        powerplayPowers.map((power) => power.id)
       )
     )
-  }
+  )
 
-  // upsert powerplay conflicts and cleanup if needed
-  if (message.PowerplayConflictProgress) {
-    const powerplayConflictsData = message.PowerplayConflictProgress.map(
-      ({ Power, ConflictProgress }) => ({
-        systemId,
-        powerId: powerplayPowers.find((power) => power.name === Power)?.id,
-        conflictProgress: ConflictProgress,
-      })
-    ).filter((conflict) => conflict.powerId)
+  // upsert powerplay conflicts and cleanup
+  const powerplayConflictsData = (message.PowerplayConflictProgress ?? [])
+    .map(({ Power, ConflictProgress }) => ({
+      systemId,
+      powerId: powerplayPowers.find((power) => power.name === Power)?.id,
+      conflictProgress: ConflictProgress,
+    }))
+    .filter((conflict) => conflict.powerId)
 
-    const validatedPowerplayConflictsData =
-      PowerplayConflictsInsertSchema.array().parse(powerplayConflictsData)
+  const validatedPowerplayConflictsData =
+    PowerplayConflictsInsertSchema.array().parse(powerplayConflictsData)
 
-    await db
-      .insert(PowerplayConflicts)
-      .values(validatedPowerplayConflictsData)
-      .onConflictDoNothing()
+  await db.insert(PowerplayConflicts).values(validatedPowerplayConflictsData).onConflictDoNothing()
 
-    await db.delete(PowerplayConflicts).where(
-      and(
-        eq(PowerplayConflicts.systemId, systemId),
-        notInArray(
-          PowerplayConflicts.powerId,
-          validatedPowerplayConflictsData.map((conflict) => conflict.powerId)
-        )
+  await db.delete(PowerplayConflicts).where(
+    and(
+      eq(PowerplayConflicts.systemId, systemId),
+      notInArray(
+        PowerplayConflicts.powerId,
+        validatedPowerplayConflictsData.map((conflict) => conflict.powerId)
       )
     )
-  }
+  )
 
+  // upsert factions and related data like conflicts and states
   if (message.Factions) {
     // upsert factions
     const factionsData = message.Factions.map((faction) => ({
@@ -152,6 +156,14 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
       })
       .returning()
 
+    const factionIdsByFactionName = factions.reduce(
+      (acc, faction) => {
+        acc[faction.name] = faction.id
+        return acc
+      },
+      {} as Record<string, string>
+    )
+
     // upsert system factions
     await db
       .insert(SystemFactions)
@@ -168,21 +180,136 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
         )
       )
     )
+
+    // cleanup faction states - remove system factions that are not in the message
+    await db.delete(FactionStates).where(
+      and(
+        eq(FactionStates.systemId, systemId),
+        notInArray(
+          FactionStates.factionId,
+          factions.map(({ id }) => id)
+        )
+      )
+    )
+
+    // upsert faction states
+    const factionStatesData = message.Factions.map((faction, index) => ({
+      factionId: factionIdsByFactionName[faction.Name],
+      systemId,
+      happiness:
+        FactionHappinessMap?.[faction.Happiness as keyof typeof FactionHappinessMap] ?? null,
+      influence: faction.Influence,
+      activeStates: (faction.ActiveStates ?? [])
+        .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+        .filter(Boolean) as FactionState[],
+      recoveringStates: (faction.RecoveringStates ?? [])
+        .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+        .filter(Boolean) as FactionState[],
+      pendingStates: (faction.PendingStates ?? [])
+        .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+        .filter(Boolean) as FactionState[],
+      activeStatesRaw: faction.ActiveStates ?? [],
+      recoveringStatesRaw: faction.RecoveringStates ?? [],
+      pendingStatesRaw: faction.PendingStates ?? [],
+    }))
+
+    const validatedFactionStatesData = FactionStatesInsertSchema.array().parse(factionStatesData)
+
+    await db
+      .insert(FactionStates)
+      .values(validatedFactionStatesData)
+      .onConflictDoUpdate({
+        target: [FactionStates.factionId, FactionStates.systemId],
+        set: {
+          ...validatedFactionStatesData,
+          updatedAt: new Date(),
+        },
+      })
+
+    // upsert faction conflicts
+    const conflictsData = []
+
+    for (const conflict of message.Conflicts ?? []) {
+      // Find faction1
+      const faction1 = await db
+        .select({ id: Factions.id })
+        .from(Factions)
+        .where(eq(Factions.name, conflict.Faction1.Name))
+        .limit(1)
+
+      // Find faction2
+      const faction2 = await db
+        .select({ id: Factions.id })
+        .from(Factions)
+        .where(eq(Factions.name, conflict.Faction2.Name))
+        .limit(1)
+
+      if (!faction1[0] || !faction2[0]) {
+        console.warn(
+          `Could not find factions for conflict: ${conflict.Faction1.Name} vs ${conflict.Faction2.Name}`
+        )
+        continue
+      }
+
+      // Find stations by stake (if they exist)
+      const factionStakeStation = conflict.Faction1.Stake
+        ? await db
+            .select({ id: Stations.id })
+            .from(Stations)
+            .where(eq(Stations.name, conflict.Faction1.Stake))
+            .limit(1)
+        : null
+
+      const opponentStakeStation = conflict.Faction2.Stake
+        ? await db
+            .select({ id: Stations.id })
+            .from(Stations)
+            .where(eq(Stations.name, conflict.Faction2.Stake))
+            .limit(1)
+        : null
+
+      conflictsData.push({
+        systemId,
+        factionId: faction1[0].id,
+        opponentFactionId: faction2[0].id,
+        type: conflict.WarType as FactionConflictType,
+        status: conflict.Status as FactionConflictStatus,
+        factionWonDays: conflict.Faction1.WonDays,
+        opponentWonDays: conflict.Faction2.WonDays,
+        factionStake: conflict.Faction1.Stake,
+        factionStakeStationId: factionStakeStation?.[0]?.id ?? null,
+        opponentStake: conflict.Faction2.Stake,
+        opponentStakeStationId: opponentStakeStation?.[0]?.id ?? null,
+      })
+    }
+
+    const validatedConflictsData = FactionConflictsInsertSchema.array().parse(conflictsData)
+
+    const insertedConflicts = await db
+      .insert(FactionConflicts)
+      .values(validatedConflictsData)
+      .onConflictDoUpdate({
+        target: [
+          FactionConflicts.systemId,
+          FactionConflicts.factionId,
+          FactionConflicts.opponentFactionId,
+        ],
+        set: {
+          ...validatedConflictsData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning()
+
+    // cleanup conflicts - remove conflicts that are not in the message
+    await db.delete(FactionConflicts).where(
+      and(
+        eq(FactionConflicts.systemId, systemId),
+        notInArray(
+          FactionConflicts.id,
+          insertedConflicts.map((conflict) => conflict.id)
+        )
+      )
+    )
   }
-
-  // for each faction
-  // get faction states for this system
-  // compare pending states, update if incoming state is different
-  // compare active states, update if incoming state is different
-  // compare recovering states, update if incoming state is different
-  // compare influence, update if incoming influence is different
-  // compare happiness, update if incoming happiness is different
-  // upsert faction states to db
-
-  // for each conflict
-  // find involved factions in DB
-  // find stations by `stake` in DB
-  // upsert conflict to db
-
-  // cleanup conflicts - remove conflicts that are not in the message
 }
