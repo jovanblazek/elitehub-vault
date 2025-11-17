@@ -47,6 +47,8 @@ export enum StationType {
   AsteroidBase = 'AsteroidBase',
   MegaShip = 'MegaShip',
   // FleetCarrier = 'FleetCarrier', // We do not store fleet carriers
+  // SpaceConstructionDepot = 'SpaceConstructionDepot', // We do not store space construction depots
+  // PlanetaryConstructionDepot = 'PlanetaryConstructionDepot', // We do not store planetary construction depots
 }
 
 export const StationTypeEnum = pgEnum('stationTypeEnum', enumToPgEnum(StationType))

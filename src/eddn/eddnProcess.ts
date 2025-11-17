@@ -13,7 +13,7 @@ const SUPPORTED_SOFTWARE_PREFIXES = [
   'EDDI',
   'EDDLite',
 ]
-const EVENTS = ['FSDJump', 'Location', 'CarrierJump']
+const EVENTS = ['FSDJump', 'Location', 'CarrierJump', 'Docked']
 const IGNORE_OLDER_THAN_MS = 10 * 60 * 1000 // 10 minutes
 
 let socket: Subscriber

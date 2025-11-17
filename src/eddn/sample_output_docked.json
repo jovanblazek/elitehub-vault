@@ -1,0 +1,221 @@
+[
+  {
+    "$schemaRef": "https://eddn.edcd.io/schemas/journal/1",
+    "header": {
+      "gamebuild": "r321306/r0 ",
+      "gameversion": "4.2.2.1",
+      "gatewayTimestamp": "2025-11-17T16:06:20.401706Z",
+      "softwareName": "E:D Market Connector [Windows]",
+      "softwareVersion": "5.13.2",
+      "uploaderID": "dc222140231e889e387aa13bff441baab93bd797"
+    },
+    "message": {
+      "DistFromStarLS": 7.974554,
+      "LandingPads": {
+        "Large": 5,
+        "Medium": 11,
+        "Small": 10
+      },
+      "MarketID": 4226792963,
+      "Multicrew": false,
+      "StarPos": [27.25, 42.46875, 24.53125],
+      "StarSystem": "Col 285 Sector RY-R d4-128",
+      "StationEconomies": [
+        {
+          "Name": "$economy_Military;",
+          "Proportion": 1
+        }
+      ],
+      "StationEconomy": "$economy_Military;",
+      "StationFaction": {
+        "FactionState": "Boom",
+        "Name": "Sidewinder Syndicate"
+      },
+      "StationGovernment": "$government_Democracy;",
+      "StationName": "Oversizedwinder",
+      "StationServices": [
+        "dock",
+        "autodock",
+        "blackmarket",
+        "commodities",
+        "contacts",
+        "missions",
+        "outfitting",
+        "crewlounge",
+        "rearm",
+        "refuel",
+        "repair",
+        "shipyard",
+        "engineer",
+        "missionsgenerated",
+        "facilitator",
+        "flightcontroller",
+        "stationoperations",
+        "powerplay",
+        "searchrescue",
+        "stationMenu",
+        "shop",
+        "livery",
+        "socialspace",
+        "registeringcolonisation"
+      ],
+      "StationType": "Coriolis",
+      "SystemAddress": 4408540662123,
+      "Taxi": false,
+      "event": "Docked",
+      "horizons": true,
+      "odyssey": true,
+      "timestamp": "2025-11-17T16:06:18Z"
+    }
+  },
+  {
+    "$schemaRef": "https://eddn.edcd.io/schemas/journal/1",
+    "header": {
+      "gamebuild": "r321306/r0 ",
+      "gameversion": "4.2.2.1",
+      "gatewayTimestamp": "2025-11-17T16:06:18.333663Z",
+      "softwareName": "E:D Market Connector [Windows]",
+      "softwareVersion": "5.13.2",
+      "uploaderID": "141eb2c163c0c5f65b7afe769e2415e5af36f796"
+    },
+    "message": {
+      "DistFromStarLS": 268.541647,
+      "LandingPads": {
+        "Large": 5,
+        "Medium": 12,
+        "Small": 9
+      },
+      "MarketID": 4287322371,
+      "Multicrew": false,
+      "StarPos": [-1881.71875, -31.21875, 167.40625],
+      "StarSystem": "North America Sector NT-G a11-1",
+      "StationAllegiance": "Federation",
+      "StationEconomies": [
+        {
+          "Name": "$economy_Refinery;",
+          "Proportion": 3.8
+        },
+        {
+          "Name": "$economy_Industrial;",
+          "Proportion": 3.15
+        },
+        {
+          "Name": "$economy_Tourism;",
+          "Proportion": 0.8
+        },
+        {
+          "Name": "$economy_Military;",
+          "Proportion": 0.4
+        },
+        {
+          "Name": "$economy_Extraction;",
+          "Proportion": 0.2
+        },
+        {
+          "Name": "$economy_HighTech;",
+          "Proportion": 0.2
+        },
+        {
+          "Name": "$economy_Agri;",
+          "Proportion": 0.1
+        }
+      ],
+      "StationEconomy": "$economy_Refinery;",
+      "StationFaction": {
+        "FactionState": "Expansion",
+        "Name": "Earth Defense Fleet"
+      },
+      "StationGovernment": "$government_Corporate;",
+      "StationName": "The Home Depot",
+      "StationServices": [
+        "dock",
+        "autodock",
+        "commodities",
+        "contacts",
+        "missions",
+        "outfitting",
+        "crewlounge",
+        "rearm",
+        "refuel",
+        "repair",
+        "shipyard",
+        "engineer",
+        "missionsgenerated",
+        "flightcontroller",
+        "stationoperations",
+        "powerplay",
+        "searchrescue",
+        "stationMenu",
+        "shop",
+        "livery",
+        "socialspace",
+        "vistagenomics",
+        "registeringcolonisation"
+      ],
+      "StationType": "Coriolis",
+      "SystemAddress": 22757420977112,
+      "Taxi": false,
+      "event": "Docked",
+      "horizons": true,
+      "odyssey": true,
+      "timestamp": "2025-11-17T16:06:17Z"
+    }
+  },
+  {
+    "$schemaRef": "https://eddn.edcd.io/schemas/journal/1",
+    "header": {
+      "gamebuild": "r321306/r0 ",
+      "gameversion": "4.2.2.1",
+      "gatewayTimestamp": "2025-11-17T16:06:18.002919Z",
+      "softwareName": "E:D Market Connector [Windows]",
+      "softwareVersion": "5.13.2",
+      "uploaderID": "5cda8530d57e78b155be702a89de1b0896d39c2c"
+    },
+    "message": {
+      "Body": "Synuefe GS-X b48-9 B 1",
+      "BodyType": "Planet",
+      "DistFromStarLS": 91.191047,
+      "LandingPads": {
+        "Large": 1,
+        "Medium": 1,
+        "Small": 1
+      },
+      "MarketID": 4311423235,
+      "Multicrew": false,
+      "StarPos": [377.0625, -88.75, -18.125],
+      "StarSystem": "Synuefe GS-X b48-9",
+      "StationEconomies": [
+        {
+          "Name": "$economy_Colony;",
+          "Proportion": 1
+        }
+      ],
+      "StationEconomy": "$economy_Colony;",
+      "StationFaction": {
+        "Name": "Brewer Corporation"
+      },
+      "StationGovernment": "$government_Megaconstruction;",
+      "StationName": "Planetary Construction Site: Ozarkevich's Workshop",
+      "StationServices": [
+        "dock",
+        "autodock",
+        "commodities",
+        "contacts",
+        "rearm",
+        "refuel",
+        "repair",
+        "flightcontroller",
+        "stationoperations",
+        "stationMenu",
+        "colonisationcontribution"
+      ],
+      "StationType": "PlanetaryConstructionDepot",
+      "SystemAddress": 20467263743393,
+      "Taxi": false,
+      "event": "Docked",
+      "horizons": true,
+      "odyssey": true,
+      "timestamp": "2025-11-17T16:06:17Z"
+    }
+  }
+]
