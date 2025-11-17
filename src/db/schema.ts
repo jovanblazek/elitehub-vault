@@ -206,7 +206,7 @@ export const Systems = pgTable('systems', {
 
 export const Factions = pgTable('factions', {
   id: uuid().primaryKey().defaultRandom(),
-  name: citext().notNull(),
+  name: citext().notNull().unique(),
   government: FactionGovernmentEnum().notNull(),
   allegiance: AllegianceEnum().notNull(),
   createdAt: timestamp().notNull().defaultNow(),

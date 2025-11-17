@@ -1,0 +1,1 @@
+ALTER TABLE "factions" ADD CONSTRAINT "factions_name_unique" UNIQUE("name");

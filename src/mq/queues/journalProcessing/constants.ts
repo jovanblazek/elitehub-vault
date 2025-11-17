@@ -6,6 +6,7 @@ import {
   FactionGovernment,
   FactionHappiness,
   StationType,
+  PowerplayState,
 } from '../../../db/schema.js'
 
 export const SystemSecurityMap = {
@@ -118,3 +119,25 @@ export const FactionHappinessMap = {
   '$faction_happinessband5;': FactionHappiness.Despondent,
   none: null,
 }
+
+export const PowerplayStateMap = {
+  Unoccupied: PowerplayState.Unoccupied,
+  Stronghold: PowerplayState.Stronghold,
+  Exploited: PowerplayState.Exploited,
+  Fortified: PowerplayState.Fortified,
+}
+
+export const ValidPowerplayPowers = new Set([
+  'A. Lavigny-Duval',
+  'Aisling Duval',
+  'Archon Delaine',
+  'Denton Patreus',
+  'Edmund Mahon',
+  'Felicia Winters',
+  'Jerome Archer',
+  'Li Yong-Rui',
+  'Nakato Kaine',
+  'Pranav Antal',
+  'Yuri Grom',
+  'Zemina Torval',
+])
