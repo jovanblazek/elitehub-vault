@@ -1,4 +1,4 @@
-import { createInsertSchema, createUpdateSchema } from 'drizzle-zod'
+import { createInsertSchema } from 'drizzle-zod'
 import { eq, and, notInArray } from 'drizzle-orm'
 import type { EDDNJournalFSDJumpMessage } from '../../../../eddn/types.js'
 
@@ -9,7 +9,6 @@ import {
   FactionStates,
   FactionConflicts,
   Stations,
-  PowerplayState,
   PowerplayPowers,
   SystemPowerplayPowers,
   PowerplayConflicts,
@@ -32,7 +31,6 @@ import {
 
 const SystemsInsertSchema = createInsertSchema(Systems)
 const FactionsInsertSchema = createInsertSchema(Factions)
-const SystemFactionsInsertSchema = createInsertSchema(SystemFactions)
 const FactionStatesInsertSchema = createInsertSchema(FactionStates)
 const FactionConflictsInsertSchema = createInsertSchema(FactionConflicts)
 const PowerplayConflictsInsertSchema = createInsertSchema(PowerplayConflicts)
