@@ -178,7 +178,7 @@ type PowerplayConflictProgress = {
   Power: string
 }
 
-type ShortFactionInfo = {
+export type ShortFactionInfo = {
   FactionState?: string
   Name: string
 }

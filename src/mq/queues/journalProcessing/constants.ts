@@ -143,3 +143,33 @@ export const ValidPowerplayPowers = new Set([
   'Yuri Grom',
   'Zemina Torval',
 ])
+
+export const EXCLUDED_STATION_GOVERNMENTS = new Set([
+  '$government_megaconstruction;',
+  '$government_carrier;',
+])
+
+// Map helper functions for cleaner lookups
+export const mapGovernment = (value?: string) =>
+  FactionGovernmentMap?.[value?.toLowerCase() as keyof typeof FactionGovernmentMap] ?? null
+
+export const mapAllegiance = (value?: string) =>
+  AllegianceMap?.[value?.toLowerCase() as keyof typeof AllegianceMap] ?? Allegiance.Independent
+
+export const mapEconomy = (value?: string) =>
+  EconomyMap?.[value?.toLowerCase() as keyof typeof EconomyMap] ?? null
+
+export const mapSecurity = (value?: string) =>
+  SystemSecurityMap?.[value?.toLowerCase() as keyof typeof SystemSecurityMap] ?? null
+
+export const mapPowerplayState = (value?: string) =>
+  PowerplayStateMap?.[value as keyof typeof PowerplayStateMap] ?? null
+
+export const mapHappiness = (value?: string) =>
+  FactionHappinessMap?.[value?.toLowerCase() as keyof typeof FactionHappinessMap] ?? null
+
+export const mapStationType = (value?: string) =>
+  StationTypeMap?.[value?.toLowerCase() as keyof typeof StationTypeMap] ?? null
+
+export const mapFactionState = (value?: string) =>
+  FactionStateMap?.[value?.toLowerCase() as keyof typeof FactionStateMap] ?? null
