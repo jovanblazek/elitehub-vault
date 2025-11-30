@@ -163,9 +163,9 @@ export interface EDDNJournalDockedMessage {
   horizons: boolean
   odyssey: boolean
   timestamp: Date
-  Body?: string
+  Body?: string // Seems to be defined only when the station is on a planet
   BodyType?: string
-  StationAllegiance?: string
+  StationAllegiance?: string // Looks like it is Independent if undefined
 }
 
 type StationEconomy = {

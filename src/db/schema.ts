@@ -41,6 +41,7 @@ export enum StationType {
   Coriolis = 'Coriolis',
   Orbis = 'Orbis',
   Ocellus = 'Ocellus',
+  Dodec = 'Dodec',
   Outpost = 'Outpost',
   PlanetaryPort = 'PlanetaryPort',
   PlanetaryOutpost = 'PlanetaryOutpost',
@@ -95,9 +96,12 @@ export enum FactionGovernment {
   Feudal = 'Feudal',
   Imperial = 'Imperial',
   Patronage = 'Patronage',
+  Prison = 'Prison',
   PrisonColony = 'PrisonColony',
   Theocracy = 'Theocracy',
   Workshop = 'Workshop',
+  // Megaconstruction = 'Megaconstruction',  // We do not store construction sites/colonization ships
+  // Carrier = 'Carrier',  // We do not store fleet carriers
 }
 
 export const FactionGovernmentEnum = pgEnum(
@@ -282,6 +286,9 @@ export const Stations = pgTable('stations', {
   economy: EconomyEnum(),
   economies: jsonb().default([]).notNull(),
   services: jsonb().default([]).notNull(),
+  landingPadsSmall: integer().notNull().default(0),
+  landingPadsMedium: integer().notNull().default(0),
+  landingPadsLarge: integer().notNull().default(0),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })

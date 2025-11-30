@@ -83,6 +83,7 @@ export const FactionGovernmentMap = {
   '$government_imperial;': FactionGovernment.Imperial,
   '$government_none;': null,
   '$government_patronage;': FactionGovernment.Patronage,
+  '$government_prison;': FactionGovernment.Prison,
   '$government_prisoncolony;': FactionGovernment.PrisonColony,
   '$government_theocracy;': FactionGovernment.Theocracy,
   '$government_engineer;': FactionGovernment.Workshop,
@@ -91,6 +92,7 @@ export const FactionGovernmentMap = {
 export const StationTypeMap = {
   coriolis: StationType.Coriolis,
   'coriolis starport': StationType.Coriolis,
+  'dodec': StationType.Dodec,
   bernal: StationType.Ocellus,
   'ocellus starport': StationType.Ocellus,
   orbis: StationType.Orbis,

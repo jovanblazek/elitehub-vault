@@ -16,6 +16,7 @@ import {
   FactionConflictType,
   FactionConflictStatus,
   FactionState,
+  Allegiance,
 } from '../../../../db/schema.js'
 import { db } from '../../../../db/db.js'
 import {
@@ -58,13 +59,19 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
       z: message.StarPos[2],
       population: message.Population,
       government:
-        FactionGovernmentMap?.[message.SystemGovernment as keyof typeof FactionGovernmentMap] ??
-        null,
-      allegiance: AllegianceMap?.[message.SystemAllegiance as keyof typeof AllegianceMap] ?? null,
-      economy: EconomyMap?.[message.SystemEconomy as keyof typeof EconomyMap] ?? null,
-      secondEconomy: EconomyMap?.[message.SystemSecondEconomy as keyof typeof EconomyMap] ?? null,
+        FactionGovernmentMap?.[
+          message.SystemGovernment.toLowerCase() as keyof typeof FactionGovernmentMap
+        ] ?? null,
+      allegiance:
+        AllegianceMap?.[message.SystemAllegiance?.toLowerCase() as keyof typeof AllegianceMap] ??
+        Allegiance.Independent,
+      economy: EconomyMap?.[message.SystemEconomy.toLowerCase() as keyof typeof EconomyMap] ?? null,
+      secondEconomy:
+        EconomyMap?.[message.SystemSecondEconomy.toLowerCase() as keyof typeof EconomyMap] ?? null,
       security:
-        SystemSecurityMap?.[message.SystemSecurity as keyof typeof SystemSecurityMap] ?? null,
+        SystemSecurityMap?.[
+          message.SystemSecurity.toLowerCase() as keyof typeof SystemSecurityMap
+        ] ?? null,
       powerplayState:
         PowerplayStateMap?.[message.PowerplayState as keyof typeof PowerplayStateMap] ?? null,
       powerplayStateControlProgress: message.PowerplayStateControlProgress,
@@ -141,8 +148,12 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
       const factionsData = message.Factions.map((faction) => ({
         name: faction.Name,
         government:
-          FactionGovernmentMap?.[faction.Government as keyof typeof FactionGovernmentMap] ?? null,
-        allegiance: AllegianceMap?.[faction.Allegiance as keyof typeof AllegianceMap] ?? null,
+          FactionGovernmentMap?.[
+            faction.Government.toLowerCase() as keyof typeof FactionGovernmentMap
+          ] ?? null,
+        allegiance:
+          AllegianceMap?.[faction.Allegiance.toLowerCase() as keyof typeof AllegianceMap] ??
+          Allegiance.Independent,
       }))
 
       const validatedFactionsData = FactionsInsertSchema.array().parse(factionsData)
@@ -200,16 +211,24 @@ export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) =>
         factionId: factionIdsByFactionName[faction.Name],
         systemId,
         happiness:
-          FactionHappinessMap?.[faction.Happiness as keyof typeof FactionHappinessMap] ?? null,
+          FactionHappinessMap?.[
+            faction.Happiness.toLowerCase() as keyof typeof FactionHappinessMap
+          ] ?? null,
         influence: faction.Influence,
         activeStates: (faction.ActiveStates ?? [])
-          .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+          .map(
+            (state) => FactionStateMap?.[state.State.toLowerCase() as keyof typeof FactionStateMap]
+          )
           .filter(Boolean) as FactionState[],
         recoveringStates: (faction.RecoveringStates ?? [])
-          .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+          .map(
+            (state) => FactionStateMap?.[state.State.toLowerCase() as keyof typeof FactionStateMap]
+          )
           .filter(Boolean) as FactionState[],
         pendingStates: (faction.PendingStates ?? [])
-          .map((state) => FactionStateMap?.[state.State as keyof typeof FactionStateMap])
+          .map(
+            (state) => FactionStateMap?.[state.State.toLowerCase() as keyof typeof FactionStateMap]
+          )
           .filter(Boolean) as FactionState[],
         activeStatesRaw: faction.ActiveStates ?? [],
         recoveringStatesRaw: faction.RecoveringStates ?? [],
