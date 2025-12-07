@@ -4,8 +4,10 @@ import { QueueNames } from '../../constants.js'
 import type { EDDNJournalMessage } from '../../../eddn/types.js'
 import logger from '../../../utils/logger.js'
 import { processFSDJumpEvent } from './events/fsdJump.js'
+import { processLocationEvent } from './events/location.js'
+import { processDockedEvent } from './events/docked.js'
 
-export const JournalProcessingQueue = new Queue(QueueNames.journalProcessing, {
+export const EDDNQueue = new Queue(QueueNames.eddn, {
   connection: Redis,
   defaultJobOptions: {
     attempts: 3,
@@ -18,22 +20,24 @@ export const JournalProcessingQueue = new Queue(QueueNames.journalProcessing, {
   },
 })
 
-export const JournalProcessingWorker = new Worker<EDDNJournalMessage>(
-  QueueNames.journalProcessing,
+export const EDDNWorker = new Worker<EDDNJournalMessage>(
+  QueueNames.eddn,
   async (job) => {
-    console.log('JournalProcessingWorker running')
+    console.log('EDDNWorker running')
 
     const { event } = job.data.message
 
     switch (event) {
       case 'FSDJump':
         return processFSDJumpEvent(job.data.message)
-      // case 'Location':
-      //   return processLocationEvent(job.data.message)
+      case 'Docked':
+        return processDockedEvent(job.data.message)
+      case 'Location':
+        return processLocationEvent(job.data.message)
       // case 'CarrierJump':
       //   return processCarrierJumpEvent(job.data.message)
       default:
-        logger.warn(`[JournalProcessingWorker] Unknown event type: ${event}`)
+        logger.warn(`[EDDNWorker] Unknown event type: ${event}`)
     }
   },
   { connection: Redis }

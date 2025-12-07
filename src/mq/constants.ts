@@ -1,3 +1,3 @@
 export const QueueNames = {
-  journalProcessing: 'journalProcessing',
+  eddn: 'eddn',
 }

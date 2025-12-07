@@ -1,8 +1,8 @@
 import logger from '../utils/logger.js'
-import { JournalProcessingWorker } from './queues/journalProcessing/index.js'
+import { EDDNWorker } from './queues/eddn/index.js'
 
 export const initMQ = () => {
-  const bullMQWorkers = [JournalProcessingWorker]
+  const bullMQWorkers = [EDDNWorker]
   bullMQWorkers.forEach((worker) => {
     worker.on('failed', (job) => {
       if (job) {

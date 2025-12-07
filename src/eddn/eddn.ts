@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'child_process'
 import { fork } from 'child_process'
 import path from 'path'
-import { JournalProcessingQueue } from '../mq/queues/journalProcessing/index.js'
+import { EDDNQueue } from '../mq/queues/eddn/index.js'
 import logger from '../utils/logger.js'
 import { EDDNJournalMessage } from './types.js'
 
@@ -32,7 +32,7 @@ export default function startEDDNListenerProcess() {
     process.on('message', async (eddnJournalMessage: EDDNJournalMessage) => {
       // Only check for presence of StarSystem to be sure, other checks are done in the worker
       if (eddnJournalMessage?.message?.StarSystem) {
-        await JournalProcessingQueue.add(
+        await EDDNQueue.add(
           `${JOURNAL_PROCESS_JOB_NAME}:${eddnJournalMessage.message.event}:${eddnJournalMessage.message.StarSystem}`,
           eddnJournalMessage
         )
