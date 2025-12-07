@@ -45,5 +45,3 @@ When modifying schema in `src/db/schema.ts`:
 - src/mq/queues/eddn/events/ - Event-specific processors
 - src/mq/queues/eddn/helpers/ - Data transformation logic
 - src/db/schema.ts - Database schema
-
-

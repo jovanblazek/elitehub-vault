@@ -28,7 +28,6 @@ export default function startEDDNListenerProcess() {
       logger.info('[EDDN Listener] Listener process spawned')
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     process.on('message', async (eddnJournalMessage: EDDNJournalMessage) => {
       // Only check for presence of StarSystem to be sure, other checks are done in the worker
       if (eddnJournalMessage?.message?.StarSystem) {
@@ -60,7 +59,7 @@ export default function startEDDNListenerProcess() {
     isShuttingDown = true
     logger.info('[EDDN Manager] Initiating graceful shutdown of listener process')
 
-    // eslint-disable-next-line consistent-return
+    // TODO: Revisit this shutdown logic
     return new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
         if (process) {
@@ -73,6 +72,7 @@ export default function startEDDNListenerProcess() {
         process.once('message', (message) => {
           if (message === 'shutdown_complete') {
             clearTimeout(timeout)
+            // oxlint-disable-next-line no-multiple-resolved
             resolve()
           }
         })
@@ -80,6 +80,7 @@ export default function startEDDNListenerProcess() {
       } else {
         // If process is not connected, resolve immediately
         clearTimeout(timeout)
+        // oxlint-disable-next-line no-multiple-resolved
         resolve()
       }
     })

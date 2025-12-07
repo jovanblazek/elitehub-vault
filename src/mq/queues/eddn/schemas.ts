@@ -14,4 +14,3 @@ export const FactionStatesInsertSchema = createInsertSchema(FactionStates)
 export const FactionConflictsInsertSchema = createInsertSchema(FactionConflicts)
 export const StationsInsertSchema = createInsertSchema(Stations)
 export const PowerplayConflictsInsertSchema = createInsertSchema(PowerplayConflicts)
-

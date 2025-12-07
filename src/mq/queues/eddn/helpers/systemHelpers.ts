@@ -74,4 +74,3 @@ export const upsertSystem = async (
 
   return system
 }
-

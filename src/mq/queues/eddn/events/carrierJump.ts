@@ -1,1 +1,2 @@
+// oxlint-disable
 // TODO: this is the least important event to process, so we can leave it for last

@@ -116,4 +116,3 @@ export const processPowerplayData = async (
   await upsertSystemPowerplayPowers(tx, systemId, powerplayPowers)
   await upsertPowerplayConflicts(tx, systemId, message, powerplayPowers)
 }
-

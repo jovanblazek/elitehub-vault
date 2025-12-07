@@ -1,3 +1,4 @@
+// oxlint-disable no-await-in-loop
 import { eq, and, notInArray } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
@@ -9,7 +10,6 @@ import {
   FactionStates,
   FactionConflicts,
   Stations,
-  Allegiance,
   FactionConflictType,
   FactionConflictStatus,
   FactionState,
@@ -114,9 +114,7 @@ const cleanupFactionStates = async (
  * Maps faction states from message format to database format
  */
 const mapFactionStates = (states: { State: string }[] | undefined) =>
-  (states ?? [])
-    .map((state) => mapFactionState(state.State))
-    .filter(Boolean) as FactionState[]
+  (states ?? []).map((state) => mapFactionState(state.State)).filter(Boolean) as FactionState[]
 
 /**
  * Upserts faction states for all factions in the system
@@ -187,7 +185,11 @@ const findStationId = async (tx: Transaction, name: string | undefined) => {
 /**
  * Upserts faction conflicts and cleans up stale ones
  */
-const upsertFactionConflicts = async (tx: Transaction, systemId: string, message: FactionMessage) => {
+const upsertFactionConflicts = async (
+  tx: Transaction,
+  systemId: string,
+  message: FactionMessage
+) => {
   if (!message.Conflicts || message.Conflicts.length === 0) {
     // Clean up all conflicts for this system if none exist
     await tx.delete(FactionConflicts).where(eq(FactionConflicts.systemId, systemId))
@@ -279,4 +281,3 @@ export const processFactionsData = async (
   await upsertFactionStates(tx, systemId, message, factionIdMap)
   await upsertFactionConflicts(tx, systemId, message)
 }
-

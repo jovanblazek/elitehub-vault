@@ -13,7 +13,7 @@ const SUPPORTED_SOFTWARE_PREFIXES = [
   'EDDI',
   'EDDLite',
 ]
-const EVENTS = ['FSDJump', 'Location', 'CarrierJump', 'Docked']
+const EVENTS = new Set(['FSDJump', 'Location', 'CarrierJump', 'Docked'])
 const IGNORE_OLDER_THAN_MS = 10 * 60 * 1000 // 10 minutes
 
 let socket: Subscriber
@@ -71,10 +71,9 @@ async function run() {
           !SUPPORTED_SOFTWARE_PREFIXES.some((prefix) =>
             message.header.softwareName.startsWith(prefix)
           ) ||
-          !EVENTS.includes(message.message.event) ||
+          !EVENTS.has(message.message.event) ||
           new Date(message.message.timestamp).getTime() < Date.now() - IGNORE_OLDER_THAN_MS
         ) {
-          // eslint-disable-next-line no-continue
           continue
         }
 

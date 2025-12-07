@@ -222,10 +222,14 @@ export const Factions = pgTable('factions', {
 export const SystemFactions = pgTable(
   'systemFactions',
   {
-    systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
-    factionId: uuid().notNull().references(() => Factions.id, {
-      onDelete: 'cascade',
-    }),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    factionId: uuid()
+      .notNull()
+      .references(() => Factions.id, {
+        onDelete: 'cascade',
+      }),
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
@@ -234,8 +238,12 @@ export const SystemFactions = pgTable(
 
 export const FactionStates = pgTable('factionStates', {
   id: uuid().primaryKey().defaultRandom(),
-  factionId: uuid().notNull().references(() => Factions.id, { onDelete: 'cascade' }),
-  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
+  factionId: uuid()
+    .notNull()
+    .references(() => Factions.id, { onDelete: 'cascade' }),
+  systemId: uuid()
+    .notNull()
+    .references(() => Systems.id, { onDelete: 'cascade' }),
   happiness: FactionHappinessEnum().notNull(),
   influence: doublePrecision().notNull(),
   activeStates: FactionStateEnum().array().default([]).notNull(),
@@ -250,8 +258,12 @@ export const FactionStates = pgTable('factionStates', {
 
 export const FactionConflicts = pgTable('factionConflicts', {
   id: uuid().primaryKey().defaultRandom(),
-  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
-  factionId: uuid().notNull().references(() => Factions.id, { onDelete: 'cascade' }),
+  systemId: uuid()
+    .notNull()
+    .references(() => Systems.id, { onDelete: 'cascade' }),
+  factionId: uuid()
+    .notNull()
+    .references(() => Factions.id, { onDelete: 'cascade' }),
   opponentFactionId: uuid().references(() => Factions.id, {
     onDelete: 'cascade',
   }),
@@ -276,10 +288,14 @@ export const Stations = pgTable('stations', {
   name: citext().notNull(),
   marketId: integer().unique(),
   stationType: StationTypeEnum(),
-  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
-  controllingFactionId: uuid().notNull().references(() => Factions.id, {
-    onDelete: 'set null',
-  }),
+  systemId: uuid()
+    .notNull()
+    .references(() => Systems.id, { onDelete: 'cascade' }),
+  controllingFactionId: uuid()
+    .notNull()
+    .references(() => Factions.id, {
+      onDelete: 'set null',
+    }),
   distanceFromStar: doublePrecision().notNull(),
   allegiance: AllegianceEnum(),
   government: FactionGovernmentEnum(),
@@ -303,16 +319,24 @@ export const PowerplayPowers = pgTable('powerplayPowers', {
 export const SystemPowerplayPowers = pgTable(
   'systemPowerplayPowers',
   {
-    systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
-    powerId: uuid().notNull().references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    powerId: uuid()
+      .notNull()
+      .references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
   },
   (table) => [primaryKey({ columns: [table.systemId, table.powerId] })]
 )
 
 export const PowerplayConflicts = pgTable('powerplayConflicts', {
   id: uuid().primaryKey().defaultRandom(),
-  systemId: uuid().notNull().references(() => Systems.id, { onDelete: 'cascade' }),
-  powerId: uuid().notNull().references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
+  systemId: uuid()
+    .notNull()
+    .references(() => Systems.id, { onDelete: 'cascade' }),
+  powerId: uuid()
+    .notNull()
+    .references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
   conflictProgress: doublePrecision().notNull(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),

@@ -92,7 +92,7 @@ export const FactionGovernmentMap = {
 export const StationTypeMap = {
   coriolis: StationType.Coriolis,
   'coriolis starport': StationType.Coriolis,
-  'dodec': StationType.Dodec,
+  dodec: StationType.Dodec,
   bernal: StationType.Ocellus,
   'ocellus starport': StationType.Ocellus,
   orbis: StationType.Orbis,

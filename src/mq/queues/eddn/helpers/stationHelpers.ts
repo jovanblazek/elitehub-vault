@@ -4,7 +4,7 @@ import type {
   EDDNJournalDockedMessage,
   ShortFactionInfo,
 } from '../../../../eddn/types.js'
-import { Factions, Stations, Allegiance } from '../../../../db/schema.js'
+import { Factions, Stations } from '../../../../db/schema.js'
 import { StationsInsertSchema } from '../schemas.js'
 import {
   EXCLUDED_STATION_GOVERNMENTS,
@@ -15,8 +15,6 @@ import {
 } from '../constants.js'
 import logger from '../../../../utils/logger.js'
 import type { Transaction } from './systemHelpers.js'
-
-type StationMessage = EDDNJournalLocationMessage | EDDNJournalDockedMessage
 
 /**
  * Checks if a station should be excluded based on its government type
@@ -46,7 +44,7 @@ const findControllingFactionId = async (tx: Transaction, factionName: string) =>
  * Builds station data from a Location message (when docked)
  */
 const buildStationDataFromLocation = (
-  message: EDDNJournalLocationMessage & { StationName: string; MarketID: number; },
+  message: EDDNJournalLocationMessage & { StationName: string; MarketID: number },
   systemId: string,
   controllingFactionId: string
 ): typeof Stations.$inferInsert => ({
@@ -96,7 +94,13 @@ const buildStationDataFromDocked = (
 /**
  * Checks if a Location message has all required station data
  */
-const hasRequiredStationData = (message: EDDNJournalLocationMessage): message is EDDNJournalLocationMessage & { StationName: string; MarketID: number; StationFaction: ShortFactionInfo } =>
+const hasRequiredStationData = (
+  message: EDDNJournalLocationMessage
+): message is EDDNJournalLocationMessage & {
+  StationName: string
+  MarketID: number
+  StationFaction: ShortFactionInfo
+} =>
   message.Docked &&
   !!message.StationName &&
   !!message.MarketID &&
@@ -176,4 +180,3 @@ export const upsertStationFromDocked = async (
       },
     })
 }
-

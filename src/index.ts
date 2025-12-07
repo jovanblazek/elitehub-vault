@@ -8,12 +8,10 @@ import { Redis } from './utils/redis.js'
 import Koa from 'koa'
 import { pgl } from './utils/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
-import { createServer } from 'node:http'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 Redis.on('ready', async () => {
   logger.info('[Redis] Connection established')
   BullMQWorkers = initMQ()
