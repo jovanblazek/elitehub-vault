@@ -126,7 +126,9 @@ export const upsertStationFromLocation = async (
   const controllingFactionId = await findControllingFactionId(tx, message.StationFaction.Name)
 
   if (!controllingFactionId) {
-    logger.warn(`Could not find controlling faction for station: ${message.StationFaction.Name}`)
+    logger.warn(
+      `Could not find controlling faction for station: ${message.StationFaction.Name}, systemId: ${systemId}`
+    )
     return
   }
 
@@ -160,10 +162,10 @@ export const upsertStationFromDocked = async (
   const controllingFactionId = await findControllingFactionId(tx, message.StationFaction.Name)
 
   if (!controllingFactionId) {
-    // TODO: Fetch faction from internet
-    throw new Error(
-      `Failed to find controlling faction after upsert: ${message.StationFaction.Name}`
+    logger.warn(
+      `Could not find controlling faction for station: ${message.StationFaction.Name}, systemId: ${systemId}`
     )
+    return
   }
 
   const stationData = buildStationDataFromDocked(message, systemId, controllingFactionId)
