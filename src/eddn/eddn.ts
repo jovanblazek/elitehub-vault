@@ -1,9 +1,12 @@
 import type { ChildProcess } from 'child_process'
 import { fork } from 'child_process'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { EDDNQueue } from '../mq/queues/eddn/index.js'
 import logger from '../utils/logger.js'
 import { EDDNJournalMessage } from './types.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const JOURNAL_PROCESS_JOB_NAME = 'journal-processing'
 const FILE_NAME = 'eddnProcess.js'
