@@ -1,4 +1,4 @@
-import './environment'
+import './environment.js'
 import pino from 'pino'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
