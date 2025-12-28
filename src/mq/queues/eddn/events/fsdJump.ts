@@ -8,7 +8,7 @@ import {
 } from '../helpers/index.js'
 
 export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) => {
-  db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     const system = await upsertSystem(tx, buildFullSystemData(message))
     await processPowerplayData(tx, message, system.id)
     await processFactionsData(tx, message, system.id)
