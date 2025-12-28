@@ -3,7 +3,7 @@ import { TYPES, listOfCodec } from 'postgraphile/@dataplan/pg'
 
 import { makePgService } from 'postgraphile/adaptors/pg'
 import { PostGraphileAmberPreset } from 'postgraphile/presets/amber'
-import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection"
+import { PgSimplifyInflectionPreset } from '@graphile/simplify-inflection'
 import { jsonPgSmartTags } from 'postgraphile/utils'
 
 /**
@@ -73,23 +73,23 @@ const SmartTagsPlugin = jsonPgSmartTags({
       __drizzle_migrations__: {
         tags: {
           // Disable everything for the __drizzle_migrations__ table
-          "behavior": "-*"
-        }
+          behavior: '-*',
+        },
       },
       systemPowerplayPowers: {
         tags: {
           // Disable direct queries to the systemPowerplayPowers table
-          "behavior": "-query:resource:single -query:resource:connection -resource:select"
-        }
+          behavior: '-query:resource:single -query:resource:connection -resource:select',
+        },
       },
       apiKeys: {
         tags: {
           // Disable everything for the apiKeys table
-          "behavior": "-*"
-        }
-      }
-    }
-  }
+          behavior: '-*',
+        },
+      },
+    },
+  },
 })
 
 const PGL_Preset: GraphileConfig.Preset = {

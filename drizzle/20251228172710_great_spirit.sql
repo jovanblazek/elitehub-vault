@@ -1,0 +1,1 @@
+ALTER TABLE "stations" ALTER COLUMN "marketId" SET DATA TYPE bigint;

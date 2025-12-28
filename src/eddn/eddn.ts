@@ -42,6 +42,7 @@ export default function startEDDNListenerProcess() {
     })
 
     process.on('exit', (code) => {
+      logger.warn(`[EDDN Listener] Process exited with code ${code}`)
       if (!isShuttingDown && code !== 0 && code !== null && restartCount < MAX_RESTARTS) {
         logger.warn(
           `[EDDN Listener] Process exited with code ${code} (restart ${

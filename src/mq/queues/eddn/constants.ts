@@ -7,6 +7,8 @@ import {
   FactionHappiness,
   StationType,
   PowerplayState,
+  FactionConflictType,
+  FactionConflictStatus,
 } from '../../../db/schema.js'
 
 export const SystemSecurityMap = {
@@ -89,6 +91,27 @@ export const FactionGovernmentMap = {
   '$government_engineer;': FactionGovernment.Workshop,
 }
 
+/**
+ * Some tools, provide localized government names for factions, this map is used to map them to the correct enum value
+ */
+export const FactionGovernmentLocalizedMap = {
+  anarchy: FactionGovernment.Anarchy,
+  communism: FactionGovernment.Communism,
+  confederacy: FactionGovernment.Confederacy,
+  cooperative: FactionGovernment.Cooperative,
+  corporate: FactionGovernment.Corporate,
+  democracy: FactionGovernment.Democracy,
+  dictatorship: FactionGovernment.Dictatorship,
+  feudal: FactionGovernment.Feudal,
+  imperial: FactionGovernment.Imperial,
+  none: null,
+  patronage: FactionGovernment.Patronage,
+  prison: FactionGovernment.Prison,
+  prisoncolony: FactionGovernment.PrisonColony,
+  theocracy: FactionGovernment.Theocracy,
+  engineer: FactionGovernment.Workshop,
+}
+
 export const StationTypeMap = {
   coriolis: StationType.Coriolis,
   'coriolis starport': StationType.Coriolis,
@@ -122,6 +145,18 @@ export const FactionHappinessMap = {
   none: null,
 }
 
+export const FactionConflictTypeMap = {
+  civilwar: FactionConflictType.CivilWar,
+  election: FactionConflictType.Election,
+  war: FactionConflictType.War,
+}
+
+export const FactionConflictStatusMap = {
+  pending: FactionConflictStatus.Pending,
+  active: FactionConflictStatus.Active,
+  '': FactionConflictStatus.Concluded,
+}
+
 export const PowerplayStateMap = {
   Unoccupied: PowerplayState.Unoccupied,
   Stronghold: PowerplayState.Stronghold,
@@ -151,7 +186,11 @@ export const EXCLUDED_STATION_GOVERNMENTS = new Set([
 
 // Map helper functions for cleaner lookups
 export const mapGovernment = (value?: string) =>
-  FactionGovernmentMap?.[value?.toLowerCase() as keyof typeof FactionGovernmentMap] ?? null
+  FactionGovernmentMap?.[value?.toLowerCase() as keyof typeof FactionGovernmentMap] ??
+  FactionGovernmentLocalizedMap?.[
+    value?.toLowerCase() as keyof typeof FactionGovernmentLocalizedMap
+  ] ??
+  null
 
 export const mapAllegiance = (value?: string) =>
   AllegianceMap?.[value?.toLowerCase() as keyof typeof AllegianceMap] ?? Allegiance.Independent
@@ -173,3 +212,9 @@ export const mapStationType = (value?: string) =>
 
 export const mapFactionState = (value?: string) =>
   FactionStateMap?.[value?.toLowerCase() as keyof typeof FactionStateMap] ?? null
+
+export const mapFactionConflictType = (value?: string) =>
+  FactionConflictTypeMap?.[value?.toLowerCase() as keyof typeof FactionConflictTypeMap] ?? null
+
+export const mapFactionConflictStatus = (value?: string) =>
+  FactionConflictStatusMap?.[value?.toLowerCase() as keyof typeof FactionConflictStatusMap] ?? null

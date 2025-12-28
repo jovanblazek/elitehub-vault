@@ -48,7 +48,7 @@
     "typescript": "^5.9.2"
   },
   "engines": {
-    "node": "^22.21.1"
+    "node": "^22.14.0"
   },
   "packageManager": "pnpm@9.15.9"
 }

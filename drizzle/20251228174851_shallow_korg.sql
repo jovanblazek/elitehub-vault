@@ -1,0 +1,1 @@
+ALTER TABLE "factionStates" ALTER COLUMN "happiness" DROP NOT NULL;

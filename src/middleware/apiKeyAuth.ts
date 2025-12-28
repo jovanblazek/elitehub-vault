@@ -17,7 +17,7 @@ export const apiKeyAuth: Middleware = async (ctx, next) => {
     return
   }
 
-  if(process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development') {
     await next()
     return
   }

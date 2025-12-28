@@ -10,8 +10,6 @@ import {
   FactionStates,
   FactionConflicts,
   Stations,
-  FactionConflictType,
-  FactionConflictStatus,
   FactionState,
 } from '../../../../db/schema.js'
 import {
@@ -19,7 +17,14 @@ import {
   FactionStatesInsertSchema,
   FactionConflictsInsertSchema,
 } from '../schemas.js'
-import { mapGovernment, mapAllegiance, mapHappiness, mapFactionState } from '../constants.js'
+import {
+  mapGovernment,
+  mapAllegiance,
+  mapHappiness,
+  mapFactionState,
+  mapFactionConflictType,
+  mapFactionConflictStatus,
+} from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
 
 type FactionMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
@@ -216,8 +221,8 @@ const upsertFactionConflicts = async (
       systemId,
       factionId: faction1Id,
       opponentFactionId: faction2Id,
-      type: conflict.WarType as FactionConflictType,
-      status: conflict.Status as FactionConflictStatus,
+      type: mapFactionConflictType(conflict.WarType),
+      status: mapFactionConflictStatus(conflict.Status),
       factionWonDays: conflict.Faction1.WonDays,
       opponentWonDays: conflict.Faction2.WonDays,
       factionStake: conflict.Faction1.Stake,

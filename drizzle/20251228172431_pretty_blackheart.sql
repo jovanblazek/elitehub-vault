@@ -1,0 +1,2 @@
+ALTER TABLE "factionConflicts" ADD CONSTRAINT "factionConflicts_factionId_systemId_opponentFactionId_unique" UNIQUE("factionId","systemId","opponentFactionId");--> statement-breakpoint
+ALTER TABLE "factionStates" ADD CONSTRAINT "factionStates_factionId_systemId_unique" UNIQUE("factionId","systemId");

@@ -23,21 +23,29 @@ export const EDDNQueue = new Queue(QueueNames.eddn, {
 export const EDDNWorker = new Worker<EDDNJournalMessage>(
   QueueNames.eddn,
   async (job) => {
-    console.log('EDDNWorker running')
+    try {
+      const { event } = job.data.message
 
-    const { event } = job.data.message
-
-    switch (event) {
-      case 'FSDJump':
-        return processFSDJumpEvent(job.data.message)
-      case 'Docked':
-        return processDockedEvent(job.data.message)
-      case 'Location':
-        return processLocationEvent(job.data.message)
-      // case 'CarrierJump':
-      //   return processCarrierJumpEvent(job.data.message)
-      default:
-        logger.warn(`[EDDNWorker] Unknown event type: ${event}`)
+      switch (event) {
+        case 'FSDJump':
+          return processFSDJumpEvent(job.data.message)
+        case 'Docked':
+          return processDockedEvent(job.data.message)
+        case 'Location':
+          return processLocationEvent(job.data.message)
+        // case 'CarrierJump':
+        //   return processCarrierJumpEvent(job.data.message)
+        default:
+          logger.warn(`[EDDNWorker] Unknown event type: ${event}`)
+      }
+    } catch (error) {
+      logger.error(error, '[EDDNWorker] Error processing job')
+      // Throw regular error to be caught by BullMQ
+      // Docs: The exceptions thrown in a processor must be an Error object for BullMQ to work correctly.
+      throw new Error(
+        `Failed to process EDDN job, event: ${job?.data?.message?.event ?? 'Unknown event'}`,
+        { cause: error }
+      )
     }
   },
   { connection: Redis }

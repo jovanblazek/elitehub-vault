@@ -1,0 +1,1 @@
+ALTER TYPE "public"."factionConflictStatusEnum" ADD VALUE 'Concluded';

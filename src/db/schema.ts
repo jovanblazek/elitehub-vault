@@ -1,7 +1,6 @@
 import { SQL, sql } from 'drizzle-orm'
 import {
   pgTable,
-  integer,
   uuid,
   timestamp,
   pgEnum,
@@ -12,6 +11,8 @@ import {
   bigint,
   text,
   boolean,
+  unique,
+  smallint,
 } from 'drizzle-orm/pg-core'
 
 function enumToPgEnum<T extends Record<string, any>>(myEnum: T): [T[keyof T], ...T[keyof T][]] {
@@ -80,6 +81,7 @@ export const FactionConflictTypeEnum = pgEnum(
 export enum FactionConflictStatus {
   Pending = 'Pending',
   Active = 'Active',
+  Concluded = 'Concluded',
 }
 
 export const FactionConflictStatusEnum = pgEnum(
@@ -197,7 +199,7 @@ export const Systems = pgTable('systems', {
   x: doublePrecision().notNull(),
   y: doublePrecision().notNull(),
   z: doublePrecision().notNull(),
-  population: integer().default(0).notNull(),
+  population: bigint({ mode: 'number' }).default(0).notNull(),
   government: FactionGovernmentEnum(),
   allegiance: AllegianceEnum(),
   economy: EconomyEnum(),
@@ -238,57 +240,65 @@ export const SystemFactions = pgTable(
   (table) => [primaryKey({ columns: [table.systemId, table.factionId] })]
 )
 
-export const FactionStates = pgTable('factionStates', {
-  id: uuid().primaryKey().defaultRandom(),
-  factionId: uuid()
-    .notNull()
-    .references(() => Factions.id, { onDelete: 'cascade' }),
-  systemId: uuid()
-    .notNull()
-    .references(() => Systems.id, { onDelete: 'cascade' }),
-  happiness: FactionHappinessEnum().notNull(),
-  influence: doublePrecision().notNull(),
-  activeStates: FactionStateEnum().array().default([]).notNull(),
-  recoveringStates: FactionStateEnum().array().default([]).notNull(),
-  pendingStates: FactionStateEnum().array().default([]).notNull(),
-  activeStatesRaw: jsonb().default([]).notNull(),
-  recoveringStatesRaw: jsonb().default([]).notNull(),
-  pendingStatesRaw: jsonb().default([]).notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-})
+export const FactionStates = pgTable(
+  'factionStates',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    factionId: uuid()
+      .notNull()
+      .references(() => Factions.id, { onDelete: 'cascade' }),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    happiness: FactionHappinessEnum(),
+    influence: doublePrecision().notNull(),
+    activeStates: FactionStateEnum().array().default([]).notNull(),
+    recoveringStates: FactionStateEnum().array().default([]).notNull(),
+    pendingStates: FactionStateEnum().array().default([]).notNull(),
+    activeStatesRaw: jsonb().default([]).notNull(),
+    recoveringStatesRaw: jsonb().default([]).notNull(),
+    pendingStatesRaw: jsonb().default([]).notNull(),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [unique().on(table.factionId, table.systemId)]
+)
 
-export const FactionConflicts = pgTable('factionConflicts', {
-  id: uuid().primaryKey().defaultRandom(),
-  systemId: uuid()
-    .notNull()
-    .references(() => Systems.id, { onDelete: 'cascade' }),
-  factionId: uuid()
-    .notNull()
-    .references(() => Factions.id, { onDelete: 'cascade' }),
-  opponentFactionId: uuid().references(() => Factions.id, {
-    onDelete: 'cascade',
-  }),
-  type: FactionConflictTypeEnum().notNull(),
-  status: FactionConflictStatusEnum().notNull(),
-  factionWonDays: integer().notNull().default(0),
-  opponentWonDays: integer().notNull().default(0),
-  factionStake: citext(),
-  factionStakeStationId: uuid().references(() => Stations.id, {
-    onDelete: 'set null',
-  }),
-  opponentStake: citext(),
-  opponentStakeStationId: uuid().references(() => Stations.id, {
-    onDelete: 'set null',
-  }),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-})
+export const FactionConflicts = pgTable(
+  'factionConflicts',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    factionId: uuid()
+      .notNull()
+      .references(() => Factions.id, { onDelete: 'cascade' }),
+    opponentFactionId: uuid().references(() => Factions.id, {
+      onDelete: 'cascade',
+    }),
+    type: FactionConflictTypeEnum().notNull(),
+    status: FactionConflictStatusEnum().notNull(),
+    factionWonDays: smallint().notNull().default(0),
+    opponentWonDays: smallint().notNull().default(0),
+    factionStake: citext(),
+    factionStakeStationId: uuid().references(() => Stations.id, {
+      onDelete: 'set null',
+    }),
+    opponentStake: citext(),
+    opponentStakeStationId: uuid().references(() => Stations.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [unique().on(table.factionId, table.systemId, table.opponentFactionId)]
+)
 
 export const Stations = pgTable('stations', {
   id: uuid().primaryKey().defaultRandom(),
   name: citext().notNull(),
-  marketId: integer().unique(),
+  marketId: bigint({ mode: 'number' }).unique(),
   stationType: StationTypeEnum(),
   systemId: uuid()
     .notNull()
@@ -304,9 +314,9 @@ export const Stations = pgTable('stations', {
   economy: EconomyEnum(),
   economies: jsonb().default([]).notNull(),
   services: jsonb().default([]).notNull(),
-  landingPadsSmall: integer().notNull().default(0),
-  landingPadsMedium: integer().notNull().default(0),
-  landingPadsLarge: integer().notNull().default(0),
+  landingPadsSmall: smallint().notNull().default(0),
+  landingPadsMedium: smallint().notNull().default(0),
+  landingPadsLarge: smallint().notNull().default(0),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })
