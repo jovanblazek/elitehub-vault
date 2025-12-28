@@ -10,6 +10,8 @@ import {
   customType,
   doublePrecision,
   bigint,
+  text,
+  boolean,
 } from 'drizzle-orm/pg-core'
 
 function enumToPgEnum<T extends Record<string, any>>(myEnum: T): [T[keyof T], ...T[keyof T][]] {
@@ -338,6 +340,15 @@ export const PowerplayConflicts = pgTable('powerplayConflicts', {
     .notNull()
     .references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
   conflictProgress: doublePrecision().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
+})
+
+export const ApiKeys = pgTable('apiKeys', {
+  id: uuid().primaryKey().defaultRandom(),
+  name: text().notNull(),
+  key: text().notNull().unique(),
+  isActive: boolean().notNull().default(true),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })

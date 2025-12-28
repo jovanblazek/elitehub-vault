@@ -81,6 +81,12 @@ const SmartTagsPlugin = jsonPgSmartTags({
           // Disable direct queries to the systemPowerplayPowers table
           "behavior": "-query:resource:single -query:resource:connection -resource:select"
         }
+      },
+      apiKeys: {
+        tags: {
+          // Disable everything for the apiKeys table
+          "behavior": "-*"
+        }
       }
     }
   }

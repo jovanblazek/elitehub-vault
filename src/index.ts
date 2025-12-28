@@ -8,6 +8,7 @@ import { Redis } from './utils/redis.js'
 import Koa from 'koa'
 import { pgl } from './utils/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
+import { apiKeyAuth } from './middleware/apiKeyAuth.js'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -21,14 +22,12 @@ Redis.on('ready', async () => {
 })
 
 const KoaApp = new Koa()
+
+KoaApp.use(apiKeyAuth)
+
 const serv = pgl.createServ(grafserv)
 serv.addTo(KoaApp, null)
-KoaApp.use((ctx) => {
-  ctx.body = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  }
-})
+
 KoaApp.listen(process.env.PORT, () => {
   logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
 })
