@@ -1,5 +1,5 @@
 {
-  "id": "4dde3752-4f2a-4117-b2e3-9f5d3cc82736",
+  "id": "fee03e1b-24e1-435c-8961-aacd94766a2b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -19,13 +19,13 @@
           "name": "systemId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "factionId": {
           "name": "factionId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "opponentFactionId": {
           "name": "opponentFactionId",
@@ -33,15 +33,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "factionConflictTypeEnum": {
-          "name": "factionConflictTypeEnum",
+        "type": {
+          "name": "type",
           "type": "factionConflictTypeEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "factionConflictStatusEnum": {
-          "name": "factionConflictStatusEnum",
+        "status": {
+          "name": "status",
           "type": "factionConflictStatusEnum",
           "typeSchema": "public",
           "primaryKey": false,
@@ -65,7 +65,7 @@
           "name": "factionStake",
           "type": "citext",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "factionStakeStationId": {
           "name": "factionStakeStationId",
@@ -77,7 +77,7 @@
           "name": "opponentStake",
           "type": "citext",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "opponentStakeStationId": {
           "name": "opponentStakeStationId",
@@ -189,16 +189,16 @@
           "name": "factionId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "systemId": {
           "name": "systemId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "factionHappinessEnum": {
-          "name": "factionHappinessEnum",
+        "happiness": {
+          "name": "happiness",
           "type": "factionHappinessEnum",
           "typeSchema": "public",
           "primaryKey": false,
@@ -206,12 +206,28 @@
         },
         "influence": {
           "name": "influence",
-          "type": "real",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
-        "factionStateEnum": {
-          "name": "factionStateEnum",
+        "activeStates": {
+          "name": "activeStates",
+          "type": "factionStateEnum[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "recoveringStates": {
+          "name": "recoveringStates",
+          "type": "factionStateEnum[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "pendingStates": {
+          "name": "pendingStates",
           "type": "factionStateEnum[]",
           "typeSchema": "public",
           "primaryKey": false,
@@ -306,15 +322,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "factionGovernmentEnum": {
-          "name": "factionGovernmentEnum",
+        "government": {
+          "name": "government",
           "type": "factionGovernmentEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "allegianceEnum": {
-          "name": "allegianceEnum",
+        "allegiance": {
+          "name": "allegiance",
           "type": "allegianceEnum",
           "typeSchema": "public",
           "primaryKey": false,
@@ -338,7 +354,142 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "factions_name_unique": {
+          "name": "factions_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.powerplayConflicts": {
+      "name": "powerplayConflicts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "systemId": {
+          "name": "systemId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "powerId": {
+          "name": "powerId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conflictProgress": {
+          "name": "conflictProgress",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "powerplayConflicts_systemId_systems_id_fk": {
+          "name": "powerplayConflicts_systemId_systems_id_fk",
+          "tableFrom": "powerplayConflicts",
+          "tableTo": "systems",
+          "columnsFrom": [
+            "systemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "powerplayConflicts_powerId_powerplayPowers_id_fk": {
+          "name": "powerplayConflicts_powerId_powerplayPowers_id_fk",
+          "tableFrom": "powerplayConflicts",
+          "tableTo": "powerplayPowers",
+          "columnsFrom": [
+            "powerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.powerplayPowers": {
+      "name": "powerplayPowers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "citext",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "powerplayPowers_name_unique": {
+          "name": "powerplayPowers_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -360,8 +511,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "stationTypeEnum": {
-          "name": "stationTypeEnum",
+        "marketId": {
+          "name": "marketId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stationType": {
+          "name": "stationType",
           "type": "stationTypeEnum",
           "typeSchema": "public",
           "primaryKey": false,
@@ -371,26 +528,47 @@
           "name": "systemId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "controllingFactionId": {
           "name": "controllingFactionId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "distanceFromStar": {
           "name": "distanceFromStar",
-          "type": "real",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
-        "factionEconomyEnum": {
-          "name": "factionEconomyEnum",
+        "allegiance": {
+          "name": "allegiance",
+          "type": "allegianceEnum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "government": {
+          "name": "government",
+          "type": "factionGovernmentEnum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "economy": {
+          "name": "economy",
           "type": "economyEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
+        },
+        "economies": {
+          "name": "economies",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "services": {
           "name": "services",
@@ -398,6 +576,27 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
+        },
+        "landingPadsSmall": {
+          "name": "landingPadsSmall",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "landingPadsMedium": {
+          "name": "landingPadsMedium",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "landingPadsLarge": {
+          "name": "landingPadsLarge",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "createdAt": {
           "name": "createdAt",
@@ -444,7 +643,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "stations_marketId_unique": {
+          "name": "stations_marketId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "marketId"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -457,13 +664,13 @@
           "name": "systemId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "factionId": {
           "name": "factionId",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -523,6 +730,66 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.systemPowerplayPowers": {
+      "name": "systemPowerplayPowers",
+      "schema": "",
+      "columns": {
+        "systemId": {
+          "name": "systemId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "powerId": {
+          "name": "powerId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "systemPowerplayPowers_systemId_systems_id_fk": {
+          "name": "systemPowerplayPowers_systemId_systems_id_fk",
+          "tableFrom": "systemPowerplayPowers",
+          "tableTo": "systems",
+          "columnsFrom": [
+            "systemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "systemPowerplayPowers_powerId_powerplayPowers_id_fk": {
+          "name": "systemPowerplayPowers_powerId_powerplayPowers_id_fk",
+          "tableFrom": "systemPowerplayPowers",
+          "tableTo": "powerplayPowers",
+          "columnsFrom": [
+            "powerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "systemPowerplayPowers_systemId_powerId_pk": {
+          "name": "systemPowerplayPowers_systemId_powerId_pk",
+          "columns": [
+            "systemId",
+            "powerId"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.systems": {
       "name": "systems",
       "schema": "",
@@ -540,27 +807,37 @@
           "primaryKey": false,
           "notNull": true
         },
+        "systemAddress": {
+          "name": "systemAddress",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
         "position": {
           "name": "position",
           "type": "cube",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "generated": {
+            "as": "cube(ARRAY[\"systems\".\"x\", \"systems\".\"y\", \"systems\".\"z\"])",
+            "type": "stored"
+          }
         },
         "x": {
           "name": "x",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
         "y": {
           "name": "y",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
         "z": {
           "name": "z",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
@@ -571,31 +848,69 @@
           "notNull": true,
           "default": 0
         },
-        "factionGovernmentEnum": {
-          "name": "factionGovernmentEnum",
+        "government": {
+          "name": "government",
           "type": "factionGovernmentEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
-        "allegianceEnum": {
-          "name": "allegianceEnum",
+        "allegiance": {
+          "name": "allegiance",
           "type": "allegianceEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
-        "factionEconomyEnum": {
-          "name": "factionEconomyEnum",
+        "economy": {
+          "name": "economy",
           "type": "economyEnum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
-        "systemSecurityEnum": {
-          "name": "systemSecurityEnum",
+        "secondEconomy": {
+          "name": "secondEconomy",
+          "type": "economyEnum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "security": {
+          "name": "security",
           "type": "systemSecurityEnum",
           "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "controllingPowerId": {
+          "name": "controllingPowerId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "powerplayState": {
+          "name": "powerplayState",
+          "type": "powerplayStateEnum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "powerplayStateControlProgress": {
+          "name": "powerplayStateControlProgress",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "powerplayStateReinforcement": {
+          "name": "powerplayStateReinforcement",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "powerplayStateUndermining": {
+          "name": "powerplayStateUndermining",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": false
         },
@@ -615,7 +930,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "systems_controllingPowerId_powerplayPowers_id_fk": {
+          "name": "systems_controllingPowerId_powerplayPowers_id_fk",
+          "tableFrom": "systems",
+          "tableTo": "powerplayPowers",
+          "columnsFrom": [
+            "controllingPowerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "systems_name_unique": {
@@ -623,6 +952,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "name"
+          ]
+        },
+        "systems_systemAddress_unique": {
+          "name": "systems_systemAddress_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "systemAddress"
           ]
         }
       },
@@ -699,6 +1035,7 @@
         "Feudal",
         "Imperial",
         "Patronage",
+        "Prison",
         "PrisonColony",
         "Theocracy",
         "Workshop"
@@ -749,6 +1086,16 @@
         "War"
       ]
     },
+    "public.powerplayStateEnum": {
+      "name": "powerplayStateEnum",
+      "schema": "public",
+      "values": [
+        "Unoccupied",
+        "Stronghold",
+        "Exploited",
+        "Fortified"
+      ]
+    },
     "public.stationTypeEnum": {
       "name": "stationTypeEnum",
       "schema": "public",
@@ -756,12 +1103,12 @@
         "Coriolis",
         "Orbis",
         "Ocellus",
+        "Dodec",
         "Outpost",
         "PlanetaryPort",
         "PlanetaryOutpost",
         "AsteroidBase",
-        "MegaShip",
-        "FleetCarrier"
+        "MegaShip"
       ]
     },
     "public.systemSecurityEnum": {
