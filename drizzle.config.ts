@@ -1,6 +1,8 @@
 import { defineConfig } from 'drizzle-kit'
 import './src/utils/environment'
 
+console.log(process.env.POSTGRES_CONNECTION_STRING)
+
 export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
