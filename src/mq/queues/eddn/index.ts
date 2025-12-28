@@ -36,7 +36,7 @@ export const EDDNWorker = new Worker<EDDNJournalMessage>(
         // case 'CarrierJump':
         //   return processCarrierJumpEvent(job.data.message)
         default:
-          logger.warn(`[EDDNWorker] Unknown event type: ${event}`)
+          logger.warn({ event }, '[EDDNWorker] Unknown event type')
       }
     } catch (error) {
       logger.error(error, '[EDDNWorker] Error processing job')

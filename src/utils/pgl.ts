@@ -102,7 +102,13 @@ const PGL_Preset: GraphileConfig.Preset = {
     }),
   ],
   grafast: {
-    explain: true,
+    explain: process.env.NODE_ENV === 'development',
+    timeouts: {
+      /** Planning timeout in ms */
+      planning: 500,
+      /** Execution timeout in ms */
+      execution: 10_000,
+    },
   },
   schema: {
     defaultBehavior: '-insert -update -delete',

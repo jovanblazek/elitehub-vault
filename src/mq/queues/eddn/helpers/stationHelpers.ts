@@ -127,7 +127,12 @@ export const upsertStationFromLocation = async (
 
   if (!controllingFactionId) {
     logger.warn(
-      `Could not find controlling faction for station: ${message.StationFaction.Name}, systemId: ${systemId}`
+      {
+        systemId,
+        stationFactionName: message.StationFaction.Name,
+        stationName: message.StationName,
+      },
+      "Could not find controlling faction for station"
     )
     return
   }
@@ -163,7 +168,12 @@ export const upsertStationFromDocked = async (
 
   if (!controllingFactionId) {
     logger.warn(
-      `Could not find controlling faction for station: ${message.StationFaction.Name}, systemId: ${systemId}`
+      {
+        systemId,
+        stationFactionName: message.StationFaction.Name,
+        stationName: message.StationName,
+      },
+      "Could not find controlling faction for station"
     )
     return
   }
