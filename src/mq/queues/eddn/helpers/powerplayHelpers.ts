@@ -1,4 +1,4 @@
-import { eq, and, notInArray } from 'drizzle-orm'
+import { eq, and, notInArray, inArray } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalFSDJumpMessage,
@@ -26,13 +26,17 @@ export const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayM
     return []
   }
 
-  const powerplayPowers = await tx
-    .insert(PowerplayPowers)
-    .values(powerplayPowersData.map((power) => ({ name: power })))
-    .onConflictDoNothing()
-    .returning()
+  const powerplayPowersToInsert = powerplayPowersData.map((power) => ({ name: power }))
 
-  return powerplayPowers
+  await tx.insert(PowerplayPowers).values(powerplayPowersToInsert).onConflictDoNothing()
+
+  // Get {id, name} from powerplayPowers
+  const upsertedPowerplayPowers = await tx
+    .select({ id: PowerplayPowers.id, name: PowerplayPowers.name })
+    .from(PowerplayPowers)
+    .where(inArray(PowerplayPowers.name, powerplayPowersData))
+
+  return upsertedPowerplayPowers
 }
 
 /**
