@@ -132,7 +132,7 @@ export const upsertStationFromLocation = async (
         stationFactionName: message.StationFaction.Name,
         stationName: message.StationName,
       },
-      "Could not find controlling faction for station"
+      'Could not find controlling faction for station'
     )
     return
   }
@@ -173,7 +173,7 @@ export const upsertStationFromDocked = async (
         stationFactionName: message.StationFaction.Name,
         stationName: message.StationName,
       },
-      "Could not find controlling faction for station"
+      'Could not find controlling faction for station'
     )
     return
   }

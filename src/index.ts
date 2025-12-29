@@ -6,7 +6,7 @@ import { initMQ } from './mq/index.js'
 import logger from './utils/logger.js'
 import { Redis } from './utils/redis.js'
 import Koa from 'koa'
-import { pgl } from './utils/pgl.js'
+import { pgl } from './postgraphile/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
 import { apiKeyAuth } from './middleware/apiKeyAuth.js'
 
