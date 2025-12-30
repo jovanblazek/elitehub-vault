@@ -9,7 +9,7 @@ import {
   PowerplayConflicts,
 } from '../../../../db/schema.js'
 import { PowerplayConflictsInsertSchema } from '../schemas.js'
-import { ValidPowerplayPowers } from '../constants.js'
+import { PowerplayPowersFromLowercaseMap, ValidPowerplayPowersLowercased } from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
 
 type PowerplayMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
@@ -18,15 +18,26 @@ type PowerplayMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
  * Upserts powerplay powers and returns the inserted records
  */
 export const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayMessage) => {
-  const powerplayPowersData = [...(message.Powers ?? []), message.ControllingPower].filter(
-    (power) => power && ValidPowerplayPowers.has(power)
-  ) as string[]
+  const incomingPowersLowercased = [...(message.Powers ?? []), message.ControllingPower]
+    .map((power) => power?.toLowerCase())
+    .filter((power): power is string => !!power)
 
-  if (powerplayPowersData.length === 0) {
+  if (incomingPowersLowercased.length === 0) {
     return []
   }
 
-  const powerplayPowersToInsert = powerplayPowersData.map((power) => ({ name: power }))
+  const validIncomingPowerplayPowers = incomingPowersLowercased
+    .filter((power) => ValidPowerplayPowersLowercased.has(power))
+    .map(
+      (power) =>
+        PowerplayPowersFromLowercaseMap[power as keyof typeof PowerplayPowersFromLowercaseMap]
+    )
+
+  if (incomingPowersLowercased.length !== validIncomingPowerplayPowers.length) {
+    throw new Error('Invalid powerplay powers')
+  }
+
+  const powerplayPowersToInsert = validIncomingPowerplayPowers.map((power) => ({ name: power }))
 
   await tx.insert(PowerplayPowers).values(powerplayPowersToInsert).onConflictDoNothing()
 
@@ -34,7 +45,7 @@ export const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayM
   const upsertedPowerplayPowers = await tx
     .select({ id: PowerplayPowers.id, name: PowerplayPowers.name })
     .from(PowerplayPowers)
-    .where(inArray(PowerplayPowers.name, powerplayPowersData))
+    .where(inArray(PowerplayPowers.name, validIncomingPowerplayPowers))
 
   return upsertedPowerplayPowers
 }

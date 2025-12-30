@@ -50,6 +50,13 @@
       "when": 1766944131756,
       "tag": "20251228174851_shallow_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767131330268,
+      "tag": "20251230214850_dusty_magdalene",
+      "breakpoints": true
     }
   ]
 }

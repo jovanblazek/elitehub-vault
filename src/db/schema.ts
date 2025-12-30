@@ -50,6 +50,7 @@ export enum StationType {
   PlanetaryOutpost = 'PlanetaryOutpost',
   AsteroidBase = 'AsteroidBase',
   MegaShip = 'MegaShip',
+  OnFootSettlement = 'OnFootSettlement',
   // FleetCarrier = 'FleetCarrier', // We do not store fleet carriers
   // SpaceConstructionDepot = 'SpaceConstructionDepot', // We do not store space construction depots
   // PlanetaryConstructionDepot = 'PlanetaryConstructionDepot', // We do not store planetary construction depots

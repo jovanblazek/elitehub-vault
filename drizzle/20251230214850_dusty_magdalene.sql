@@ -1,0 +1,1 @@
+ALTER TYPE "public"."stationTypeEnum" ADD VALUE 'OnFootSettlement';
