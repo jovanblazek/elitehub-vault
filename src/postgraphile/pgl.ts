@@ -3,8 +3,7 @@ import { makePgService } from 'postgraphile/adaptors/pg'
 import { PostGraphileAmberPreset } from 'postgraphile/presets/amber'
 import { PgSimplifyInflectionPreset } from '@graphile/simplify-inflection'
 import { ReasonableLimitsPlugin } from '@haathie/postgraphile-reasonable-limits'
-import { DepthLimitPlugin } from './plugins/DepthLimitPlugin.js'
-import { ComplexityPlugin } from './plugins/ComplexityPlugin.js'
+import { ArmorPlugin } from './plugins/ArmorPlugin.js'
 import { SmartTagsPlugin } from './plugins/SmartTagsPlugin.js'
 import { PgCubePlugin } from './plugins/PgCubePlugin.js'
 import { IdToNodeIdPlugin } from './plugins/IdToNodeIdPlugin.js'
@@ -13,14 +12,7 @@ const IS_DEVELOPMENT = process.env.NODE_ENV === 'development'
 
 const PGL_Preset: GraphileConfig.Preset = {
   extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
-  plugins: [
-    // ComplexityPlugin,
-    PgCubePlugin,
-    IdToNodeIdPlugin,
-    SmartTagsPlugin,
-    DepthLimitPlugin,
-    ReasonableLimitsPlugin,
-  ],
+  plugins: [ArmorPlugin, PgCubePlugin, IdToNodeIdPlugin, SmartTagsPlugin, ReasonableLimitsPlugin],
   pgServices: [
     makePgService({
       connectionString: process.env.POSTGRES_CONNECTION_STRING,

@@ -8,15 +8,15 @@ importers:
 
   .:
     dependencies:
-      '@graphile/depth-limit':
-        specifier: 0.3.1
-        version: 0.3.1(graphql@16.12.0)
+      '@escape.tech/graphql-armor':
+        specifier: ^3.2.0
+        version: 3.2.0(@envelop/core@5.4.0)(@escape.tech/graphql-armor-types@0.7.0)
       '@graphile/simplify-inflection':
         specifier: 8.0.0-rc.2
         version: 8.0.0-rc.2
       '@haathie/postgraphile-reasonable-limits':
         specifier: 0.2.0
-        version: 0.2.0(postgraphile@5.0.0-rc.3(fnq2tsut5sedlr6ay2l2nkffue))
+        version: 0.2.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))
       bullmq:
         specifier: ^5.58.5
         version: 5.66.4
@@ -29,9 +29,6 @@ importers:
       drizzle-zod:
         specifier: 0.8.3
         version: 0.8.3(drizzle-orm@0.45.1(@types/pg@8.16.0)(pg@8.16.3))(zod@4.2.1)
-      graphql-query-complexity:
-        specifier: ^1.1.0
-        version: 1.1.0(graphql@16.12.0)
       ioredis:
         specifier: ^5.7.0
         version: 5.8.2
@@ -49,7 +46,7 @@ importers:
         version: 13.1.3
       postgraphile:
         specifier: 5.0.0-rc.3
-        version: 5.0.0-rc.3(fnq2tsut5sedlr6ay2l2nkffue)
+        version: 5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74)
       zeromq:
         specifier: ^6.5.0
         version: 6.5.0
@@ -115,6 +112,18 @@ packages:
 
   '@emotion/memoize@0.9.0':
     resolution: {integrity: sha512-30FAj7/EoJ5mwVPOWhAyCX+FPfMDrVecJAM+Iw9NRoSl4BBAQeqj4cApHHUXOVvIPgLVDsCFoz/hGD+5QQD1GQ==}
+
+  '@envelop/core@5.4.0':
+    resolution: {integrity: sha512-/1fat63pySE8rw/dZZArEVytLD90JApY85deDJ0/34gm+yhQ3k70CloSUevxoOE4YCGveG3s9SJJfQeeB4NAtQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@envelop/instrumentation@1.0.0':
+    resolution: {integrity: sha512-cxgkB66RQB95H3X27jlnxCRNTmPuSTgmBAq6/4n2Dtv4hsk4yz8FadA1ggmd0uZzvKqWD6CR+WFgTjhDqg7eyw==}
+    engines: {node: '>=18.0.0'}
+
+  '@envelop/types@5.2.1':
+    resolution: {integrity: sha512-CsFmA3u3c2QoLDTfEpGr4t25fjMU31nyvse7IzWTvb0ZycuPjMjb0fjlheh+PbhBYb9YLugnT2uY6Mwcg1o+Zg==}
+    engines: {node: '>=18.0.0'}
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
@@ -566,10 +575,47 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@graphile/depth-limit@0.3.1':
-    resolution: {integrity: sha512-3MwdOEScb7yZJnU/qM4sR7MEW7Nge8XxsvBmj33YamP+1e2st43M1VDYviPnOvqAPrIg2PJvvuNux+IId8sn0A==}
+  '@escape.tech/graphql-armor-block-field-suggestions@3.0.1':
+    resolution: {integrity: sha512-pZ+5aFgGW/pUul7nDOZ3PoeWAd9kLDspQ0R+fpz2aTjdIT0yI+f+ZbAGeTVmr5RypRDwjwokG/HjWoxTYTcRwQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-cost-limit@2.4.3':
+    resolution: {integrity: sha512-fLZTlJjrjinpNhbv5VP6f8Ce4MiQzbcHtCNaCPVaHqArTEbN7vDnlVLiH+VcmZBmOwU6Si97lKdlOXWNgB5ytw==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-max-aliases@2.6.2':
+    resolution: {integrity: sha512-SDk7pAzY6gutsdZ3NlyY55RrytrCPxJJxSN/DBfIGKphTrfBvKQWTnioQ9OlLP9kPjCE6XM5UWwGt7uqbpKSYA==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-max-depth@2.4.2':
+    resolution: {integrity: sha512-J9fbW1+W4u3GAcf19wwS0zrNGICCbWn/glvopCoC11Ga0reXvGwgr8EcyuHjTFLL7+pPvWAeVhP4qo6hybcB9w==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-max-directives@2.3.1':
+    resolution: {integrity: sha512-YieT/NrTgZdLu3hzWfCgpmUKO1o/7Im9C4TI0e4O85Wa+zLit/DzHO4ZCIY//w8nkBf1KStkA1pD/v0daEfY5Q==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-max-tokens@2.5.1':
+    resolution: {integrity: sha512-XHui2npOz7Jn8shBZqfyeocWhdl0pUbKiaWmvbF+5rvNoRIGMgwMtaVhmf9ia8oGGbd+cx5EYo1v+oKHzIm79w==}
+    engines: {node: '>=18.0.0'}
+
+  '@escape.tech/graphql-armor-types@0.7.0':
+    resolution: {integrity: sha512-RHxyyp6PDgS6NAPnnmB6JdmUJ6oqhpSHFbsglGWeCcnNzceA5AkQFpir7VIDbVyS8LNC1xhipOtk7f9ycrIemQ==}
+
+  '@escape.tech/graphql-armor@3.2.0':
+    resolution: {integrity: sha512-0tG2YOIPiDg2Oe7uEqkYl808VK9OKRyXx4NBa3w+N9XV6NaQ4XxGkDJMtps0lx5DANe10d6nbf6Ml2Z6vekPwA==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      graphql: '>=15 <17'
+      '@apollo/server': ^4.0.0 || ^5.0.0
+      '@envelop/core': ^5.0.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+    peerDependenciesMeta:
+      '@apollo/server':
+        optional: true
+      '@envelop/core':
+        optional: true
+      '@escape.tech/graphql-armor-types':
+        optional: true
 
   '@graphile/lru@5.0.0-rc.2':
     resolution: {integrity: sha512-HGu7GoRTfF39fmX/JC4M4ro5v8ZgjTy0NjVxGM/Y0v+ttEL5tMaMksGwrupNpsJn6ZOiUz/mYSurh1xRA5NoWg==}
@@ -724,6 +770,10 @@ packages:
 
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
+
+  '@whatwg-node/promise-helpers@1.3.2':
+    resolution: {integrity: sha512-Nst5JdK47VIl9UcGwtv2Rcgyn5lWtZ0/mhRQ4G8NN2isxpq2TO30iqHzmwoJycjWuyUfg3GFXqP/gFHXeV57IA==}
+    engines: {node: '>=16.0.0'}
 
   accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
@@ -1093,11 +1143,6 @@ packages:
       graphile-build-pg:
         optional: true
 
-  graphql-query-complexity@1.1.0:
-    resolution: {integrity: sha512-6sfAX+9CgkcPeZ7UiuBwgTGA+M1FYgHrQOXvORhQGd6SiaXbNVkLDcJ9ZSvNgzyChIfH0uPFFOY3Jm4wFZ4qEA==}
-    peerDependencies:
-      graphql: ^15.0.0 || ^16.0.0
-
   graphql-ws@6.0.6:
     resolution: {integrity: sha512-zgfER9s+ftkGKUZgc0xbx8T7/HMO4AV5/YuYiFc+AtgcO5T0v8AxYYNQ+ltzuzDZgNkYJaFspm5MMYLjQzrkmw==}
     engines: {node: '>=20'}
@@ -1194,10 +1239,6 @@ packages:
 
   lodash.defaults@4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
-
-  lodash.get@4.4.2:
-    resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -1611,21 +1652,21 @@ packages:
 
 snapshots:
 
-  '@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))':
+  '@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))':
     dependencies:
       chalk: 4.1.2
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
       tslib: 2.8.1
 
-  '@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)':
+  '@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)':
     dependencies:
-      '@dataplan/json': 1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))
+      '@dataplan/json': 1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))
       '@graphile/lru': 5.0.0-rc.2
       '@types/node': 22.19.3
       chalk: 4.1.2
       debug: 4.4.3
       eventemitter3: 5.0.1
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
       graphile-config: 1.0.0-rc.2
       graphql: 16.12.0
       pg-sql2: 5.0.0-rc.2
@@ -1644,6 +1685,26 @@ snapshots:
       '@emotion/memoize': 0.9.0
 
   '@emotion/memoize@0.9.0': {}
+
+  '@envelop/core@5.4.0':
+    dependencies:
+      '@envelop/instrumentation': 1.0.0
+      '@envelop/types': 5.2.1
+      '@whatwg-node/promise-helpers': 1.3.2
+      tslib: 2.8.1
+    optional: true
+
+  '@envelop/instrumentation@1.0.0':
+    dependencies:
+      '@whatwg-node/promise-helpers': 1.3.2
+      tslib: 2.8.1
+    optional: true
+
+  '@envelop/types@5.2.1':
+    dependencies:
+      '@whatwg-node/promise-helpers': 1.3.2
+      tslib: 2.8.1
+    optional: true
 
   '@esbuild-kit/core-utils@3.3.2':
     dependencies:
@@ -1877,9 +1938,64 @@ snapshots:
   '@esbuild/win32-x64@0.27.2':
     optional: true
 
-  '@graphile/depth-limit@0.3.1(graphql@16.12.0)':
+  '@escape.tech/graphql-armor-block-field-suggestions@3.0.1':
     dependencies:
       graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+
+  '@escape.tech/graphql-armor-cost-limit@2.4.3':
+    dependencies:
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+
+  '@escape.tech/graphql-armor-max-aliases@2.6.2':
+    dependencies:
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+
+  '@escape.tech/graphql-armor-max-depth@2.4.2':
+    dependencies:
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+
+  '@escape.tech/graphql-armor-max-directives@2.3.1':
+    dependencies:
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+
+  '@escape.tech/graphql-armor-max-tokens@2.5.1':
+    dependencies:
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
+
+  '@escape.tech/graphql-armor-types@0.7.0':
+    dependencies:
+      graphql: 16.12.0
+    optional: true
+
+  '@escape.tech/graphql-armor@3.2.0(@envelop/core@5.4.0)(@escape.tech/graphql-armor-types@0.7.0)':
+    dependencies:
+      '@escape.tech/graphql-armor-block-field-suggestions': 3.0.1
+      '@escape.tech/graphql-armor-cost-limit': 2.4.3
+      '@escape.tech/graphql-armor-max-aliases': 2.6.2
+      '@escape.tech/graphql-armor-max-depth': 2.4.2
+      '@escape.tech/graphql-armor-max-directives': 2.3.1
+      '@escape.tech/graphql-armor-max-tokens': 2.5.1
+      graphql: 16.12.0
+    optionalDependencies:
+      '@envelop/core': 5.4.0
+      '@escape.tech/graphql-armor-types': 0.7.0
 
   '@graphile/lru@5.0.0-rc.2':
     dependencies:
@@ -1887,9 +2003,9 @@ snapshots:
 
   '@graphile/simplify-inflection@8.0.0-rc.2': {}
 
-  '@haathie/postgraphile-reasonable-limits@0.2.0(postgraphile@5.0.0-rc.3(fnq2tsut5sedlr6ay2l2nkffue))':
+  '@haathie/postgraphile-reasonable-limits@0.2.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))':
     dependencies:
-      postgraphile: 5.0.0-rc.3(fnq2tsut5sedlr6ay2l2nkffue)
+      postgraphile: 5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74)
 
   '@ioredis/commands@1.4.0': {}
 
@@ -2027,6 +2143,11 @@ snapshots:
     dependencies:
       '@types/http-errors': 2.0.5
       '@types/node': 24.10.4
+
+  '@whatwg-node/promise-helpers@1.3.2':
+    dependencies:
+      tslib: 2.8.1
+    optional: true
 
   accepts@1.3.8:
     dependencies:
@@ -2268,7 +2389,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  grafast@1.0.0-rc.3(graphql@16.12.0):
+  grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0):
     dependencies:
       '@graphile/lru': 5.0.0-rc.2
       chalk: 4.1.2
@@ -2278,21 +2399,24 @@ snapshots:
       graphql: 16.12.0
       iterall: 1.3.0
       tslib: 2.8.1
+    optionalDependencies:
+      '@envelop/core': 5.4.0
     transitivePeerDependencies:
       - supports-color
 
-  grafserv@1.0.0-rc.3(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(ws@8.18.3):
+  grafserv@1.0.0-rc.3(@envelop/core@5.4.0)(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(ws@8.18.3):
     dependencies:
       '@graphile/lru': 5.0.0-rc.2
       debug: 4.4.3
       eventemitter3: 5.0.1
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
       graphile-config: 1.0.0-rc.2
       graphql: 16.12.0
       graphql-ws: 6.0.6(graphql@16.12.0)(ws@8.18.3)
       ruru: 2.0.0-rc.3(debug@4.4.3)(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
       tslib: 2.8.1
     optionalDependencies:
+      '@envelop/core': 5.4.0
       ws: 8.18.3
     transitivePeerDependencies:
       - '@fastify/websocket'
@@ -2300,13 +2424,13 @@ snapshots:
       - supports-color
       - uWebSockets.js
 
-  graphile-build-pg@5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2):
+  graphile-build-pg@5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2):
     dependencies:
-      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
+      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
       '@types/node': 22.19.3
       debug: 4.4.3
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
-      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
+      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
       graphile-config: 1.0.0-rc.2
       graphql: 16.12.0
       jsonwebtoken: 9.0.3
@@ -2319,14 +2443,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0):
+  graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0):
     dependencies:
       '@types/node': 22.19.3
       '@types/pluralize': 0.0.33
       '@types/semver': 7.7.1
       chalk: 4.1.2
       debug: 4.4.3
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
       graphile-config: 1.0.0-rc.2
       graphql: 16.12.0
       lodash: 4.17.21
@@ -2351,26 +2475,21 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  graphile-utils@5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build-pg@5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(tamedevil@0.1.0-rc.2):
+  graphile-utils@5.0.0-rc.2(gywgco4kpkrv3tsxzfwgilioge):
     dependencies:
-      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
+      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
       debug: 4.4.3
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
-      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
+      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
       graphile-config: 1.0.0-rc.2
       graphql: 16.12.0
       json5: 2.2.3
       tamedevil: 0.1.0-rc.2
       tslib: 2.8.1
     optionalDependencies:
-      graphile-build-pg: 5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2)
+      graphile-build-pg: 5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2)
     transitivePeerDependencies:
       - supports-color
-
-  graphql-query-complexity@1.1.0(graphql@16.12.0):
-    dependencies:
-      graphql: 16.12.0
-      lodash.get: 4.4.2
 
   graphql-ws@6.0.6(graphql@16.12.0)(ws@8.18.3):
     dependencies:
@@ -2491,8 +2610,6 @@ snapshots:
       vary: 1.1.2
 
   lodash.defaults@4.2.0: {}
-
-  lodash.get@4.4.2: {}
 
   lodash.includes@4.3.0: {}
 
@@ -2668,20 +2785,20 @@ snapshots:
 
   pluralize@7.0.0: {}
 
-  postgraphile@5.0.0-rc.3(fnq2tsut5sedlr6ay2l2nkffue):
+  postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74):
     dependencies:
-      '@dataplan/json': 1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))
-      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
+      '@dataplan/json': 1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))
+      '@dataplan/pg': 1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)
       '@graphile/lru': 5.0.0-rc.2
       '@types/node': 22.19.3
       '@types/pg': 8.16.0
       debug: 4.4.3
-      grafast: 1.0.0-rc.3(graphql@16.12.0)
-      grafserv: 1.0.0-rc.3(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(ws@8.18.3)
-      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
-      graphile-build-pg: 5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2)
+      grafast: 1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)
+      grafserv: 1.0.0-rc.3(@envelop/core@5.4.0)(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(ws@8.18.3)
+      graphile-build: 5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)
+      graphile-build-pg: 5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2)
       graphile-config: 1.0.0-rc.2
-      graphile-utils: 5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build-pg@5.0.0-rc.2(@dataplan/pg@1.0.0-rc.2(@dataplan/json@1.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0)))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3))(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(pg-sql2@5.0.0-rc.2)(pg@8.16.3)(tamedevil@0.1.0-rc.2))(graphile-build@5.0.0-rc.2(grafast@1.0.0-rc.3(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0))(graphile-config@1.0.0-rc.2)(graphql@16.12.0)(tamedevil@0.1.0-rc.2)
+      graphile-utils: 5.0.0-rc.2(gywgco4kpkrv3tsxzfwgilioge)
       graphql: 16.12.0
       iterall: 1.3.0
       jsonwebtoken: 9.0.3
@@ -2690,6 +2807,8 @@ snapshots:
       tamedevil: 0.1.0-rc.2
       tslib: 2.8.1
       ws: 8.18.3
+    optionalDependencies:
+      '@envelop/core': 5.4.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
