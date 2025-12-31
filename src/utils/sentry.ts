@@ -15,11 +15,11 @@ Sentry.init({
       return 1.0
     }
 
-    // Queue processes many same-ish events, sampling 0.5% is enough
+    // Queue processes many same-ish events, sampling 0.1% is enough
     if (samplingContext.name === 'queue.process') {
-      return 0.005
+      return 0.001
     }
-    return 0.1
+    return 0.2
   },
   integrations: [Sentry.koaIntegration(), Sentry.postgresIntegration()],
   sendDefaultPii: true,
