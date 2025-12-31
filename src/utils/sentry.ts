@@ -15,9 +15,9 @@ Sentry.init({
       return 1.0
     }
 
-    // Queue processes many same-ish events, sampling 0.1% is enough
+    // Queue processes many same-ish events, no need to sample all of them
     if (samplingContext.name === 'queue.process') {
-      return 0.001
+      return 0.0001
     }
     return 0.2
   },
