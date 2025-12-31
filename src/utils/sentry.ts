@@ -9,14 +9,14 @@ Sentry.init({
   environment: process.env.NODE_ENV || 'development',
   tracesSampler: (samplingContext) => {
     if (!IS_PRODUCTION) {
-      if (samplingContext.transactionContext.op === 'queue.process') {
+      if (samplingContext.name === 'queue.process') {
         return 0.1
       }
       return 1.0
     }
 
     // Queue processes many same-ish events, sampling 0.5% is enough
-    if (samplingContext.transactionContext.op === 'queue.process') {
+    if (samplingContext.name === 'queue.process') {
       return 0.005
     }
     return 0.1
