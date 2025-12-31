@@ -5,10 +5,11 @@ import startEDDNListenerProcess from './eddn/eddn.js'
 import { initMQ } from './mq/index.js'
 import logger from './utils/logger.js'
 import { Redis } from './utils/redis.js'
-import Koa from 'koa'
+import Koa, { type Context } from 'koa'
 import { pgl } from './postgraphile/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
 import { apiKeyAuth } from './middleware/apiKeyAuth.js'
+import ratelimit from 'koa-ratelimit'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -22,6 +23,26 @@ Redis.on('ready', async () => {
 })
 
 const KoaApp = new Koa()
+
+KoaApp.use(
+  ratelimit({
+    driver: 'redis',
+    db: Redis as any, // ioredis is compatible but has type conflicts
+    namespace: 'api-rate-limit',
+    duration: 60 * 1000, // 1 minute
+    max: 60,
+    errorMessage: JSON.stringify({
+      error: 'rate_limit_exceeded',
+      message: 'Rate limit exceeded. Please try again later.',
+    }),
+    id: (ctx: Context) => ctx.headers['x-api-key']?.toString() || ctx.ip,
+    headers: {
+      remaining: 'X-RateLimit-Remaining',
+      reset: 'X-RateLimit-Reset',
+      total: 'X-RateLimit-Limit',
+    },
+  })
+)
 
 KoaApp.use(apiKeyAuth)
 

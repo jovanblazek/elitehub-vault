@@ -31,6 +31,7 @@
     "drizzle-zod": "0.8.3",
     "ioredis": "^5.7.0",
     "koa": "^3.0.1",
+    "koa-ratelimit": "^6.0.0",
     "pg": "^8.16.3",
     "pino": "^9.9.4",
     "pino-pretty": "^13.1.1",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@types/koa": "^3.0.0",
+    "@types/koa-ratelimit": "^5.0.5",
     "@types/node": "^24.3.1",
     "@types/pg": "^8.15.5",
     "drizzle-kit": "0.31.8",
