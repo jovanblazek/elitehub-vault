@@ -1,4 +1,6 @@
+import './utils/sentry.js'
 import './utils/environment.js'
+import * as Sentry from '@sentry/node'
 
 import type { Worker } from 'bullmq'
 import startEDDNListenerProcess from './eddn/eddn.js'
@@ -23,6 +25,8 @@ Redis.on('ready', async () => {
 })
 
 const KoaApp = new Koa()
+
+Sentry.setupKoaErrorHandler(KoaApp)
 
 KoaApp.use(
   ratelimit({
@@ -92,6 +96,15 @@ const shutdown = async () => {
   await new Promise((resolve) => {
     setTimeout(resolve, 500)
   })
+
+  // Flush Sentry events before exit
+  try {
+    logger.info('[Sentry] Flushing pending events...')
+    await Sentry.close(2000)
+    logger.info('[Sentry] Events flushed')
+  } catch (error) {
+    logger.error(error, '[Sentry] Error flushing events')
+  }
 
   process.exit(0)
 }

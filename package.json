@@ -24,7 +24,9 @@
   "dependencies": {
     "@escape.tech/graphql-armor": "^3.2.0",
     "@graphile/simplify-inflection": "8.0.0-rc.2",
+    "@haathie/postgraphile-otel": "^0.1.0",
     "@haathie/postgraphile-reasonable-limits": "0.2.0",
+    "@sentry/node": "^10.32.1",
     "bullmq": "^5.58.5",
     "dotenv": "^17.2.2",
     "drizzle-orm": "0.45.1",

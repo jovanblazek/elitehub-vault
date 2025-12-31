@@ -1,3 +1,5 @@
+import '../utils/sentry.js'
+import * as Sentry from '@sentry/node'
 import { Subscriber } from 'zeromq'
 import zlib from 'zlib'
 import logger from '../utils/logger.js'
@@ -20,7 +22,7 @@ let socket: Subscriber
 let isShuttingDown = false
 
 async function run() {
-  process.on('message', (message) => {
+  process.on('message', async (message) => {
     if (message === 'shutdown' && !isShuttingDown) {
       isShuttingDown = true
       logger.info('[EDDN Listener] Received shutdown signal')
@@ -28,25 +30,52 @@ async function run() {
       try {
         socket.close()
         logger.info('[EDDN Listener] ZeroMQ connection closed')
+        await Sentry.close(1000)
+
         process.send?.('shutdown_complete')
         process.exit(0)
       } catch (error) {
         logger.error(error, '[EDDN Listener] Failed to close connections')
+        Sentry.captureException(error, {
+          tags: {
+            component: 'eddn-child-process',
+            error_type: 'shutdown_error',
+          },
+        })
+        await Sentry.close(500).catch(() => {})
         process.exit(1)
       }
     }
   })
 
   // Handle uncaught errors
-  process.on('uncaughtException', (error) => {
+  process.on('uncaughtException', async (error) => {
     logger.error(error, '[EDDN Listener] Uncaught exception')
+    Sentry.captureException(error, {
+      tags: {
+        component: 'eddn-child-process',
+        event_type: 'uncaught_exception',
+      },
+      level: 'fatal',
+    })
+    await Sentry.close(1000)
+
     if (!isShuttingDown) {
       process.exit(1)
     }
   })
 
-  process.on('unhandledRejection', (error) => {
+  process.on('unhandledRejection', async (error) => {
     logger.error(error, '[EDDN Listener] Unhandled promise rejection')
+    Sentry.captureException(error, {
+      tags: {
+        component: 'eddn-child-process',
+        event_type: 'unhandled_rejection',
+      },
+      level: 'fatal',
+    })
+    await Sentry.close(1000)
+
     if (!isShuttingDown) {
       process.exit(1)
     }
@@ -80,10 +109,25 @@ async function run() {
         process.send?.(message)
       } catch (error) {
         logger.error(error, '[EDDN Listener] Message processing failed')
+        Sentry.captureException(error, {
+          tags: {
+            component: 'eddn-child-process',
+            error_type: 'message_processing',
+          },
+        })
       }
     }
   } catch (error) {
     logger.error(error, '[EDDN Listener] Fatal error')
+    Sentry.captureException(error, {
+      tags: {
+        component: 'eddn-child-process',
+        error_type: 'fatal',
+      },
+      level: 'fatal',
+    })
+    await Sentry.close(1000)
+
     if (!isShuttingDown) {
       process.exit(1)
     }
