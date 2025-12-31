@@ -7,19 +7,19 @@ Sentry.init({
   enabled: IS_PRODUCTION, // Enable Sentry in production only
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV || 'development',
-  tracesSampler: (samplingContext) => {
+  tracesSampler: ({ attributes, inheritOrSampleWith }) => {
     if (!IS_PRODUCTION) {
-      if (samplingContext.name === 'queue.process') {
-        return 0.001
+      if (attributes?.['sentry.op'] === 'queue.process') {
+        return 0.03
       }
-      return 1.0
+      return inheritOrSampleWith(1)
     }
 
     // Queue processes many same-ish events, no need to sample all of them
-    if (samplingContext.name === 'queue.process') {
-      return 0.00001
+    if (attributes?.['sentry.op'] === 'queue.process') {
+      return 0.03
     }
-    return 0.2
+    return inheritOrSampleWith(0.2)
   },
   integrations: [Sentry.koaIntegration(), Sentry.postgresIntegration()],
   sendDefaultPii: true,
