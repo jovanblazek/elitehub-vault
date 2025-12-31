@@ -13,6 +13,7 @@ import {
   boolean,
   unique,
   smallint,
+  index,
 } from 'drizzle-orm/pg-core'
 
 function enumToPgEnum<T extends Record<string, any>>(myEnum: T): [T[keyof T], ...T[keyof T][]] {
@@ -296,31 +297,35 @@ export const FactionConflicts = pgTable(
   (table) => [unique().on(table.factionId, table.systemId, table.opponentFactionId)]
 )
 
-export const Stations = pgTable('stations', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: citext().notNull(),
-  marketId: bigint({ mode: 'number' }).unique(),
-  stationType: StationTypeEnum(),
-  systemId: uuid()
-    .notNull()
-    .references(() => Systems.id, { onDelete: 'cascade' }),
-  controllingFactionId: uuid()
-    .notNull()
-    .references(() => Factions.id, {
-      onDelete: 'set null',
-    }),
-  distanceFromStar: doublePrecision().notNull(),
-  allegiance: AllegianceEnum(),
-  government: FactionGovernmentEnum(),
-  economy: EconomyEnum(),
-  economies: jsonb().default([]).notNull(),
-  services: jsonb().default([]).notNull(),
-  landingPadsSmall: smallint().notNull().default(0),
-  landingPadsMedium: smallint().notNull().default(0),
-  landingPadsLarge: smallint().notNull().default(0),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-})
+export const Stations = pgTable(
+  'stations',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: citext().notNull(),
+    marketId: bigint({ mode: 'number' }).unique(),
+    stationType: StationTypeEnum(),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    controllingFactionId: uuid()
+      .notNull()
+      .references(() => Factions.id, {
+        onDelete: 'set null',
+      }),
+    distanceFromStar: doublePrecision().notNull(),
+    allegiance: AllegianceEnum(),
+    government: FactionGovernmentEnum(),
+    economy: EconomyEnum(),
+    economies: jsonb().default([]).notNull(),
+    services: jsonb().default([]).notNull(),
+    landingPadsSmall: smallint().notNull().default(0),
+    landingPadsMedium: smallint().notNull().default(0),
+    landingPadsLarge: smallint().notNull().default(0),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [index().on(table.name), unique().on(table.systemId, table.name)]
+)
 
 export const PowerplayPowers = pgTable('powerplayPowers', {
   id: uuid().primaryKey().defaultRandom(),

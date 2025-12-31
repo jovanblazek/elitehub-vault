@@ -175,13 +175,22 @@ const findFactionId = async (tx: Transaction, name: string) => {
 /**
  * Finds a station ID by name
  */
-const findStationId = async (tx: Transaction, name: string | undefined) => {
+const findStationId = async (
+  tx: Transaction,
+  {
+    name,
+    systemId,
+  }: {
+    name: string
+    systemId: string
+  }
+) => {
   if (!name) return null
 
   const result = await tx
     .select({ id: Stations.id })
     .from(Stations)
-    .where(eq(Stations.name, name))
+    .where(and(eq(Stations.name, name), eq(Stations.systemId, systemId)))
     .limit(1)
 
   return result[0]?.id ?? null
@@ -214,8 +223,14 @@ const upsertFactionConflicts = async (
       continue
     }
 
-    const factionStakeStationId = await findStationId(tx, conflict.Faction1.Stake)
-    const opponentStakeStationId = await findStationId(tx, conflict.Faction2.Stake)
+    const factionStakeStationId = await findStationId(tx, {
+      name: conflict.Faction1.Stake,
+      systemId,
+    })
+    const opponentStakeStationId = await findStationId(tx, {
+      name: conflict.Faction2.Stake,
+      systemId,
+    })
 
     conflictsData.push({
       systemId,
