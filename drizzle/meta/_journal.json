@@ -64,6 +64,13 @@
       "when": 1767200094338,
       "tag": "20251231165454_happy_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767305939114,
+      "tag": "20260101221859_third_triathlon",
+      "breakpoints": true
     }
   ]
 }

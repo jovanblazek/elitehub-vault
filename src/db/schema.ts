@@ -191,30 +191,34 @@ export enum PowerplayState {
 
 export const PowerplayStateEnum = pgEnum('powerplayStateEnum', enumToPgEnum(PowerplayState))
 
-export const Systems = pgTable('systems', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: citext().notNull().unique(),
-  systemAddress: bigint({ mode: 'number' }).notNull().unique(),
-  position: cube3().generatedAlwaysAs(
-    (): SQL => sql`cube(ARRAY[${Systems.x}, ${Systems.y}, ${Systems.z}])`
-  ),
-  x: doublePrecision().notNull(),
-  y: doublePrecision().notNull(),
-  z: doublePrecision().notNull(),
-  population: bigint({ mode: 'number' }).default(0).notNull(),
-  government: FactionGovernmentEnum(),
-  allegiance: AllegianceEnum(),
-  economy: EconomyEnum(),
-  secondEconomy: EconomyEnum(),
-  security: SystemSecurityEnum(),
-  controllingPowerId: uuid().references(() => PowerplayPowers.id, { onDelete: 'set null' }),
-  powerplayState: PowerplayStateEnum(),
-  powerplayStateControlProgress: doublePrecision(),
-  powerplayStateReinforcement: doublePrecision(),
-  powerplayStateUndermining: doublePrecision(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-})
+export const Systems = pgTable(
+  'systems',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: citext().notNull(),
+    systemAddress: bigint({ mode: 'number' }).notNull().unique(),
+    position: cube3().generatedAlwaysAs(
+      (): SQL => sql`cube(ARRAY[${Systems.x}, ${Systems.y}, ${Systems.z}])`
+    ),
+    x: doublePrecision().notNull(),
+    y: doublePrecision().notNull(),
+    z: doublePrecision().notNull(),
+    population: bigint({ mode: 'number' }).default(0).notNull(),
+    government: FactionGovernmentEnum(),
+    allegiance: AllegianceEnum(),
+    economy: EconomyEnum(),
+    secondEconomy: EconomyEnum(),
+    security: SystemSecurityEnum(),
+    controllingPowerId: uuid().references(() => PowerplayPowers.id, { onDelete: 'set null' }),
+    powerplayState: PowerplayStateEnum(),
+    powerplayStateControlProgress: doublePrecision(),
+    powerplayStateReinforcement: doublePrecision(),
+    powerplayStateUndermining: doublePrecision(),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [index().on(table.name)]
+)
 
 export const Factions = pgTable('factions', {
   id: uuid().primaryKey().defaultRandom(),
@@ -301,6 +305,8 @@ export const Stations = pgTable(
   'stations',
   {
     id: uuid().primaryKey().defaultRandom(),
+    // System names are not unique
+    // https://www.edsm.net/en/systems/duplicates
     name: citext().notNull(),
     marketId: bigint({ mode: 'number' }).unique(),
     stationType: StationTypeEnum(),
