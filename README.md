@@ -60,8 +60,6 @@ GET /graphql (for GraphiQL playground)
 
 For API issues or questions, please open an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new).
 
----
-
 ## For Contributors
 
 ### Prerequisites
@@ -243,15 +241,11 @@ The rest should be self-explanatory from the example file.
 - [PostGraphile Documentation](https://postgraphile.org/)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
 
----
-
 ## Roadmap
 
-- [ ] Truncate the database to get rid of invalid old data
 - [ ] Process stronghold carriers and megaships. Remove them when they are not present in the FSSSignalDiscovered event or update their location when they appear somewhere else.
 - [ ] Add mechanism to remove stations that are not present in the FSSSignalDiscovered event. Stations may be demolished in colonized systems.
-
----
+- [ ] Track historical data for faction states (Influence, Happiness, Active States, Recovering States, Pending States) and faction presence in systems.
 
 ## License
 
