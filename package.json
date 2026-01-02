@@ -16,7 +16,8 @@
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:studio": "drizzle-kit studio",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "semantic-release": "semantic-release"
   },
   "keywords": [],
   "author": "jovanblazek",
@@ -42,13 +43,20 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@types/koa": "^3.0.0",
     "@types/koa-ratelimit": "^5.0.5",
     "@types/node": "^24.3.1",
     "@types/pg": "^8.15.5",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "drizzle-kit": "0.31.8",
     "oxlint": "^1.31.0",
     "prettier": "^3.6.2",
+    "semantic-release": "^25.0.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"

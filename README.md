@@ -225,6 +225,46 @@ Feel free to add meaningful tests though.
 5. **Run lint and format** to check for linting and formatting errors
 6. **Submit a pull request** with description of changes
 
+#### PR Title Format Requirements
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation. **All PR titles must follow this format:**
+
+```
+<type>[optional scope]: <description>
+```
+
+**Allowed types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code refactoring without changing functionality
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Build system or external dependency changes
+- `ci`: CI/CD configuration changes
+- `chore`: Maintenance tasks (don't trigger releases)
+- `revert`: Reverting previous changes
+
+**Breaking changes:** Add `BREAKING CHANGE:` in the PR description to trigger a **major** version bump (e.g., 1.0.0 → 2.0.0).
+
+**Valid PR title examples:**
+
+- `feat: add user authentication`
+- `fix: resolve database connection timeout`
+- `docs: update API examples in README`
+- `refactor(eddn): simplify event processing logic`
+- `perf: optimize station lookup queries`
+
+**Invalid PR titles:**
+
+- `Add new feature` (missing type)
+- `feat add feature` (missing colon)
+- `feature: add thing` (wrong type name)
+
+PR titles are validated automatically. If your PR title doesn't match the format, the CI check will fail.
+
 ### Environment Variables
 
 See `.env.example` for all available configuration options. Key variables:
