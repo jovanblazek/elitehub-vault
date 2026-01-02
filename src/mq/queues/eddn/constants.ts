@@ -220,7 +220,9 @@ export const ValidPowerplayPowersLowercased = new Set(
 
 export const EXCLUDED_STATION_GOVERNMENTS = new Set([
   '$government_megaconstruction;',
+  'megaconstruction',
   '$government_carrier;',
+  'carrier',
 ])
 
 // Map helper functions for cleaner lookups

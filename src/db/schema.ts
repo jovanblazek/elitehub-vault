@@ -48,7 +48,7 @@ export enum StationType {
   Dodec = 'Dodec',
   Outpost = 'Outpost',
   PlanetaryPort = 'PlanetaryPort',
-  PlanetaryOutpost = 'PlanetaryOutpost',
+  PlanetaryOutpost = 'PlanetaryOutpost', // Allegedly also used for Stronghold carriers in EDDN
   AsteroidBase = 'AsteroidBase',
   MegaShip = 'MegaShip',
   OnFootSettlement = 'OnFootSettlement',

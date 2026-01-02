@@ -1,10 +1,9 @@
-import { eq } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalDockedMessage,
   ShortFactionInfo,
 } from '../../../../eddn/types.js'
-import { Factions, Stations } from '../../../../db/schema.js'
+import { Stations } from '../../../../db/schema.js'
 import { StationsInsertSchema } from '../schemas.js'
 import {
   EXCLUDED_STATION_GOVERNMENTS,
@@ -13,32 +12,14 @@ import {
   mapEconomy,
   mapStationType,
 } from '../constants.js'
-import logger from '../../../../utils/logger.js'
 import type { Transaction } from './systemHelpers.js'
+import { upsertFactions } from './factionHelpers.js'
 
 /**
  * Checks if a station should be excluded based on its government type
  */
 const isExcludedStation = (stationGovernment?: string) =>
   EXCLUDED_STATION_GOVERNMENTS.has(stationGovernment?.toLowerCase() ?? '')
-
-/**
- * Finds the controlling faction ID for a station
- */
-const findControllingFactionId = async (tx: Transaction, factionName: string) => {
-  const factions = await tx
-    .select({ id: Factions.id })
-    .from(Factions)
-    .where(eq(Factions.name, factionName))
-    .limit(1)
-    .execute()
-    .catch((error) => {
-      logger.error(error, `Failed to find controlling faction for station: ${factionName}`)
-      return null
-    })
-
-  return factions?.[0]?.id ?? null
-}
 
 /**
  * Builds station data from a Location message (when docked)
@@ -53,7 +34,7 @@ const buildStationDataFromLocation = (
   stationType: mapStationType(message.StationType),
   systemId,
   controllingFactionId,
-  distanceFromStar: message.DistFromStarLS!,
+  distanceFromStar: message.DistFromStarLS!, // Validated in hasRequiredStationData and later using zod
   allegiance: mapAllegiance(message.StationAllegiance),
   government: mapGovernment(message.StationGovernment),
   economy: mapEconomy(message.StationEconomy),
@@ -103,6 +84,7 @@ const hasRequiredStationData = (
 } =>
   message.Docked &&
   !!message.StationName &&
+  !!message.StationGovernment &&
   !!message.MarketID &&
   !!message.StationFaction &&
   message.DistFromStarLS !== undefined
@@ -123,21 +105,15 @@ export const upsertStationFromLocation = async (
     return
   }
 
-  const controllingFactionId = await findControllingFactionId(tx, message.StationFaction.Name)
+  const [controllingFaction] = await upsertFactions(tx, [
+    {
+      Name: message.StationFaction.Name,
+      Government: message.StationGovernment ?? 'Unknown',
+      Allegiance: message.StationAllegiance ?? 'Independent',
+    },
+  ])
 
-  if (!controllingFactionId) {
-    logger.warn(
-      {
-        systemId,
-        stationFactionName: message.StationFaction.Name,
-        stationName: message.StationName,
-      },
-      'Could not find controlling faction for station'
-    )
-    return
-  }
-
-  const stationData = buildStationDataFromLocation(message, systemId, controllingFactionId)
+  const stationData = buildStationDataFromLocation(message, systemId, controllingFaction.id)
   const validatedStationData = StationsInsertSchema.parse(stationData)
 
   await tx
@@ -164,21 +140,15 @@ export const upsertStationFromDocked = async (
     return
   }
 
-  const controllingFactionId = await findControllingFactionId(tx, message.StationFaction.Name)
+  const [controllingFaction] = await upsertFactions(tx, [
+    {
+      Name: message.StationFaction.Name,
+      Government: message.StationGovernment,
+      Allegiance: message.StationAllegiance ?? 'Independent',
+    },
+  ])
 
-  if (!controllingFactionId) {
-    logger.warn(
-      {
-        systemId,
-        stationFactionName: message.StationFaction.Name,
-        stationName: message.StationName,
-      },
-      'Could not find controlling faction for station'
-    )
-    return
-  }
-
-  const stationData = buildStationDataFromDocked(message, systemId, controllingFactionId)
+  const stationData = buildStationDataFromDocked(message, systemId, controllingFaction.id)
   const validatedStationData = StationsInsertSchema.parse(stationData)
 
   await tx

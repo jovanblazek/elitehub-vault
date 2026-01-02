@@ -32,12 +32,15 @@ type FactionMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
 /**
  * Upserts factions and returns the inserted/updated factions
  */
-const upsertFactions = async (tx: Transaction, message: FactionMessage) => {
-  if (!message.Factions || message.Factions.length === 0) {
+export const upsertFactions = async (
+  tx: Transaction,
+  messageFactions: { Name: string; Government: string; Allegiance: string }[]
+) => {
+  if (!messageFactions || messageFactions.length === 0) {
     return []
   }
 
-  const factionsData = message.Factions.map((faction) => ({
+  const factionsData = messageFactions.map((faction) => ({
     name: faction.Name,
     government: mapGovernment(faction.Government),
     allegiance: mapAllegiance(faction.Allegiance),
@@ -293,7 +296,7 @@ export const processFactionsData = async (
     return
   }
 
-  const factions = await upsertFactions(tx, message)
+  const factions = await upsertFactions(tx, message.Factions)
   const factionIdMap = createFactionIdMap(factions)
 
   await upsertSystemFactions(tx, systemId, factions)

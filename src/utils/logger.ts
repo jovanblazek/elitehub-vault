@@ -4,7 +4,7 @@ import pino from 'pino'
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 const logger = pino({
-  level: IS_PRODUCTION ? 'info' : 'debug',
+  level: process.env.LOG_LEVEL || (IS_PRODUCTION ? 'info' : 'debug'),
   enabled: process.env.NODE_ENV !== 'test',
   transport: {
     targets: [
