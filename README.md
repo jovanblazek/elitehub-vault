@@ -6,3 +6,4 @@ EliteHub Vault is a real-time data collection and processing system for Elite Da
 
 - [ ] Truncate the database to get rid of invalid old data
 - [ ] Process stronghold carriers and megaships. Remove them when they are not present in the FSSSignalDiscovered event or update their location when they appear somewhere else.
+- [ ] Add mechanism to remove stations that are not present in the FSSSignalDiscovered event. Stations may be demolished in colonized systems.

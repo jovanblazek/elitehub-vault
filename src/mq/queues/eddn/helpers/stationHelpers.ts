@@ -4,7 +4,7 @@ import type {
   ShortFactionInfo,
 } from '../../../../eddn/types.js'
 import { Stations } from '../../../../db/schema.js'
-import { StationsInsertSchema } from '../schemas.js'
+import { StationsInsertSchema } from '../validationSchemas.js'
 import {
   EXCLUDED_STATION_GOVERNMENTS,
   mapAllegiance,

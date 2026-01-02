@@ -16,7 +16,7 @@ import {
   FactionsInsertSchema,
   FactionStatesInsertSchema,
   FactionConflictsInsertSchema,
-} from '../schemas.js'
+} from '../validationSchemas.js'
 import {
   mapGovernment,
   mapAllegiance,

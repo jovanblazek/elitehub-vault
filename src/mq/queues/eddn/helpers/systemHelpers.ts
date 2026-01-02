@@ -5,7 +5,7 @@ import type {
 } from '../../../../eddn/types.js'
 import { Systems } from '../../../../db/schema.js'
 import { db } from '../../../../db/db.js'
-import { SystemsInsertSchema } from '../schemas.js'
+import { SystemsInsertSchema } from '../validationSchemas.js'
 import {
   mapGovernment,
   mapAllegiance,
@@ -13,6 +13,7 @@ import {
   mapSecurity,
   mapPowerplayState,
 } from '../constants.js'
+import { eq } from 'drizzle-orm'
 
 export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
@@ -73,4 +74,27 @@ export const upsertSystem = async (
   }
 
   return system
+}
+
+/**
+ * Checks if a system should be deleted based on population and government
+ */
+export const shouldDeleteSystem = (data: ReturnType<typeof buildFullSystemData>): boolean => {
+  return data.population === 0 && (data.government === null || data.government === undefined)
+}
+
+/**
+ * Deletes a system by systemAddress if it exists
+ * Returns the deleted system if found, null if not found
+ */
+export const deleteSystem = async (
+  tx: Transaction,
+  systemAddress: number
+): Promise<{ id: string; name: string } | null> => {
+  const [deleted] = await tx
+    .delete(Systems)
+    .where(eq(Systems.systemAddress, systemAddress))
+    .returning({ id: Systems.id, name: Systems.name })
+
+  return deleted ?? null
 }

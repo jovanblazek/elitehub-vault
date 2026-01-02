@@ -8,7 +8,7 @@ import {
   SystemPowerplayPowers,
   PowerplayConflicts,
 } from '../../../../db/schema.js'
-import { PowerplayConflictsInsertSchema } from '../schemas.js'
+import { PowerplayConflictsInsertSchema } from '../validationSchemas.js'
 import { PowerplayPowersFromLowercaseMap, ValidPowerplayPowersLowercased } from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
 
