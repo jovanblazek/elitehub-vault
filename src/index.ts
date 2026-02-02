@@ -12,6 +12,7 @@ import { pgl } from './postgraphile/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
 import { apiKeyAuth } from './middleware/apiKeyAuth.js'
 import ratelimit from 'koa-ratelimit'
+import bodyParser from 'koa-bodyparser'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -30,6 +31,7 @@ Sentry.setupKoaErrorHandler(KoaApp)
 
 KoaApp.use(
   ratelimit({
+    whitelist: () => process.env.NODE_ENV === 'development',
     driver: 'redis',
     db: Redis as any, // ioredis is compatible but has type conflicts
     namespace: 'api-rate-limit',
@@ -48,6 +50,7 @@ KoaApp.use(
   })
 )
 
+KoaApp.use(bodyParser())
 KoaApp.use(apiKeyAuth)
 
 const serv = pgl.createServ(grafserv)
