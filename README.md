@@ -56,6 +56,8 @@ GET /graphql (for GraphiQL playground)
 
 <!-- TODO: Add example queries -->
 
+TODO: Add example queries
+
 ### Support
 
 For API issues or questions, please open an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new).
