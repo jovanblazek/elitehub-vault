@@ -1,48 +1,40 @@
+import { z } from 'zod'
 import {
   buildSystemPowerplayUpdatedPayload,
-  SYSTEM_POWERPLAY_UPDATED_EVENT,
+  type SystemPowerplayUpdatedOutboxPayload,
+  SystemPowerplayUpdatedOutboxPayloadSchema,
+  type SystemPowerplayUpdatedPayload,
 } from './systemPowerplayUpdated.js'
 
-type GenericPayload = Record<string, unknown>
+export const GenericPayloadSchema = z.record(z.string(), z.unknown())
 
-const asObjectPayload = (value: unknown): GenericPayload | null => {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+export const parseSystemPowerplayUpdatedOutboxPayload = (
+  payload: unknown
+): SystemPowerplayUpdatedOutboxPayload | null => {
+  const parsedPayload = SystemPowerplayUpdatedOutboxPayloadSchema.safeParse(payload)
+  if (!parsedPayload.success) {
     return null
   }
 
-  return value as GenericPayload
+  return parsedPayload.data
 }
 
-export const buildPublishedRealtimePayload = (
-  eventType: string,
-  payload: unknown,
+export const buildSystemPowerplayUpdatedPowerScopedPayload = (args: {
+  outboxPayload: unknown
   createdAt: Date
-): GenericPayload | null => {
-  const objectPayload = asObjectPayload(payload)
-  if (!objectPayload) {
+  powerId: string
+}): SystemPowerplayUpdatedPayload | null => {
+  const parsedPayload = parseSystemPowerplayUpdatedOutboxPayload(args.outboxPayload)
+  if (!parsedPayload) {
     return null
   }
 
-  if (eventType === SYSTEM_POWERPLAY_UPDATED_EVENT) {
-    const systemId = objectPayload.systemId
-    const changedFields = objectPayload.changedFields
-    const source = objectPayload.source
-    const metadata = objectPayload.metadata
-
-    if (typeof systemId !== 'string' || !Array.isArray(changedFields)) {
-      return null
-    }
-
-    return buildSystemPowerplayUpdatedPayload({
-      systemId,
-      changedFields: changedFields.filter((field): field is string => typeof field === 'string'),
-      createdAt,
-      source: typeof source === 'string' ? source : undefined,
-      metadata: metadata && typeof metadata === 'object' && !Array.isArray(metadata)
-        ? (metadata as Record<string, unknown>)
-        : undefined,
-    })
-  }
-
-  return objectPayload
+  return buildSystemPowerplayUpdatedPayload({
+    systemId: parsedPayload.systemId,
+    powerId: args.powerId,
+    changedFields: parsedPayload.changedFields,
+    createdAt: args.createdAt,
+    source: parsedPayload.source,
+    metadata: parsedPayload.metadata,
+  })
 }

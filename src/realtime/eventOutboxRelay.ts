@@ -1,11 +1,14 @@
 // oxlint-disable no-await-in-loop
 import { eq, sql } from 'drizzle-orm'
 import { db } from '../db/db.js'
-import { EventOutbox } from '../db/schema.js'
+import { EventOutbox, SystemPowerplayPowers } from '../db/schema.js'
 import { Redis } from '../utils/redis.js'
 import logger from '../utils/logger.js'
-import { getRealtimeChannelForEventType } from './eventChannels.js'
-import { buildPublishedRealtimePayload } from './eventPayloads.js'
+import { parseSystemPowerplayUpdatedOutboxPayload } from './eventPayloads.js'
+import {
+  SYSTEM_POWERPLAY_UPDATED_EVENT,
+} from './systemPowerplayUpdated.js'
+import { buildSystemPowerplayPublishTargets } from './systemPowerplayFanout.js'
 
 type OutboxRow = {
   id: string
@@ -78,21 +81,52 @@ export class EventOutboxRelay {
     }
 
     for (const row of rows.rows) {
-      const channel = getRealtimeChannelForEventType(row.eventType)
-      if (!channel) {
+      if (row.eventType !== SYSTEM_POWERPLAY_UPDATED_EVENT) {
         logger.error({ eventType: row.eventType }, '[EventOutboxRelay] Unknown event type in outbox')
         await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
         continue
       }
 
-      const payload = buildPublishedRealtimePayload(row.eventType, row.payload, row.createdAt)
-      if (!payload) {
-        logger.error({ eventType: row.eventType, rowId: row.id }, '[EventOutboxRelay] Invalid payload')
+      const validatedPayload = parseSystemPowerplayUpdatedOutboxPayload(row.payload)
+      if (!validatedPayload) {
+        logger.error(
+          { eventType: row.eventType, rowId: row.id },
+          '[EventOutboxRelay] Invalid payload'
+        )
         await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
         continue
       }
 
-      await Redis.publish(channel, JSON.stringify(payload))
+      const systemId = validatedPayload.systemId
+
+      const powerRows = await tx
+        .select({ powerId: SystemPowerplayPowers.powerId })
+        .from(SystemPowerplayPowers)
+        .where(eq(SystemPowerplayPowers.systemId, systemId))
+
+      if (powerRows.length === 0) {
+        await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
+        continue
+      }
+
+      const targets = buildSystemPowerplayPublishTargets({
+        outboxPayload: validatedPayload,
+        createdAt: row.createdAt,
+        powerIds: powerRows.map((powerRow) => powerRow.powerId),
+      })
+
+      if (targets.length === 0) {
+        logger.error(
+          { eventType: row.eventType, rowId: row.id },
+          '[EventOutboxRelay] Failed to build power scoped payloads'
+        )
+        await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
+        continue
+      }
+
+      for (const target of targets) {
+        await Redis.publish(target.channel, JSON.stringify(target.payload))
+      }
 
       await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
     }
