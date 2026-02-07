@@ -81,6 +81,8 @@ export const apiKeyAuth: Middleware = async (ctx, next) => {
     if (ctx.method === 'POST') {
       const apiKey = ctx.headers['x-api-key'] as string | undefined
 
+      // TODO: disable API key validation in development
+      // TODO: Unify API key validation with the one in the SSE service.
       if (!apiKey) {
         ctx.status = 401
         ctx.body = {

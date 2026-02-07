@@ -8,6 +8,7 @@
     "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
     "build": "tsc",
     "start": "node --import ./dist/utils/sentry.js dist/index.js",
+    "debug:sse": "tsx src/scripts/debugSse.ts",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
