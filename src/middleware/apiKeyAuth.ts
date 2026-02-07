@@ -1,9 +1,7 @@
 import type { Middleware } from 'koa'
-import { db } from '../db/db.js'
-import { ApiKeys } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
 import logger from '../utils/logger.js'
 import { parse, visit } from 'postgraphile/graphql'
+import { validateApiKey } from '../auth/apiKeyValidator.js'
 
 interface RequestBody {
   operationName?: string
@@ -92,27 +90,34 @@ export const apiKeyAuth: Middleware = async (ctx, next) => {
         return
       }
 
-      try {
-        const [keyRecord] = await db.select().from(ApiKeys).where(eq(ApiKeys.key, apiKey)).limit(1)
-
-        if (!keyRecord || !keyRecord.isActive) {
-          logger.warn(`[ApiKeyAuth] Invalid or inactive API key attempted`)
-          ctx.status = 401
+      const validationResult = await validateApiKey(apiKey)
+      if (!validationResult.ok) {
+        if (validationResult.reason === 'internal_error') {
+          logger.error('[ApiKeyAuth] Error validating API key')
+          ctx.status = 500
           ctx.body = {
-            error: 'Unauthorized',
-            message: 'Invalid or inactive API key',
+            error: 'Internal Server Error',
+            message: 'Failed to validate API key',
           }
           return
         }
 
-        logger.debug(`[ApiKeyAuth] Valid API key used: ${keyRecord.name}`)
+        ctx.status = 401
+        ctx.body = {
+          error: 'Unauthorized',
+          message: 'Invalid or inactive API key',
+        }
+        return
+      }
+
+      logger.debug(`[ApiKeyAuth] Valid API key used: ${validationResult.keyName}`)
+      try {
         await next()
-      } catch (error) {
-        logger.error(`[ApiKeyAuth] Error validating API key: ${error}`)
+      } catch {
         ctx.status = 500
         ctx.body = {
           error: 'Internal Server Error',
-          message: 'Failed to validate API key',
+          message: 'Failed to process request',
         }
       }
       return

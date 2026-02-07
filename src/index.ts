@@ -14,6 +14,7 @@ import { apiKeyAuth } from './middleware/apiKeyAuth.js'
 import ratelimit from 'koa-ratelimit'
 import bodyParser from 'koa-bodyparser'
 import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
+import { realtimeSseHandler, shutdownRealtimeSse } from './realtime/sse/sseService.js'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -54,6 +55,7 @@ KoaApp.use(
 
 KoaApp.use(bodyParser())
 KoaApp.use(apiKeyAuth)
+KoaApp.use(realtimeSseHandler)
 
 const serv = pgl.createServ(grafserv)
 serv.addTo(KoaApp, null)
@@ -88,6 +90,10 @@ const shutdown = async () => {
   logger.info('[EventOutboxRelay] Closing relay...')
   await eventOutboxRelay.stop()
   logger.info('[EventOutboxRelay] Relay closed')
+
+  logger.info('[SSE] Closing realtime SSE broker...')
+  await shutdownRealtimeSse()
+  logger.info('[SSE] Realtime SSE broker closed')
 
   // Close Redis connection
   logger.info('[Redis] Closing connection...')
