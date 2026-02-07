@@ -26,6 +26,7 @@ export class EventOutboxRelay {
   private readonly batchSize = 100
   private readonly idleDelayMs = 250
   private readonly errorDelayMs = 1000
+  private hadRecentError = false
 
   start() {
     if (this.isRunning) {
@@ -53,10 +54,15 @@ export class EventOutboxRelay {
     while (!this.shouldStop) {
       try {
         const processedCount = await db.transaction(async (tx) => this.processBatch(tx))
+        if (this.hadRecentError) {
+          logger.info('[EventOutboxRelay] Relay resumed after error')
+          this.hadRecentError = false
+        }
         if (processedCount === 0) {
           await this.sleep(this.idleDelayMs)
         }
       } catch (error) {
+        this.hadRecentError = true
         logger.error(error, '[EventOutboxRelay] Failed processing outbox batch')
         await this.sleep(this.errorDelayMs)
       }

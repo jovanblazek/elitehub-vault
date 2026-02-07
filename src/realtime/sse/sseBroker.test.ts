@@ -59,6 +59,8 @@ test('SseBroker filters routed events by powerId and optional systemId', async (
   const connection1 = await broker.registerConnection({
     response: response1 as unknown as ServerResponse,
     eventType: 'systemPowerplayUpdated',
+    apiKeyId: 'key-1',
+    keyName: 'key-1',
     powerIds: ['power-a'],
     systemIds: ['system-1'],
   })
@@ -66,6 +68,8 @@ test('SseBroker filters routed events by powerId and optional systemId', async (
   const connection2 = await broker.registerConnection({
     response: response2 as unknown as ServerResponse,
     eventType: 'systemPowerplayUpdated',
+    apiKeyId: 'key-2',
+    keyName: 'key-2',
     powerIds: ['power-a'],
     systemIds: null,
   })
@@ -101,6 +105,8 @@ test('SseBroker without systemId filter receives all systems for selected powerI
   const connectionId = await broker.registerConnection({
     response: response as unknown as ServerResponse,
     eventType: 'systemPowerplayUpdated',
+    apiKeyId: 'key-1',
+    keyName: 'key-1',
     powerIds: ['power-a', 'power-b'],
     systemIds: null,
   })
@@ -148,6 +154,8 @@ test('SseBroker cleanup is idempotent and decrements power demand once per power
   const connectionId = await broker.registerConnection({
     response: response as unknown as ServerResponse,
     eventType: 'systemPowerplayUpdated',
+    apiKeyId: 'key-1',
+    keyName: 'key-1',
     powerIds: ['power-a', 'power-b'],
     systemIds: null,
   })

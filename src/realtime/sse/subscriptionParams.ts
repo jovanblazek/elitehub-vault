@@ -3,7 +3,7 @@ import { SYSTEM_POWERPLAY_UPDATED_EVENT } from '../systemPowerplayUpdated.js'
 
 const SseSubscriptionQuerySchema = z.object({
   eventType: z.literal(SYSTEM_POWERPLAY_UPDATED_EVENT),
-  powerId: z.array(z.string().min(1)).min(1),
+  powerId: z.array(z.string().min(1)).min(1).max(4),
   systemId: z.array(z.string().min(1)).max(20).optional(),
 })
 

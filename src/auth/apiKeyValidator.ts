@@ -4,7 +4,7 @@ import { ApiKeys } from '../db/schema.js'
 import logger from '../utils/logger.js'
 
 export type ApiKeyValidationResult =
-  | { ok: true; keyName: string }
+  | { ok: true; apiKeyId: string; keyName: string; maxSseConnections: number }
   | { ok: false; reason: 'missing' | 'invalid' | 'internal_error' }
 
 export const validateApiKey = async (
@@ -22,7 +22,12 @@ export const validateApiKey = async (
       return { ok: false, reason: 'invalid' }
     }
 
-    return { ok: true, keyName: keyRecord.name }
+    return {
+      ok: true,
+      apiKeyId: keyRecord.id,
+      keyName: keyRecord.name,
+      maxSseConnections: keyRecord.maxSseConnections,
+    }
   } catch (error) {
     logger.error(error, '[ApiKeyAuth] Error validating API key')
     return { ok: false, reason: 'internal_error' }

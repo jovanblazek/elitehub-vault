@@ -17,10 +17,10 @@ export const sseRoute: Middleware = async (ctx, next) => {
     return
   }
 
-  const isAuthorized = await requireApiKey(ctx)
-  if (!isAuthorized) {
+  const authorizedApiKey = await requireApiKey(ctx)
+  if (!authorizedApiKey) {
     return
   }
 
-  await openRealtimeSseConnection(ctx)
+  await openRealtimeSseConnection(ctx, authorizedApiKey)
 }

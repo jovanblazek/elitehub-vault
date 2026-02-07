@@ -31,10 +31,16 @@ export class RedisSubscriptionManager {
   private readonly subscriptionStateByPower = new Map<string, SubscriptionState>()
   private readonly subscriptionOpByPower = new Map<string, Promise<void>>()
   private isStarted = false
+  private redisDisconnected = false
 
   constructor(
     subscriber: RedisSubscriberLike,
-    private readonly onEvent: (event: RoutedRealtimeEvent) => void
+    private readonly onEvent: (event: RoutedRealtimeEvent) => void,
+    private readonly callbacks: {
+      onRedisError?: () => void
+      onRedisDisconnect?: () => void
+      onRedisRecovered?: (demandedPowers: number) => void
+    } = {}
   ) {
     this.subscriber = subscriber
     this.subscriber.setMaxListeners(100)
@@ -118,19 +124,32 @@ export class RedisSubscriptionManager {
   }
 
   private readonly onReady = () => {
+    const demandedPowers = this.powerDemandCount.size
     for (const powerId of this.powerDemandCount.keys()) {
       this.subscriptionStateByPower.set(powerId, 'idle')
+    }
+
+    if (this.redisDisconnected) {
+      logger.info({ demandedPowers }, '[SSE] Redis subscriber recovered; reconciling subscriptions')
+      this.callbacks.onRedisRecovered?.(demandedPowers)
+      this.redisDisconnected = false
     }
 
     void this.reconcileAllSubscriptions()
   }
 
   private readonly onError = (error: unknown) => {
+    this.callbacks.onRedisError?.()
     logger.error(error, '[SSE] Redis subscriber error')
   }
 
   private readonly onClose = () => {
-    logger.warn('[SSE] Redis subscriber connection closed')
+    this.redisDisconnected = true
+    this.callbacks.onRedisDisconnect?.()
+    logger.warn(
+      { demandedPowers: this.powerDemandCount.size },
+      '[SSE] Redis subscriber connection closed'
+    )
     for (const [powerId, state] of this.subscriptionStateByPower.entries()) {
       if (state === 'subscribed' || state === 'subscribing') {
         this.subscriptionStateByPower.set(powerId, 'idle')
@@ -147,6 +166,10 @@ export class RedisSubscriptionManager {
         })
       )
     )
+
+    if (this.isStarted) {
+      logger.info({ demandedPowers: powers.length }, '[SSE] Redis subscription reconciliation complete')
+    }
   }
 
   private async subscribePowerIfNeeded(powerId: string) {

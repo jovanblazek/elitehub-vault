@@ -4,9 +4,21 @@ import { validateApiKey } from '../../auth/apiKeyValidator.js'
 
 const isDevelopmentEnvironment = () => process.env.NODE_ENV === 'development'
 
-export const requireApiKey = async (ctx: Context): Promise<boolean> => {
+export type AuthorizedApiKey = {
+  apiKeyId: string
+  keyName: string
+  maxSseConnections: number
+}
+
+const developmentApiKey: AuthorizedApiKey = {
+  apiKeyId: 'development',
+  keyName: 'development',
+  maxSseConnections: Number.MAX_SAFE_INTEGER,
+}
+
+export const requireApiKey = async (ctx: Context): Promise<AuthorizedApiKey | null> => {
   if (isDevelopmentEnvironment()) {
-    return true
+    return developmentApiKey
   }
 
   const apiKey = ctx.headers['x-api-key']?.toString()
@@ -19,7 +31,7 @@ export const requireApiKey = async (ctx: Context): Promise<boolean> => {
         error: 'Internal Server Error',
         message: 'Failed to validate API key',
       }
-      return false
+      return null
     }
 
     ctx.status = 401
@@ -27,9 +39,16 @@ export const requireApiKey = async (ctx: Context): Promise<boolean> => {
       error: 'Unauthorized',
       message: validationResult.reason === 'missing' ? 'API key is required' : 'Invalid or inactive API key',
     }
-    return false
+    return null
   }
 
-  logger.debug(`[ApiKeyAuth] Valid API key used: ${validationResult.keyName}`)
-  return true
+  logger.debug(
+    {
+      apiKeyId: validationResult.apiKeyId,
+      keyName: validationResult.keyName,
+      maxSseConnections: validationResult.maxSseConnections,
+    },
+    '[ApiKeyAuth] Valid API key used'
+  )
+  return validationResult
 }

@@ -63,6 +63,22 @@ test('parseSseSubscriptionQuery rejects missing powerIds', () => {
   assert.match(parsed.error, /powerId/i)
 })
 
+test('parseSseSubscriptionQuery rejects more than 4 powerIds', () => {
+  const query = new URLSearchParams('eventType=systemPowerplayUpdated')
+  for (let i = 0; i < 5; i += 1) {
+    query.append('powerId', `p-${i}`)
+  }
+
+  const parsed = parseSseSubscriptionQuery(query)
+  assert.equal(parsed.success, false)
+
+  if (parsed.success) {
+    return
+  }
+
+  assert.match(parsed.error, /powerId/i)
+})
+
 test('parseSseSubscriptionQuery rejects more than 20 systemIds', () => {
   const query = new URLSearchParams('eventType=systemPowerplayUpdated&powerId=p1')
   for (let i = 0; i < 21; i += 1) {

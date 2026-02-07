@@ -73,8 +73,8 @@ export const graphqlRoute: Middleware = async (ctx, next) => {
     }
 
     // Require API key for all other POST requests (queries and mutations), except in development.
-    const isAuthorized = await requireApiKey(ctx)
-    if (!isAuthorized) {
+    const authorizedApiKey = await requireApiKey(ctx)
+    if (!authorizedApiKey) {
       return
     }
 

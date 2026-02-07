@@ -14,10 +14,19 @@ const MAX_QUEUE_BYTES = 1_048_576
 
 type ConnectionId = string
 
+export type SseCloseReason =
+  | 'client_disconnect'
+  | 'backpressure'
+  | 'write_error'
+  | 'server_shutdown'
+  | 'quota_exceeded'
+
 type SseConnection = {
   id: ConnectionId
   response: ServerResponse
   eventType: RealtimeEventType
+  apiKeyId: string
+  keyName: string
   powerIds: Set<string>
   systemIdAllowlist: Set<string> | null
   queue: string[]
@@ -31,6 +40,8 @@ type SseConnection = {
 export type RegisterConnectionInput = {
   response: ServerResponse
   eventType: RealtimeEventType
+  apiKeyId: string
+  keyName: string
   powerIds: string[]
   systemIds: string[] | null
 }
@@ -40,6 +51,28 @@ type PowerDemandManager = {
   stop: () => Promise<void>
   incrementPowerDemand: (powerId: string) => Promise<void>
   decrementPowerDemand: (powerId: string) => Promise<void>
+}
+
+type SseBrokerCallbacks = {
+  onConnectionOpened?: (event: {
+    connectionId: string
+    apiKeyId: string
+    keyName: string
+    eventType: RealtimeEventType
+    powerIdCount: number
+    systemIdCount: number
+    activeChannels: number
+  }) => void
+  onConnectionClosed?: (event: {
+    connectionId: string
+    apiKeyId: string
+    keyName: string
+    reason: SseCloseReason
+    activeChannels: number
+  }) => void
+  onEventRouted?: () => void
+  onEventDropped?: () => void
+  onWriteError?: () => void
 }
 
 const getChannelKey = (eventType: string, powerId: string) => `${eventType}:${powerId}`
@@ -52,7 +85,10 @@ export class SseBroker {
   private readonly connectionIdsByChannelKey = new Map<string, Set<ConnectionId>>()
   private nextConnectionId = 1
 
-  constructor(private readonly redisSubscriptions: PowerDemandManager) {
+  constructor(
+    private readonly redisSubscriptions: PowerDemandManager,
+    private readonly callbacks: SseBrokerCallbacks = {}
+  ) {
     this.redisSubscriptions.start()
   }
 
@@ -64,6 +100,8 @@ export class SseBroker {
       id: connectionId,
       response: input.response,
       eventType: input.eventType,
+      apiKeyId: input.apiKeyId,
+      keyName: input.keyName,
       powerIds: new Set(input.powerIds),
       systemIdAllowlist,
       queue: [],
@@ -94,14 +132,25 @@ export class SseBroker {
       )
     } catch (error) {
       logger.error(error, '[SSE] Failed to increment power demand for new connection')
-      await this.cleanupConnection(connectionId)
+      await this.cleanupConnection(connectionId, 'write_error')
       throw error
     }
 
+    this.enqueueRawFrame(connectionId, 'retry: 2000\n\n')
     this.enqueueRawFrame(connectionId, ': connected\n\n')
     connection.heartbeat = setInterval(() => {
       this.enqueueRawFrame(connectionId, ': keepalive\n\n')
     }, HEARTBEAT_INTERVAL_MS)
+
+    this.callbacks.onConnectionOpened?.({
+      connectionId,
+      apiKeyId: connection.apiKeyId,
+      keyName: connection.keyName,
+      eventType: connection.eventType,
+      powerIdCount: connection.powerIds.size,
+      systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
+      activeChannels: this.connectionIdsByChannelKey.size,
+    })
 
     return connectionId
   }
@@ -139,17 +188,20 @@ export class SseBroker {
         connection.nextEventId++,
         spec.toSseData(payload)
       )
+      this.callbacks.onEventRouted?.()
       this.enqueueRawFrame(connectionId, frame)
     }
   }
 
   async closeAllConnections() {
     const connectionIds = Array.from(this.connectionsById.keys())
-    await Promise.all(connectionIds.map((connectionId) => this.cleanupConnection(connectionId)))
+    await Promise.all(
+      connectionIds.map((connectionId) => this.cleanupConnection(connectionId, 'server_shutdown'))
+    )
     await this.redisSubscriptions.stop()
   }
 
-  async cleanupConnection(connectionId: ConnectionId) {
+  async cleanupConnection(connectionId: ConnectionId, reason: SseCloseReason = 'client_disconnect') {
     const connection = this.connectionsById.get(connectionId)
     if (!connection || connection.isClosed) {
       return
@@ -192,6 +244,18 @@ export class SseBroker {
         this.redisSubscriptions.decrementPowerDemand(powerId)
       )
     )
+
+    this.callbacks.onConnectionClosed?.({
+      connectionId,
+      apiKeyId: connection.apiKeyId,
+      keyName: connection.keyName,
+      reason,
+      activeChannels: this.connectionIdsByChannelKey.size,
+    })
+  }
+
+  getActiveConnectionCount() {
+    return this.connectionsById.size
   }
 
   private enqueueRawFrame(connectionId: ConnectionId, frame: string) {
@@ -205,8 +269,9 @@ export class SseBroker {
       connection.queue.length + 1 > MAX_QUEUE_MESSAGES ||
       connection.queuedBytes + frameBytes > MAX_QUEUE_BYTES
     ) {
+      this.callbacks.onEventDropped?.()
       logger.warn({ connectionId }, '[SSE] Closing slow client due to backpressure threshold')
-      void this.cleanupConnection(connectionId)
+      void this.cleanupConnection(connectionId, 'backpressure')
       return
     }
 
@@ -242,8 +307,9 @@ export class SseBroker {
         }
       }
     } catch (error) {
+      this.callbacks.onWriteError?.()
       logger.warn({ error, connectionId }, '[SSE] Closing connection due to write failure')
-      await this.cleanupConnection(connectionId)
+      await this.cleanupConnection(connectionId, 'write_error')
     } finally {
       connection.isFlushing = false
     }
