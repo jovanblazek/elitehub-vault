@@ -1,7 +1,6 @@
-import type { Middleware } from 'koa'
+import type { Context } from 'koa'
 import { Redis } from '../../utils/redis.js'
 import logger from '../../utils/logger.js'
-import { validateApiKey } from '../../auth/apiKeyValidator.js'
 import { RedisSubscriptionManager } from './redisSubscriptionManager.js'
 import { SseBroker } from './sseBroker.js'
 import { parseSseSubscriptionQuery } from './subscriptionParams.js'
@@ -13,42 +12,7 @@ const redisSubscriptions = new RedisSubscriptionManager(redisSubscriber, (event)
 })
 const sseBroker = new SseBroker(redisSubscriptions)
 
-export const realtimeSseHandler: Middleware = async (ctx, next) => {
-  if (ctx.path !== '/realtime/sse') {
-    await next()
-    return
-  }
-
-  if (ctx.method !== 'GET') {
-    ctx.status = 405
-    ctx.body = {
-      error: 'Method Not Allowed',
-      message: 'Use GET for SSE subscriptions',
-    }
-    return
-  }
-
-  const apiKey = ctx.headers['x-api-key']?.toString()
-  const apiKeyResult = await validateApiKey(apiKey)
-
-  if (!apiKeyResult.ok) {
-    if (apiKeyResult.reason === 'internal_error') {
-      ctx.status = 500
-      ctx.body = {
-        error: 'Internal Server Error',
-        message: 'Failed to validate API key',
-      }
-      return
-    }
-
-    ctx.status = 401
-    ctx.body = {
-      error: 'Unauthorized',
-      message: apiKeyResult.reason === 'missing' ? 'API key is required' : 'Invalid or inactive API key',
-    }
-    return
-  }
-
+export const openRealtimeSseConnection = async (ctx: Context) => {
   const requestUrl = new URL(ctx.req.url ?? '', `http://${ctx.host}`)
   const query = parseSseSubscriptionQuery(requestUrl.searchParams)
 

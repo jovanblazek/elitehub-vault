@@ -10,11 +10,11 @@ import { Redis } from './utils/redis.js'
 import Koa, { type Context } from 'koa'
 import { pgl } from './postgraphile/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
-import { apiKeyAuth } from './middleware/apiKeyAuth.js'
+import { routeAccessMiddleware } from './middleware/routeAccess.js'
 import ratelimit from 'koa-ratelimit'
 import bodyParser from 'koa-bodyparser'
 import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
-import { realtimeSseHandler, shutdownRealtimeSse } from './realtime/sse/sseService.js'
+import { shutdownRealtimeSse } from './realtime/sse/sseService.js'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
@@ -54,8 +54,7 @@ KoaApp.use(
 )
 
 KoaApp.use(bodyParser())
-KoaApp.use(apiKeyAuth)
-KoaApp.use(realtimeSseHandler)
+KoaApp.use(routeAccessMiddleware)
 
 const serv = pgl.createServ(grafserv)
 serv.addTo(KoaApp, null)
