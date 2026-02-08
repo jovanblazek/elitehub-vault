@@ -28,6 +28,18 @@ class FakeRedisSubscriber extends EventEmitter implements RedisSubscriberLike {
   }
 }
 
+class FlakySubscribeRedisSubscriber extends FakeRedisSubscriber {
+  private subscribeAttempts = 0
+
+  override async subscribe(channel: string): Promise<number> {
+    this.subscribeAttempts += 1
+    if (this.subscribeAttempts === 1) {
+      throw new Error('temporary subscribe failure')
+    }
+    return super.subscribe(channel)
+  }
+}
+
 test('RedisSubscriptionManager subscribes only on first demand and unsubscribes on last demand', async () => {
   const fakeSubscriber = new FakeRedisSubscriber()
   const routedEvents: RoutedRealtimeEvent[] = []
@@ -71,6 +83,26 @@ test('RedisSubscriptionManager subscribes only on first demand and unsubscribes 
 
   assert.equal(routedEvents.length, 1)
   assert.equal(routedEvents[0]?.powerId, 'power-a')
+
+  await manager.stop()
+})
+
+test('RedisSubscriptionManager retries subscribe on later demand after first subscribe failure', async () => {
+  const fakeSubscriber = new FlakySubscribeRedisSubscriber()
+  const manager = new RedisSubscriptionManager(
+    fakeSubscriber as unknown as RedisSubscriberLike,
+    () => {}
+  )
+
+  manager.start()
+
+  await manager.incrementPowerDemand('power-a')
+  assert.equal(fakeSubscriber.subscribedChannels.length, 0)
+
+  await manager.incrementPowerDemand('power-a')
+  assert.deepEqual(fakeSubscriber.subscribedChannels, [
+    'events:systemPowerplayUpdated:power:power-a',
+  ])
 
   await manager.stop()
 })

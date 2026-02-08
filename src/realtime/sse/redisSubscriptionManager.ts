@@ -81,9 +81,7 @@ export class RedisSubscriptionManager {
       const current = this.powerDemandCount.get(powerId) ?? 0
       const next = current + 1
       this.powerDemandCount.set(powerId, next)
-      if (current === 0) {
-        await this.subscribePowerIfNeeded(powerId)
-      }
+      await this.subscribePowerIfNeeded(powerId)
     })
   }
 
