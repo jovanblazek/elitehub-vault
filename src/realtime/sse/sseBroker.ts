@@ -6,6 +6,7 @@ import {
   type SseConnectionFilter,
 } from './eventRegistry.js'
 import type { RoutedRealtimeEvent } from './redisSubscriptionManager.js'
+import { captureSseException } from './sseTelemetry.js'
 
 const HEARTBEAT_INTERVAL_MS = 15_000
 const WRITE_TIMEOUT_MS = 10_000
@@ -131,6 +132,24 @@ export class SseBroker {
         )
       )
     } catch (error) {
+      captureSseException(error, {
+        component: 'sse-broker',
+        tags: {
+          operation: 'register_connection',
+          error_type: 'increment_power_demand_failed',
+          event_type: connection.eventType,
+        },
+        contexts: {
+          sse_connection: {
+            connectionId,
+            apiKeyId: connection.apiKeyId,
+            eventType: connection.eventType,
+            powerIdCount: connection.powerIds.size,
+            systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
+          },
+        },
+        fingerprint: ['sse', 'broker', 'increment_power_demand_failed'],
+      })
       logger.error(error, '[SSE] Failed to increment power demand for new connection')
       await this.cleanupConnection(connectionId, 'write_error')
       throw error
@@ -308,6 +327,31 @@ export class SseBroker {
       }
     } catch (error) {
       this.callbacks.onWriteError?.()
+      captureSseException(error, {
+        component: 'sse-broker',
+        tags: {
+          operation: 'flush_connection_queue',
+          close_reason: 'write_error',
+          event_type: connection.eventType,
+          error_type: 'flush_write_failure',
+        },
+        contexts: {
+          sse_connection: {
+            connectionId,
+            apiKeyId: connection.apiKeyId,
+            eventType: connection.eventType,
+            powerIdCount: connection.powerIds.size,
+            systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
+          },
+          sse_queue: {
+            queuedBytes: connection.queuedBytes,
+            queuedMessages: connection.queue.length,
+            maxQueuedBytes: MAX_QUEUE_BYTES,
+            maxQueuedMessages: MAX_QUEUE_MESSAGES,
+          },
+        },
+        fingerprint: ['sse', 'broker', 'flush_write_failure'],
+      })
       logger.warn({ error, connectionId }, '[SSE] Closing connection due to write failure')
       await this.cleanupConnection(connectionId, 'write_error')
     } finally {

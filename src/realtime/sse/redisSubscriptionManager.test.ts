@@ -6,6 +6,7 @@ import {
   type RedisSubscriberLike,
   type RoutedRealtimeEvent,
 } from './redisSubscriptionManager.js'
+import { __setSseTelemetryClientForTests } from './sseTelemetry.js'
 
 class FakeRedisSubscriber extends EventEmitter implements RedisSubscriberLike {
   public readonly subscribedChannels: string[] = []
@@ -130,4 +131,39 @@ test('RedisSubscriptionManager resubscribes demanded powers on ready', async () 
   ])
 
   await manager.stop()
+})
+
+test('RedisSubscriptionManager captures telemetry for subscriber errors', async () => {
+  const exceptions: Array<{ error: unknown; options: unknown }> = []
+  try {
+    __setSseTelemetryClientForTests({
+      captureException: (error, options) => {
+        exceptions.push({ error, options })
+        return 'event-exception'
+      },
+      captureMessage: () => 'event-message',
+      startSpan: async (_options, callback) => callback(),
+    })
+
+    const fakeSubscriber = new FakeRedisSubscriber()
+    const manager = new RedisSubscriptionManager(
+      fakeSubscriber as unknown as RedisSubscriberLike,
+      () => {}
+    )
+
+    manager.start()
+    await manager.incrementPowerDemand('power-a')
+
+    fakeSubscriber.emit('close')
+    fakeSubscriber.emit('ready')
+    fakeSubscriber.emit('error', new Error('redis broken'))
+
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    assert.ok(exceptions.length > 0)
+
+    await manager.stop()
+  } finally {
+    __setSseTelemetryClientForTests(null)
+  }
 })

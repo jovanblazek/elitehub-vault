@@ -79,6 +79,14 @@ When modifying schema in `src/db/schema.ts`:
   - periodic SSE summary log every 30s (connections, channels, routed/dropped/errors, event rate)
   - structured open/close/rejection/error logging in SSE components
 
+## SSE Telemetry Runbook
+- Instrumented components:
+  - `sseService` (connection registration failures)
+  - `sseBroker` (write/flush failures, demand increment failures)
+  - `redisSubscriptionManager` (subscriber errors, subscribe/unsubscribe failures)
+- Sampling defaults:
+  - exceptions are captured at 100%
+
 ## Component Responsibilities
 - src/index.ts - Application entry point
 - src/eddn/ - EDDN data ingestion

@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events'
 import test from 'node:test'
 import type { ServerResponse } from 'node:http'
 import { SseBroker } from './sseBroker.js'
+import { __setSseTelemetryClientForTests } from './sseTelemetry.js'
 
 type FakeDemandManager = {
   start: () => void
@@ -38,6 +39,35 @@ class FakeResponse extends EventEmitter {
       setImmediate(() => callback())
     }
     return true
+  }
+
+  end() {
+    this.writableEnded = true
+    this.emit('close')
+  }
+}
+
+class ErroringResponse extends EventEmitter {
+  public writableEnded = false
+
+  write(_frame: string, callback?: (error?: Error | null) => void): boolean {
+    if (callback) {
+      setImmediate(() => callback(new Error('write failed')))
+    }
+    return false
+  }
+
+  end() {
+    this.writableEnded = true
+    this.emit('close')
+  }
+}
+
+class NonFlushingResponse extends EventEmitter {
+  public writableEnded = false
+
+  write(_frame: string, _callback?: (error?: Error | null) => void): boolean {
+    return false
   }
 
   end() {
@@ -167,4 +197,89 @@ test('SseBroker cleanup is idempotent and decrements power demand once per power
 
   assert.deepEqual(demandManager.decrements, ['power-a', 'power-b'])
   assert.equal(response.writableEnded, true)
+})
+
+test('SseBroker closes connection on backpressure threshold', async () => {
+  const demandManager = createFakeDemandManager()
+  const broker = new SseBroker(demandManager)
+  const response = new NonFlushingResponse()
+
+  const connectionId = await broker.registerConnection({
+    response: response as unknown as ServerResponse,
+    eventType: 'systemPowerplayUpdated',
+    apiKeyId: 'key-1',
+    keyName: 'key-1',
+    powerIds: ['power-a'],
+    systemIds: null,
+  })
+
+  for (let i = 0; i < 250; i += 1) {
+    broker.routeEvent({
+      eventType: 'systemPowerplayUpdated',
+      powerId: 'power-a',
+      payload: {
+        event: 'systemPowerplayUpdated',
+        systemId: `system-${i}`,
+        powerId: 'power-a',
+        changedFields: ['powerplayState'],
+        timestamp: '2026-02-07T00:00:00.000Z',
+        source: 'eddn-worker',
+        metadata: {},
+      },
+    })
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 20))
+
+  assert.equal(response.writableEnded, true)
+
+  await broker.cleanupConnection(connectionId)
+})
+
+test('SseBroker captures telemetry on write failure', async () => {
+  const exceptions: Array<{ error: unknown; options: unknown }> = []
+  try {
+    __setSseTelemetryClientForTests({
+      captureException: (error, options) => {
+        exceptions.push({ error, options })
+        return 'event-exception'
+      },
+      captureMessage: () => 'event-message',
+      startSpan: async (_options, callback) => callback(),
+    })
+
+    const demandManager = createFakeDemandManager()
+    const broker = new SseBroker(demandManager)
+    const response = new ErroringResponse()
+
+    await broker.registerConnection({
+      response: response as unknown as ServerResponse,
+      eventType: 'systemPowerplayUpdated',
+      apiKeyId: 'key-1',
+      keyName: 'key-1',
+      powerIds: ['power-a'],
+      systemIds: null,
+    })
+
+    broker.routeEvent({
+      eventType: 'systemPowerplayUpdated',
+      powerId: 'power-a',
+      payload: {
+        event: 'systemPowerplayUpdated',
+        systemId: 'system-1',
+        powerId: 'power-a',
+        changedFields: ['powerplayState'],
+        timestamp: '2026-02-07T00:00:00.000Z',
+        source: 'eddn-worker',
+        metadata: {},
+      },
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    assert.equal(response.writableEnded, true)
+    assert.ok(exceptions.length > 0)
+  } finally {
+    __setSseTelemetryClientForTests(null)
+  }
 })

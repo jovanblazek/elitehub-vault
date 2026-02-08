@@ -8,6 +8,7 @@ import { SseBroker, type SseCloseReason } from './sseBroker.js'
 import { parseSseSubscriptionQuery } from './subscriptionParams.js'
 import { getRealtimeEventSpec, type RealtimeEventType } from './eventRegistry.js'
 import { SseMetrics } from './sseMetrics.js'
+import { captureSseException } from './sseTelemetry.js'
 
 const SUMMARY_INTERVAL_MS = 30_000
 
@@ -87,10 +88,11 @@ const sseBroker = new SseBroker(redisSubscriptions, {
 
 const summaryInterval = setInterval(() => {
   const summary = sseMetrics.getSummary()
+  const activeConnectionsByApiKey = connectionLimiter.getActiveConnectionsByApiKey()
   logger.info(
     {
       ...summary,
-      activeConnectionsByApiKey: connectionLimiter.getActiveConnectionsByApiKey(),
+      activeConnectionsByApiKey,
     },
     '[SSE] Summary'
   )
@@ -182,6 +184,23 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
     })
   } catch (error) {
     releaseQuota()
+    captureSseException(error, {
+      component: 'sse-service',
+      tags: {
+        operation: 'connect_register',
+        event_type: query.data.eventType,
+        error_type: 'register_failed',
+      },
+      contexts: {
+        sse_connection: {
+          apiKeyId: apiKey.apiKeyId,
+          eventType: query.data.eventType,
+          powerIdCount: query.data.powerIds.length,
+          systemIdCount: query.data.systemIds?.length ?? 0,
+        },
+      },
+      fingerprint: ['sse', 'connect', 'register_failed'],
+    })
     logger.error(error, '[SSE] Failed registering SSE connection')
     if (!response.writableEnded) {
       response.end()

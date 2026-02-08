@@ -6,6 +6,7 @@ import {
   getRealtimeEventSpec,
   type RealtimeEventType,
 } from './eventRegistry.js'
+import { captureSseException } from './sseTelemetry.js'
 
 type SubscriptionState = 'idle' | 'subscribing' | 'subscribed' | 'unsubscribing'
 
@@ -138,6 +139,20 @@ export class RedisSubscriptionManager {
 
   private readonly onError = (error: unknown) => {
     this.callbacks.onRedisError?.()
+    captureSseException(error, {
+      component: 'sse-redis-subscriptions',
+      tags: {
+        operation: 'redis_error',
+        error_type: 'subscriber_error',
+        event_type: 'systemPowerplayUpdated',
+      },
+      contexts: {
+        sse_redis: {
+          demandedPowers: this.powerDemandCount.size,
+        },
+      },
+      fingerprint: ['sse', 'redis_subscriptions', 'subscriber_error'],
+    })
     logger.error(error, '[SSE] Redis subscriber error')
   }
 
@@ -199,6 +214,23 @@ export class RedisSubscriptionManager {
       }
     } catch (error) {
       this.subscriptionStateByPower.set(powerId, 'idle')
+      captureSseException(error, {
+        component: 'sse-redis-subscriptions',
+        tags: {
+          operation: 'subscribe_channel',
+          error_type: 'subscribe_failed',
+          event_type: 'systemPowerplayUpdated',
+        },
+        contexts: {
+          sse_redis: {
+            powerId,
+            channel,
+            demandedPowers: this.powerDemandCount.size,
+            subscriptionState: 'idle',
+          },
+        },
+        fingerprint: ['sse', 'redis_subscriptions', 'subscribe_failed'],
+      })
       logger.error({ error, powerId }, '[SSE] Failed subscribing to power channel')
     }
   }
@@ -230,6 +262,23 @@ export class RedisSubscriptionManager {
         this.subscriptionStateByPower.set(powerId, 'subscribed')
       }
     } catch (error) {
+      captureSseException(error, {
+        component: 'sse-redis-subscriptions',
+        tags: {
+          operation: 'unsubscribe_channel',
+          error_type: 'unsubscribe_failed',
+          event_type: 'systemPowerplayUpdated',
+        },
+        contexts: {
+          sse_redis: {
+            powerId,
+            channel,
+            demandedPowers: this.powerDemandCount.size,
+            subscriptionState: this.subscriptionStateByPower.get(powerId) ?? 'idle',
+          },
+        },
+        fingerprint: ['sse', 'redis_subscriptions', 'unsubscribe_failed'],
+      })
       logger.error({ error, powerId }, '[SSE] Failed unsubscribing from power channel')
       if ((this.powerDemandCount.get(powerId) ?? 0) > 0) {
         this.subscriptionStateByPower.set(powerId, 'subscribed')
