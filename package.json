@@ -18,7 +18,8 @@
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:studio": "drizzle-kit studio",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "scripts:recreate-migrations-table": "tsx src/scripts/recreateMigrationsTable.ts"
   },
   "keywords": [],
   "author": "jovanblazek",
