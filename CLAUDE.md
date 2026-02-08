@@ -38,6 +38,47 @@ When modifying schema in `src/db/schema.ts`:
 7. PostGraphile
 8. GraphQL API (Koa server)
 
+## Realtime SSE Pipeline
+1. Event processors write realtime candidates into `eventOutbox` (`eventType`, `payload`, `createdAt`)
+2. `EventOutboxRelay` polls outbox rows in batches, validates payloads, fans out by system's current powers, and publishes to Redis channels
+3. Redis channel format for current event type:
+   - `events:systemPowerplayUpdated:power:<powerId>`
+4. `/realtime/sse` route authenticates API key and opens stream via `sseService`
+5. `SseBroker` tracks active SSE connections, subscribes/unsubscribes Redis channels on demand, applies subscription filters, and writes SSE frames
+
+## Realtime SSE Feature (Current Scope)
+- Endpoint: `GET /realtime/sse`
+- Auth: required API key in production (`X-API-Key`), bypassed in development
+- Event types: currently only `systemPowerplayUpdated`
+- Required query params:
+  - `eventType=systemPowerplayUpdated`
+  - `powerId` (repeatable, 1..4)
+- Optional query params:
+  - `systemId` (repeatable, up to 20)
+- Per-key concurrent SSE quota:
+  - sourced from `apiKeys.maxSseConnections` (default `3`)
+  - exceeded quota returns HTTP `429`
+
+## SSE Runtime Behavior
+- Connection lifecycle:
+  - sends `retry: 2000` hint and connected comment frame on open
+  - keepalive comment frames every 15s
+  - cleanup on client disconnect, write failure, server shutdown, or backpressure close
+- Delivery semantics:
+  - events are routed by `(eventType, powerId)` channel
+  - optional `systemId` allowlist is applied per connection
+  - per-connection incremental SSE `id` field starts at `1`
+- Backpressure protection:
+  - closes slow clients when queue exceeds 200 messages or 1 MiB buffered
+  - write timeout is 10s per frame
+- Redis resilience:
+  - demand-count based subscribe/unsubscribe per powerId
+  - reconciling subscriptions on Redis reconnect/ready
+  - per-power serialized subscription operations (`runSerialized`) to avoid race conditions
+- Observability:
+  - periodic SSE summary log every 30s (connections, channels, routed/dropped/errors, event rate)
+  - structured open/close/rejection/error logging in SSE components
+
 ## Component Responsibilities
 - src/index.ts - Application entry point
 - src/eddn/ - EDDN data ingestion
@@ -45,3 +86,9 @@ When modifying schema in `src/db/schema.ts`:
 - src/mq/queues/eddn/events/ - Event-specific processors
 - src/mq/queues/eddn/helpers/ - Data transformation logic
 - src/db/schema.ts - Database schema
+- src/realtime/eventOutboxRelay.ts - Outbox polling and Redis publish fanout
+- src/realtime/systemPowerplayUpdated.ts - Realtime event model + payload builder
+- src/realtime/sse/sseService.ts - SSE endpoint/session orchestration and quota checks
+- src/realtime/sse/sseBroker.ts - Connection registry, filtering, framing, backpressure handling
+- src/realtime/sse/redisSubscriptionManager.ts - Redis subscriber lifecycle and power demand subscriptions
+- src/realtime/sse/subscriptionParams.ts - SSE query parsing/validation
