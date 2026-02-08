@@ -10,15 +10,18 @@ import { Redis } from './utils/redis.js'
 import Koa, { type Context } from 'koa'
 import { pgl } from './postgraphile/pgl.js'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
-import { apiKeyAuth } from './middleware/apiKeyAuth.js'
+import { routeAccessMiddleware } from './middleware/routeAccess.js'
 import ratelimit from 'koa-ratelimit'
 import bodyParser from 'koa-bodyparser'
+import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
+import { shutdownRealtimeSse } from './realtime/sse/sseService.js'
 
 let eddnProcess: ReturnType<typeof startEDDNListenerProcess> | null = null
 let BullMQWorkers: Worker[] = []
 
 Redis.on('ready', async () => {
   logger.info('[Redis] Connection established')
+  eventOutboxRelay.start()
   BullMQWorkers = initMQ()
   if (process.env.NODE_ENV === 'production' || process.env.DEBUG_EDDN_LISTENER === 'true') {
     eddnProcess = startEDDNListenerProcess()
@@ -51,7 +54,7 @@ KoaApp.use(
 )
 
 KoaApp.use(bodyParser())
-KoaApp.use(apiKeyAuth)
+KoaApp.use(routeAccessMiddleware)
 
 const serv = pgl.createServ(grafserv)
 serv.addTo(KoaApp, null)
@@ -82,6 +85,14 @@ const shutdown = async () => {
   logger.info('[BullMQ] Closing workers...')
   await Promise.all(BullMQWorkers.map((worker) => worker.close()))
   logger.info('[BullMQ] All workers closed')
+
+  logger.info('[EventOutboxRelay] Closing relay...')
+  await eventOutboxRelay.stop()
+  logger.info('[EventOutboxRelay] Relay closed')
+
+  logger.info('[SSE] Closing realtime SSE broker...')
+  await shutdownRealtimeSse()
+  logger.info('[SSE] Realtime SSE broker closed')
 
   // Close Redis connection
   logger.info('[Redis] Closing connection...')

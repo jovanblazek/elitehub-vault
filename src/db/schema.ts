@@ -13,6 +13,7 @@ import {
   boolean,
   unique,
   smallint,
+  integer,
   index,
 } from 'drizzle-orm/pg-core'
 
@@ -371,6 +372,23 @@ export const ApiKeys = pgTable('apiKeys', {
   name: text().notNull(),
   key: text().notNull().unique(),
   isActive: boolean().notNull().default(true),
+  maxSseConnections: integer().notNull().default(3),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })
+
+export const EventOutbox = pgTable(
+  'eventOutbox',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    eventType: text().notNull(),
+    aggregateId: uuid(),
+    payload: jsonb().notNull().default({}),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index().on(table.createdAt),
+    index().on(table.eventType),
+    index().on(table.aggregateId),
+  ]
+)

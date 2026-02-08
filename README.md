@@ -12,7 +12,9 @@ Support the development of this project by [buying me a coffee](https://buymeaco
 - [Usage For API Consumers](#usage-for-api-consumers)
   - [Authentication](#authentication)
   - [Rate Limits](#rate-limits)
-  - [GraphQL Endpoint](#graphql-endpoint)
+  - [API Endpoints](#api-endpoints)
+  - [Realtime SSE Endpoint](#realtime-sse-endpoint)
+  - [Realtime SSE Event Payload](#realtime-sse-event-payload)
   - [Example Queries](#example-queries)
   - [Support](#support)
 - [For Contributors](#for-contributors)
@@ -28,11 +30,14 @@ After EliteBGS started to have frequent availability issues with their API, I de
 
 ## Usage For API Consumers
 
-EliteHub Vault provides a **read-only GraphQL API** with real-time Elite Dangerous galaxy data, including systems, factions, stations, powerplay information, and conflicts.
+EliteHub Vault provides:
+
+- a **read-only GraphQL API** with Elite Dangerous galaxy data (systems, factions, stations, powerplay, conflicts)
+- a **real-time SSE stream** for selected powerplay updates
 
 ### Authentication
 
-All API requests require an **API key** in the `X-API-Key` header:
+All protected API requests require an **API key** in the `X-API-Key` header:
 
 ```bash
 curl -H "X-API-Key: your-api-key" https://your-endpoint/graphql
@@ -42,14 +47,71 @@ Contact [jovanblazek](https://github.com/jovanblazek) on Discord, username: qwer
 
 ### Rate Limits
 
-- **60 requests per minute** per API key (subject to change)
-- Rate limit headers included in responses
+- **GraphQL:** 60 requests per minute per API key (subject to change)
+- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`)
+- Rate limit headers are included in GraphQL responses
 
-### GraphQL Endpoint
+### API Endpoints
 
 ```
 POST /graphql
 GET /graphql (for GraphiQL playground)
+GET /realtime/sse
+```
+
+### Realtime SSE Endpoint
+
+`GET /realtime/sse` requires:
+
+- `eventType=systemPowerplayUpdated`
+- `powerId=<id>` repeated 1-4 times
+
+Optional filters:
+
+- `systemId=<id>` repeated up to 20 times
+
+Notes:
+
+- duplicate `powerId` and `systemId` values are deduplicated server-side
+- stream uses standard SSE framing with `id`, `event`, and `data`
+- heartbeat comments are emitted periodically to keep connections alive
+
+Example:
+
+```bash
+curl -N \
+  -H "X-API-Key: your-api-key" \
+  -H "Accept: text/event-stream" \
+  "https://your-endpoint/realtime/sse?eventType=systemPowerplayUpdated&powerId=<power-id>"
+```
+
+Common error responses:
+
+- `400` invalid/missing subscription query params
+- `401` missing/invalid API key
+- `429` max concurrent SSE connections reached for the API key
+
+### Realtime SSE Event Payload
+
+Current supported realtime event: `systemPowerplayUpdated`
+
+Example `data` payload:
+
+```json
+{
+  "event": "systemPowerplayUpdated",
+  "systemId": "uuid",
+  "powerId": "uuid",
+  "changedFields": [
+    "powerplayState",
+    "powerplayStateControlProgress",
+    "powerplayStateReinforcement",
+    "powerplayStateUndermining"
+  ],
+  "timestamp": "2026-02-07T00:00:00.000Z",
+  "source": "eddn-worker",
+  "metadata": {}
+}
 ```
 
 ### Example Queries
