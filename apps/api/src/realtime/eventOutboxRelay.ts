@@ -88,7 +88,10 @@ export class EventOutboxRelay {
 
     for (const row of rows.rows) {
       if (row.eventType !== SYSTEM_POWERPLAY_UPDATED_EVENT) {
-        logger.error({ eventType: row.eventType }, '[EventOutboxRelay] Unknown event type in outbox')
+        logger.error(
+          { eventType: row.eventType },
+          '[EventOutboxRelay] Unknown event type in outbox'
+        )
         await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
         continue
       }
