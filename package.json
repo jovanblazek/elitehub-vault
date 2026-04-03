@@ -7,9 +7,9 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo run dev",
-    "dev:api": "turbo run dev --filter=@elitehub/api",
-    "dev:eddn-listener": "turbo run dev --filter=@elitehub/eddn-listener",
-    "dev:eddn-worker": "turbo run dev --filter=@elitehub/eddn-worker",
+    "dev:api": "turbo run dev --filter=@elitehub/api...",
+    "dev:eddn-listener": "turbo run dev --filter=@elitehub/eddn-listener...",
+    "dev:eddn-worker": "turbo run dev --filter=@elitehub/eddn-worker...",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "test": "turbo test",

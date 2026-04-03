@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
     "build": "tsc -p tsconfig.json",
-    "start": "node --import tsx --import ./dist/utils/sentry.js dist/index.js",
+    "start": "node --import ./dist/utils/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src",
     "test": "NODE_ENV=test node --import tsx --test \"src/**/*.test.ts\""
@@ -31,6 +31,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@elitehub/typescript-config": "workspace:*"
+    "@elitehub/typescript-config": "workspace:*",
+    "tsx": "^4.21.0"
   }
 }

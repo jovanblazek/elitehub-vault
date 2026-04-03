@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
     "build": "tsc -p tsconfig.json",
-    "start": "node --import tsx --import ./dist/sentry.js dist/index.js",
+    "start": "node --import ./dist/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
@@ -20,6 +20,7 @@
     "zeromq": "^6.5.0"
   },
   "devDependencies": {
-    "@elitehub/typescript-config": "workspace:*"
+    "@elitehub/typescript-config": "workspace:*",
+    "tsx": "^4.21.0"
   }
 }

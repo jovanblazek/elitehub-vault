@@ -96,6 +96,9 @@ importers:
       '@elitehub/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   apps/eddn-listener:
     dependencies:
@@ -124,6 +127,9 @@ importers:
       '@elitehub/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   apps/eddn-worker:
     dependencies:
@@ -161,15 +167,24 @@ importers:
       '@elitehub/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   packages/db:
     dependencies:
+      '@t3-oss/env-core':
+        specifier: ^0.13.11
+        version: 0.13.11(typescript@5.9.3)(zod@4.2.1)
       dotenv:
         specifier: ^17.2.2
         version: 17.2.3
       drizzle-orm:
         specifier: 0.45.1
         version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
+      zod:
+        specifier: ^4.1.12
+        version: 4.2.1
     devDependencies:
       '@elitehub/typescript-config':
         specifier: workspace:*

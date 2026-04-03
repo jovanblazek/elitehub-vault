@@ -1,15 +1,22 @@
 import { createEnv } from '@t3-oss/env-core'
 import dotenv from 'dotenv'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 
 let isLoaded = false
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+const packageRoot = path.resolve(currentDir, '..')
+const workspaceRoot = path.resolve(packageRoot, '../..')
+const defaultEnvPath = path.join(workspaceRoot, '.env')
 
 export const loadEnvironment = () => {
   if (isLoaded) {
     return
   }
 
-  dotenv.config({ path: process.env.DOTENV_CONFIG_PATH || '.env' })
+  dotenv.config({ path: process.env.DOTENV_CONFIG_PATH || defaultEnvPath })
   isLoaded = true
 }
 
