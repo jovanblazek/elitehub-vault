@@ -163,7 +163,7 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
 5. **Run database migrations:**
 
    ```bash
-   (cd packages/db && pnpm drizzle:migrate)
+   pnpm drizzle:migrate
    ```
 
 6. **Start development server:**
@@ -184,6 +184,9 @@ pnpm typecheck           # Type check the code
 pnpm build               # Build all apps and packages
 pnpm format              # Format all code with Prettier
 pnpm lint                # Lint code with Oxlint
+pnpm drizzle:generate    # Delegate to packages/db and generate migrations
+pnpm drizzle:migrate     # Delegate to packages/db and run migrations
+pnpm drizzle:studio      # Delegate to packages/db and open Drizzle Studio
 
 # Docker
 pnpm docker:up           # Start PostgreSQL + Redis
@@ -239,29 +242,38 @@ When done, open a pull request to the main branch.
 
 ### Database Migrations
 
-Database commands are run from `packages/db`, not from the workspace root.
+Database commands are owned by `packages/db`. You can run them either from the workspace root via the convenience wrappers in `package.json`, or directly inside `packages/db`.
 
 When done modifying the schema in `packages/db/src/schema.ts`:
 
 1. **Generate migration:**
 
    ```bash
-   (cd packages/db && pnpm drizzle:generate)
+   pnpm drizzle:generate
    ```
+
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:generate`
 
 2. **Review generated SQL** in `packages/db/drizzle/` directory. Update if necessary.
 
 3. **Run migration:**
 
    ```bash
-   (cd packages/db && pnpm drizzle:migrate)
+   pnpm drizzle:migrate
    ```
 
-4. **Open Drizzle Studio when needed:**
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:migrate`
+
+4. **Open Drizzle Studio if needed:**
 
    ```bash
-   (cd packages/db && pnpm drizzle:studio)
+   pnpm drizzle:studio
    ```
+
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:studio`
 
 5. **Commit both** `packages/db/src/schema.ts` and generated migration files
 
