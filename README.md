@@ -1,6 +1,6 @@
 # EliteHub Vault
 
-EliteHub Vault is a real-time data collection and processing system for Elite Dangerous. It subscribes to the [EDDN (Elite Dangerous Data Network)](https://github.com/EDCD/EDDN) feed, processes player-submitted events, and stores game state in a PostgreSQL database with a GraphQL API layer powered by PostGraphile.
+EliteHub Vault is a real-time data collection and processing system for Elite Dangerous. It processes player-submitted events sent over the [EDDN (Elite Dangerous Data Network)](https://github.com/EDCD/EDDN), stores game state in a PostgreSQL database, serves it via a GraphQL API, and publishes selected realtime updates over SSE.
 
 Support the development of this project by [buying me a coffee](https://buymeacoffee.com/jovanblazek).
 
@@ -126,6 +126,8 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
 
 ## For Contributors
 
+This repository uses a Turborepo monorepo with applications under `apps/*` and shared libraries under `packages/*`.
+
 ### Prerequisites
 
 - **Node.js** 22.14.0 or higher
@@ -166,28 +168,29 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
    pnpm drizzle:migrate
    ```
 
-6. **Start development server:**
+6. **Start development pipeline:**
    ```bash
    pnpm dev
    ```
+
+`pnpm dev` runs the development pipeline through Turbo. In practice, that starts the three apps and any shared packages that they depend on.
 
 The GraphQL API will be available at `http://localhost:3000/graphql`. Replace the port with the one specified in your `.env` file.
 
 ### Development Commands
 
 ```bash
-pnpm dev                 # Run in watch mode with hot reload
+pnpm dev                 # Run all workspace dev tasks through Turbo
+pnpm dev:api             # Run apps/api and its local dependencies
+pnpm dev:eddn-listener   # Run apps/eddn-listener and its local dependencies
+pnpm dev:eddn-worker     # Run apps/eddn-worker and its local dependencies
 pnpm typecheck           # Type check the code
-pnpm build               # Build for production
-pnpm start               # Run production build
+pnpm build               # Build all apps and packages
 pnpm format              # Format all code with Prettier
 pnpm lint                # Lint code with Oxlint
-pnpm lint:fix            # Auto-fix linting issues
-
-# Database
-pnpm drizzle:generate    # Generate migrations from schema changes
-pnpm drizzle:migrate     # Run pending migrations
-pnpm drizzle:studio      # Open Drizzle Studio (visual database explorer)
+pnpm drizzle:generate    # Delegate to packages/db and generate migrations
+pnpm drizzle:migrate     # Delegate to packages/db and run migrations
+pnpm drizzle:studio      # Delegate to packages/db and open Drizzle Studio
 
 # Docker
 pnpm docker:up           # Start PostgreSQL + Redis
@@ -199,32 +202,33 @@ pnpm docker:down         # Stop services
 ```mermaid
 flowchart TD
     A[EDDN Feed ZeroMQ]
-    B[BullMQ Queue]
-    C[Event Processors]
-    D[Data Transformers]
-    E[Drizzle ORM]
-    F[PostgreSQL Database]
-    G[PostGraphile]
-    H[GraphQL API Koa]
+    B[apps/eddn-listener]
+    C[Redis BullMQ Queue]
+    D[apps/eddn-worker]
+    E[PostgreSQL + eventOutbox]
+    F[apps/api relay + SSE]
+    G[GraphQL API Koa]
 
-    A --> B --> C --> D --> E --> F --> G --> H
+    A --> B --> C --> D --> E --> F
+    E --> G
 ```
 
 **Component Responsibilities:**
 
-- `src/index.ts` - Application entry point, Koa server setup
-- `src/eddn/` - EDDN data ingestion via ZeroMQ
-- `src/mq/queues/eddn/` - BullMQ worker and event processing
-- `src/mq/queues/eddn/events/` - Event-specific processors (FSDJump, Location, Docked)
-- `src/mq/queues/eddn/helpers/` - Data transformation logic
-- `src/db/schema.ts` - Drizzle ORM database schema
-- `src/postgraphile/` - PostGraphile configuration and plugins
+- `apps/api/` - Koa API, PostGraphile, SSE, auth, and outbox relay
+- `apps/eddn-listener/` - EDDN listener application that consumes ZeroMQ messages and enqueues BullMQ jobs
+- `apps/eddn-worker/` - worker application that processes BullMQ jobs and updates the database
+- `packages/db/` - shared Drizzle schema, migrations, and DB helpers
+- `packages/eddn-contracts/` - shared EDDN message types and filters
+- `packages/queue-contracts/` - shared queue names, job payloads, and realtime contracts
+- `packages/runtime-config/` - shared env loading, Redis, logger, and Sentry factories
+- `packages/typescript-config/` - shared base TypeScript config
 
 ### Code Style
 
 - Use **ES modules** (`.js` extensions in imports, even for `.ts` files)
 - **Destructure imports** when possible: `import { foo } from 'bar'`
-- Logger available as `import logger from './utils/logger.js'`
+- Create process-local runtime instances from shared factories; do not share live Redis/BullMQ/DB instances across apps
 - **Prefix logs** with component name: `logger.info('[ComponentName] Message')`
 - **All database operations** via Drizzle ORM
 - Use `db.transaction()` for multi-step database operations
@@ -242,7 +246,9 @@ When done, open a pull request to the main branch.
 
 ### Database Migrations
 
-When done modifying the schema in `src/db/schema.ts`:
+Database commands are owned by `packages/db`. You can run them either from the workspace root via the convenience wrappers in `package.json`, or directly inside `packages/db`.
+
+When done modifying the schema in `packages/db/src/schema.ts`:
 
 1. **Generate migration:**
 
@@ -250,7 +256,10 @@ When done modifying the schema in `src/db/schema.ts`:
    pnpm drizzle:generate
    ```
 
-2. **Review generated SQL** in `drizzle/` directory. Update if necessary.
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:generate`
+
+2. **Review generated SQL** in `packages/db/drizzle/` directory. Update if necessary.
 
 3. **Run migration:**
 
@@ -258,7 +267,19 @@ When done modifying the schema in `src/db/schema.ts`:
    pnpm drizzle:migrate
    ```
 
-4. **Commit both** `schema.ts` and generated migration files
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:migrate`
+
+4. **Open Drizzle Studio if needed:**
+
+   ```bash
+   pnpm drizzle:studio
+   ```
+
+   Equivalent direct package command:
+   `cd packages/db && pnpm drizzle:studio`
+
+5. **Commit both** `packages/db/src/schema.ts` and generated migration files
 
 ### Tech Stack
 
@@ -275,8 +296,7 @@ When done modifying the schema in `src/db/schema.ts`:
 
 ### Testing
 
-We don't have any tests yet. YOLO.
-Feel free to add meaningful tests though.
+Current automated tests live in `apps/api/src/**/*.test.ts` and run via `pnpm test`.
 
 ### Contributing Guidelines
 
@@ -293,8 +313,9 @@ See `.env.example` for all available configuration options. Key variables:
 
 - `PORT` - HTTP server port (default: 3000)
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
-- `DEBUG_EDDN_LISTENER` - Set to `true` to enable EDDN listener in development mode
-- `SENTRY_DSN` - Error tracking (optional)
+- `SENTRY_DSN_API` - API Sentry DSN (optional)
+- `SENTRY_DSN_EDDN_WORKER` - EDDN worker Sentry DSN (optional)
+- `SENTRY_DSN_EDDN_LISTENER` - EDDN listener Sentry DSN (optional)
 
 The rest should be self-explanatory from the example file.
 

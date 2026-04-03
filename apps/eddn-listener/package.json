@@ -1,0 +1,26 @@
+{
+  "name": "@elitehub/eddn-listener",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --import ./dist/sentry.js dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint src"
+  },
+  "dependencies": {
+    "@elitehub/eddn-contracts": "workspace:*",
+    "@elitehub/queue-contracts": "workspace:*",
+    "@elitehub/runtime-config": "workspace:*",
+    "@sentry/node": "^10.32.1",
+    "@t3-oss/env-core": "^0.13.11",
+    "bullmq": "^5.58.5",
+    "zeromq": "^6.5.0"
+  },
+  "devDependencies": {
+    "@elitehub/typescript-config": "workspace:*",
+    "tsx": "^4.21.0"
+  }
+}
