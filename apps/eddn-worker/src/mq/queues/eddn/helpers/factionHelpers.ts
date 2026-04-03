@@ -11,6 +11,7 @@ import {
   FactionConflicts,
   Stations,
   FactionState,
+  Systems,
 } from '../../../../db/schema.js'
 import {
   FactionsInsertSchema,
@@ -298,9 +299,22 @@ export const processFactionsData = async (
 
   const factions = await upsertFactions(tx, message.Factions)
   const factionIdMap = createFactionIdMap(factions)
+  const controllingFactionId = message.SystemFaction?.Name
+    ? factionIdMap[message.SystemFaction.Name]
+    : undefined
 
   await upsertSystemFactions(tx, systemId, factions)
   await cleanupFactionStates(tx, systemId, factions)
   await upsertFactionStates(tx, systemId, message, factionIdMap)
   await upsertFactionConflicts(tx, systemId, message)
+
+  if (controllingFactionId) {
+    await tx
+      .update(Systems)
+      .set({
+        controllingFactionId,
+        updatedAt: new Date(),
+      })
+      .where(eq(Systems.id, systemId))
+  }
 }

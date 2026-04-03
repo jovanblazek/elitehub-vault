@@ -210,6 +210,7 @@ export const Systems = pgTable(
     economy: EconomyEnum(),
     secondEconomy: EconomyEnum(),
     security: SystemSecurityEnum(),
+    controllingFactionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
     controllingPowerId: uuid().references(() => PowerplayPowers.id, { onDelete: 'set null' }),
     powerplayState: PowerplayStateEnum(),
     powerplayStateControlProgress: doublePrecision(),
@@ -218,7 +219,11 @@ export const Systems = pgTable(
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
-  (table) => [index().on(table.name)]
+  (table) => [
+    index().on(table.name),
+    index().on(table.controllingFactionId),
+    index().on(table.controllingPowerId),
+  ]
 )
 
 export const Factions = pgTable('factions', {
