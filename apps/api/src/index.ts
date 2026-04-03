@@ -21,7 +21,7 @@ koaApp.use(
   ratelimit({
     whitelist: () => env.NODE_ENV === 'development',
     driver: 'redis',
-    db: Redis as never,
+    db: Redis as any, // ioredis is compatible but has type conflicts,
     namespace: 'api-rate-limit',
     duration: 60 * 1000,
     max: 60,

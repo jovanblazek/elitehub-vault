@@ -15,8 +15,6 @@ export const env = createEnv({
     ...redisServerEnvSchema,
     ...postgresServerEnvSchema,
     PORT: z.coerce.number().int().positive().default(3000),
-    API_KEY: z.string().min(1).optional(),
-    SSE_API_KEY: z.string().min(1).optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
