@@ -4,8 +4,8 @@
 - pnpm dev:eddn-listener # Run the EDDN listener in watch mode
 - pnpm dev:eddn-worker # Run the EDDN worker in watch mode
 - pnpm typecheck # Type check the code
-- pnpm drizzle:generate # Generate migrations from schema changes
-- pnpm drizzle:migrate # Run pending migrations
+- (cd packages/db && pnpm drizzle:generate) # Generate migrations from schema changes
+- (cd packages/db && pnpm drizzle:migrate) # Run pending migrations
 - pnpm format # Format all code with Prettier
 
 # Code style
@@ -22,11 +22,13 @@
 
 # Database Migrations
 
+Run database commands from `packages/db`.
+
 When modifying schema in `packages/db/src/schema.ts`:
 
-1. Generate migration: `pnpm drizzle:generate`
-2. Review generated SQL in `drizzle/` directory
-3. Run migration: `pnpm drizzle:migrate`
+1. Generate migration: `(cd packages/db && pnpm drizzle:generate)`
+2. Review generated SQL in `packages/db/drizzle/` directory
+3. Run migration: `(cd packages/db && pnpm drizzle:migrate)`
 4. Commit both schema.ts and generated migration files
 
 # Architecture

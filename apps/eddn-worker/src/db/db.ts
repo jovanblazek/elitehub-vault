@@ -1,5 +1,6 @@
 import { createDb } from '@elitehub/db'
+import { getRequiredEnv } from '@elitehub/runtime-config'
 
 export const db = createDb({
-  connectionString: process.env.POSTGRES_CONNECTION_STRING,
+  connectionString: getRequiredEnv('POSTGRES_CONNECTION_STRING'),
 })

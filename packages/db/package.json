@@ -10,12 +10,19 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "oxlint src"
+    "lint": "oxlint src",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:studio": "drizzle-kit studio",
+    "db:recreate-migrations-table": "tsx src/scripts/recreateMigrationsTable.ts"
   },
   "dependencies": {
+    "dotenv": "^17.2.2",
     "drizzle-orm": "0.45.1"
   },
   "devDependencies": {
-    "@elitehub/typescript-config": "workspace:*"
+    "@elitehub/typescript-config": "workspace:*",
+    "drizzle-kit": "0.31.8",
+    "tsx": "^4.20.5"
   }
 }

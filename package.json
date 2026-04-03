@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo run dev --filter=@elitehub/api",
+    "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=@elitehub/api",
     "dev:eddn-listener": "turbo run dev --filter=@elitehub/eddn-listener",
     "dev:eddn-worker": "turbo run dev --filter=@elitehub/eddn-worker",
@@ -14,9 +14,6 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,css,md,yml,yaml}\"",
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:studio": "drizzle-kit studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
@@ -29,11 +26,9 @@
     "@types/koa-ratelimit": "^5.0.5",
     "@types/node": "^24.3.1",
     "@types/pg": "^8.15.5",
-    "drizzle-kit": "0.31.8",
     "oxlint": "^1.31.0",
     "prettier": "^3.6.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.20.5",
     "turbo": "^2.9.3",
     "typescript": "^5.9.2"
   },

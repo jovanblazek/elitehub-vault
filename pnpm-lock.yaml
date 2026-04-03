@@ -23,9 +23,6 @@ importers:
       '@types/pg':
         specifier: ^8.15.5
         version: 8.16.0
-      drizzle-kit:
-        specifier: 0.31.8
-        version: 0.31.8
       oxlint:
         specifier: ^1.31.0
         version: 1.35.0
@@ -35,9 +32,6 @@ importers:
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0
-      tsx:
-        specifier: ^4.20.5
-        version: 4.21.0
       turbo:
         specifier: ^2.9.3
         version: 2.9.3
@@ -161,6 +155,9 @@ importers:
 
   packages/db:
     dependencies:
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.3
       drizzle-orm:
         specifier: 0.45.1
         version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
@@ -168,6 +165,12 @@ importers:
       '@elitehub/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      drizzle-kit:
+        specifier: 0.31.8
+        version: 0.31.8
+      tsx:
+        specifier: ^4.20.5
+        version: 4.21.0
 
   packages/eddn-contracts:
     dependencies:
@@ -270,9 +273,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
+    deprecated: 'Merged into tsx: https://tsx.is'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
+    deprecated: 'Merged into tsx: https://tsx.is'
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}

@@ -1,15 +1,15 @@
 // https://github.com/drizzle-team/drizzle-orm/discussions/1604#discussioncomment-12194312
 
-// @ts-ignore - drizzle.config.ts is not in root directory
-import drizzleConfig from '../../../../drizzle.config.js'
 import { type MigrationConfig, readMigrationFiles } from 'drizzle-orm/migrator'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js/driver'
 import { PgDialect, PgSession } from 'drizzle-orm/pg-core'
 import { createDb } from '../db.js'
+import path from 'node:path'
+import { drizzleConfig, packageRoot } from '../drizzleConfig.js'
 
 const config = {
   ...drizzleConfig,
-  migrationsFolder: drizzleConfig.out,
+  migrationsFolder: path.join(packageRoot, 'drizzle'),
   migrationsTable: drizzleConfig.migrations?.table ?? '__drizzle_migrations',
   migrationsSchema: drizzleConfig.migrations?.schema ?? 'drizzle',
 } as MigrationConfig

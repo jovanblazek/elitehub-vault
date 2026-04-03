@@ -163,7 +163,7 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
 5. **Run database migrations:**
 
    ```bash
-   pnpm drizzle:migrate
+   (cd packages/db && pnpm drizzle:migrate)
    ```
 
 6. **Start development server:**
@@ -184,11 +184,6 @@ pnpm typecheck           # Type check the code
 pnpm build               # Build all apps and packages
 pnpm format              # Format all code with Prettier
 pnpm lint                # Lint code with Oxlint
-
-# Database
-pnpm drizzle:generate    # Generate migrations from schema changes
-pnpm drizzle:migrate     # Run pending migrations
-pnpm drizzle:studio      # Open Drizzle Studio (visual database explorer)
 
 # Docker
 pnpm docker:up           # Start PostgreSQL + Redis
@@ -244,23 +239,31 @@ When done, open a pull request to the main branch.
 
 ### Database Migrations
 
+Database commands are run from `packages/db`, not from the workspace root.
+
 When done modifying the schema in `packages/db/src/schema.ts`:
 
 1. **Generate migration:**
 
    ```bash
-   pnpm drizzle:generate
+   (cd packages/db && pnpm drizzle:generate)
    ```
 
-2. **Review generated SQL** in `drizzle/` directory. Update if necessary.
+2. **Review generated SQL** in `packages/db/drizzle/` directory. Update if necessary.
 
 3. **Run migration:**
 
    ```bash
-   pnpm drizzle:migrate
+   (cd packages/db && pnpm drizzle:migrate)
    ```
 
-4. **Commit both** `packages/db/src/schema.ts` and generated migration files
+4. **Open Drizzle Studio when needed:**
+
+   ```bash
+   (cd packages/db && pnpm drizzle:studio)
+   ```
+
+5. **Commit both** `packages/db/src/schema.ts` and generated migration files
 
 ### Tech Stack
 
@@ -294,7 +297,6 @@ See `.env.example` for all available configuration options. Key variables:
 
 - `PORT` - HTTP server port (default: 3000)
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
-- `DEBUG_EDDN_LISTENER` - Set to `true` to enable EDDN listener in development mode
 - `SENTRY_DSN` - Error tracking (optional)
 
 The rest should be self-explanatory from the example file.
