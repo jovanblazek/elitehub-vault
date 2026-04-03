@@ -309,7 +309,9 @@ See `.env.example` for all available configuration options. Key variables:
 
 - `PORT` - HTTP server port (default: 3000)
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
-- `SENTRY_DSN` - Error tracking (optional)
+- `SENTRY_DSN_API` - API Sentry DSN (optional)
+- `SENTRY_DSN_EDDN_WORKER` - EDDN worker Sentry DSN (optional)
+- `SENTRY_DSN_EDDN_LISTENER` - EDDN listener Sentry DSN (optional)
 
 The rest should be self-explanatory from the example file.
 

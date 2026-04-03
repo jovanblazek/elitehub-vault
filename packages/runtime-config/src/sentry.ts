@@ -1,7 +1,17 @@
 import * as Sentry from '@sentry/node'
 import { env } from './environment.js'
 
-export const initializeSentry = () => {
+type InitializeSentryOptions = {
+  serviceName: string
+  dsn: string | undefined
+  integrations?: ReturnType<typeof Sentry.koaIntegration>[]
+}
+
+export const initializeSentry = ({
+  serviceName,
+  dsn,
+  integrations = [],
+}: InitializeSentryOptions) => {
   const isProduction = env.NODE_ENV === 'production'
 
   if (Sentry.getClient()) {
@@ -10,8 +20,14 @@ export const initializeSentry = () => {
 
   Sentry.init({
     enabled: isProduction,
-    dsn: env.SENTRY_DSN,
+    dsn,
     environment: env.NODE_ENV,
+    serverName: serviceName,
+    initialScope: {
+      tags: {
+        service: serviceName,
+      },
+    },
     tracesSampler: ({ attributes, inheritOrSampleWith }) => {
       if (!isProduction) {
         if (attributes?.['sentry.op'] === 'queue.process') {
@@ -25,7 +41,7 @@ export const initializeSentry = () => {
       }
       return inheritOrSampleWith(0.2)
     },
-    integrations: [Sentry.koaIntegration(), Sentry.postgresIntegration()],
+    integrations,
     sendDefaultPii: true,
     beforeSend(event) {
       if (event.breadcrumbs) {
