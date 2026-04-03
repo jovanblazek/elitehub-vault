@@ -1,0 +1,35 @@
+{
+  "name": "@elitehub/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --import tsx --import ./dist/utils/sentry.js dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint src",
+    "test": "NODE_ENV=test node --import tsx --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@elitehub/db": "workspace:*",
+    "@elitehub/queue-contracts": "workspace:*",
+    "@elitehub/runtime-config": "workspace:*",
+    "@escape.tech/graphql-armor": "^3.2.0",
+    "@graphile/simplify-inflection": "8.0.0-rc.2",
+    "@haathie/postgraphile-otel": "^0.1.0",
+    "@haathie/postgraphile-reasonable-limits": "0.2.0",
+    "@sentry/node": "^10.32.1",
+    "drizzle-orm": "0.45.1",
+    "ioredis": "^5.7.0",
+    "koa": "^3.0.1",
+    "koa-bodyparser": "^4.4.1",
+    "koa-ratelimit": "^6.0.0",
+    "pg": "^8.16.3",
+    "postgraphile": "5.0.0-rc.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@elitehub/typescript-config": "workspace:*"
+  }
+}

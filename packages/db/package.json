@@ -1,0 +1,21 @@
+{
+  "name": "@elitehub/db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint src"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.1"
+  },
+  "devDependencies": {
+    "@elitehub/typescript-config": "workspace:*"
+  }
+}

@@ -1,5 +1,8 @@
 # Development commands
-- pnpm dev # Run in watch mode with hot reload
+- pnpm dev # Run the API app in watch mode
+- pnpm dev:api # Run the API app in watch mode
+- pnpm dev:eddn-listener # Run the EDDN listener in watch mode
+- pnpm dev:eddn-worker # Run the EDDN worker in watch mode
 - pnpm typecheck # Type check the code
 - pnpm drizzle:generate # Generate migrations from schema changes
 - pnpm drizzle:migrate # Run pending migrations
@@ -19,7 +22,7 @@
 
 # Database Migrations
 
-When modifying schema in `src/db/schema.ts`:
+When modifying schema in `packages/db/src/schema.ts`:
 
 1. Generate migration: `pnpm drizzle:generate`
 2. Review generated SQL in `drizzle/` directory
@@ -30,12 +33,12 @@ When modifying schema in `src/db/schema.ts`:
 
 ## Data Pipeline
 1. EDDN Feed (ZeroMQ subscription)
-2. Child Process (eddnProcess.js)
+2. `apps/eddn-listener`
 3. BullMQ Queue (Redis-backed)
-4. Event Processors
+4. `apps/eddn-worker`
 5. Drizzle ORM
 6. PostgreSQL Database
-7. PostGraphile
+7. `apps/api` outbox relay + SSE
 8. GraphQL API (Koa server)
 
 ## Realtime SSE Pipeline
@@ -88,15 +91,13 @@ When modifying schema in `src/db/schema.ts`:
   - exceptions are captured at 100%
 
 ## Component Responsibilities
-- src/index.ts - Application entry point
-- src/eddn/ - EDDN data ingestion
-- src/mq/queues/eddn/ - Event processing (BullMQ worker)
-- src/mq/queues/eddn/events/ - Event-specific processors
-- src/mq/queues/eddn/helpers/ - Data transformation logic
-- src/db/schema.ts - Database schema
-- src/realtime/eventOutboxRelay.ts - Outbox polling and Redis publish fanout
-- src/realtime/systemPowerplayUpdated.ts - Realtime event model + payload builder
-- src/realtime/sse/sseService.ts - SSE endpoint/session orchestration and quota checks
-- src/realtime/sse/sseBroker.ts - Connection registry, filtering, framing, backpressure handling
-- src/realtime/sse/redisSubscriptionManager.ts - Redis subscriber lifecycle and power demand subscriptions
-- src/realtime/sse/subscriptionParams.ts - SSE query parsing/validation
+- apps/api/src/index.ts - API application entry point
+- apps/eddn-listener/src/index.ts - EDDN ingestion entry point
+- apps/eddn-worker/src/index.ts - worker entry point
+- packages/db/src/schema.ts - shared database schema
+- apps/api/src/realtime/eventOutboxRelay.ts - outbox polling and Redis publish fanout
+- packages/queue-contracts/src/realtime.ts - realtime event model + payload builders
+- apps/api/src/realtime/sse/sseService.ts - SSE endpoint/session orchestration and quota checks
+- apps/api/src/realtime/sse/sseBroker.ts - connection registry, filtering, framing, backpressure handling
+- apps/api/src/realtime/sse/redisSubscriptionManager.ts - Redis subscriber lifecycle and power demand subscriptions
+- apps/api/src/realtime/sse/subscriptionParams.ts - SSE query parsing/validation

@@ -7,64 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@escape.tech/graphql-armor':
-        specifier: ^3.2.0
-        version: 3.2.0(@envelop/core@5.4.0)(@escape.tech/graphql-armor-types@0.7.0)
-      '@graphile/simplify-inflection':
-        specifier: 8.0.0-rc.2
-        version: 8.0.0-rc.2
-      '@haathie/postgraphile-otel':
-        specifier: ^0.1.0
-        version: 0.1.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))
-      '@haathie/postgraphile-reasonable-limits':
-        specifier: 0.2.0
-        version: 0.2.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))
-      '@sentry/node':
-        specifier: ^10.32.1
-        version: 10.32.1
-      bullmq:
-        specifier: ^5.58.5
-        version: 5.66.4
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.2.3
-      drizzle-orm:
-        specifier: 0.45.1
-        version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
-      drizzle-zod:
-        specifier: 0.8.3
-        version: 0.8.3(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3))(zod@4.2.1)
-      ioredis:
-        specifier: ^5.7.0
-        version: 5.8.2
-      koa:
-        specifier: ^3.0.1
-        version: 3.1.1
-      koa-bodyparser:
-        specifier: ^4.4.1
-        version: 4.4.1
-      koa-ratelimit:
-        specifier: ^6.0.0
-        version: 6.0.0
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
-      pino:
-        specifier: ^9.9.4
-        version: 9.14.0
-      pino-pretty:
-        specifier: ^13.1.1
-        version: 13.1.3
-      postgraphile:
-        specifier: 5.0.0-rc.3
-        version: 5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74)
-      zeromq:
-        specifier: ^6.5.0
-        version: 6.5.0
-      zod:
-        specifier: ^4.1.12
-        version: 4.2.1
     devDependencies:
       '@types/koa':
         specifier: ^3.0.0
@@ -102,6 +44,180 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
+
+  apps/api:
+    dependencies:
+      '@elitehub/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@elitehub/queue-contracts':
+        specifier: workspace:*
+        version: link:../../packages/queue-contracts
+      '@elitehub/runtime-config':
+        specifier: workspace:*
+        version: link:../../packages/runtime-config
+      '@escape.tech/graphql-armor':
+        specifier: ^3.2.0
+        version: 3.2.0(@envelop/core@5.4.0)(@escape.tech/graphql-armor-types@0.7.0)
+      '@graphile/simplify-inflection':
+        specifier: 8.0.0-rc.2
+        version: 8.0.0-rc.2
+      '@haathie/postgraphile-otel':
+        specifier: ^0.1.0
+        version: 0.1.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))
+      '@haathie/postgraphile-reasonable-limits':
+        specifier: 0.2.0
+        version: 0.2.0(postgraphile@5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74))
+      '@sentry/node':
+        specifier: ^10.32.1
+        version: 10.32.1
+      drizzle-orm:
+        specifier: 0.45.1
+        version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
+      ioredis:
+        specifier: ^5.7.0
+        version: 5.8.2
+      koa:
+        specifier: ^3.0.1
+        version: 3.1.1
+      koa-bodyparser:
+        specifier: ^4.4.1
+        version: 4.4.1
+      koa-ratelimit:
+        specifier: ^6.0.0
+        version: 6.0.0
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
+      postgraphile:
+        specifier: 5.0.0-rc.3
+        version: 5.0.0-rc.3(qkew3y6nq4b4hgmxjnynmaff74)
+      zod:
+        specifier: ^4.1.12
+        version: 4.2.1
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+
+  apps/eddn-listener:
+    dependencies:
+      '@elitehub/eddn-contracts':
+        specifier: workspace:*
+        version: link:../../packages/eddn-contracts
+      '@elitehub/queue-contracts':
+        specifier: workspace:*
+        version: link:../../packages/queue-contracts
+      '@elitehub/runtime-config':
+        specifier: workspace:*
+        version: link:../../packages/runtime-config
+      '@sentry/node':
+        specifier: ^10.32.1
+        version: 10.32.1
+      bullmq:
+        specifier: ^5.58.5
+        version: 5.66.4
+      zeromq:
+        specifier: ^6.5.0
+        version: 6.5.0
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+
+  apps/eddn-worker:
+    dependencies:
+      '@elitehub/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@elitehub/eddn-contracts':
+        specifier: workspace:*
+        version: link:../../packages/eddn-contracts
+      '@elitehub/queue-contracts':
+        specifier: workspace:*
+        version: link:../../packages/queue-contracts
+      '@elitehub/runtime-config':
+        specifier: workspace:*
+        version: link:../../packages/runtime-config
+      '@sentry/node':
+        specifier: ^10.32.1
+        version: 10.32.1
+      bullmq:
+        specifier: ^5.58.5
+        version: 5.66.4
+      drizzle-orm:
+        specifier: 0.45.1
+        version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
+      drizzle-zod:
+        specifier: 0.8.3
+        version: 0.8.3(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3))(zod@4.2.1)
+      zod:
+        specifier: ^4.1.12
+        version: 4.2.1
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+
+  packages/db:
+    dependencies:
+      drizzle-orm:
+        specifier: 0.45.1
+        version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.16.3)
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/eddn-contracts:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.2.1
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/queue-contracts:
+    dependencies:
+      '@elitehub/eddn-contracts':
+        specifier: workspace:*
+        version: link:../eddn-contracts
+      bullmq:
+        specifier: ^5.58.5
+        version: 5.66.4
+      zod:
+        specifier: ^4.1.12
+        version: 4.2.1
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/runtime-config:
+    dependencies:
+      '@sentry/node':
+        specifier: ^10.32.1
+        version: 10.32.1
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.3
+      ioredis:
+        specifier: ^5.7.0
+        version: 5.8.2
+      pino:
+        specifier: ^9.9.4
+        version: 9.14.0
+      pino-pretty:
+        specifier: ^13.1.1
+        version: 13.1.3
+    devDependencies:
+      '@elitehub/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/typescript-config: {}
 
 packages:
 

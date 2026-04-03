@@ -176,13 +176,14 @@ The GraphQL API will be available at `http://localhost:3000/graphql`. Replace th
 ### Development Commands
 
 ```bash
-pnpm dev                 # Run in watch mode with hot reload
+pnpm dev                 # Run the API app in watch mode
+pnpm dev:api             # Run the API app in watch mode
+pnpm dev:eddn-listener   # Run the EDDN listener in watch mode
+pnpm dev:eddn-worker     # Run the EDDN worker in watch mode
 pnpm typecheck           # Type check the code
-pnpm build               # Build for production
-pnpm start               # Run production build
+pnpm build               # Build all apps and packages
 pnpm format              # Format all code with Prettier
 pnpm lint                # Lint code with Oxlint
-pnpm lint:fix            # Auto-fix linting issues
 
 # Database
 pnpm drizzle:generate    # Generate migrations from schema changes
@@ -199,32 +200,33 @@ pnpm docker:down         # Stop services
 ```mermaid
 flowchart TD
     A[EDDN Feed ZeroMQ]
-    B[BullMQ Queue]
-    C[Event Processors]
-    D[Data Transformers]
-    E[Drizzle ORM]
-    F[PostgreSQL Database]
-    G[PostGraphile]
-    H[GraphQL API Koa]
+    B[apps/eddn-listener]
+    C[Redis BullMQ Queue]
+    D[apps/eddn-worker]
+    E[PostgreSQL + eventOutbox]
+    F[apps/api relay + SSE]
+    G[GraphQL API Koa]
 
-    A --> B --> C --> D --> E --> F --> G --> H
+    A --> B --> C --> D --> E --> F
+    E --> G
 ```
 
 **Component Responsibilities:**
 
-- `src/index.ts` - Application entry point, Koa server setup
-- `src/eddn/` - EDDN data ingestion via ZeroMQ
-- `src/mq/queues/eddn/` - BullMQ worker and event processing
-- `src/mq/queues/eddn/events/` - Event-specific processors (FSDJump, Location, Docked)
-- `src/mq/queues/eddn/helpers/` - Data transformation logic
-- `src/db/schema.ts` - Drizzle ORM database schema
-- `src/postgraphile/` - PostGraphile configuration and plugins
+- `apps/api/` - Koa API, PostGraphile, SSE, auth, and outbox relay
+- `apps/eddn-listener/` - ZeroMQ EDDN consumer that enqueues BullMQ jobs
+- `apps/eddn-worker/` - BullMQ workers and database update pipeline
+- `packages/db/` - Shared Drizzle schema and DB factory
+- `packages/eddn-contracts/` - Shared EDDN message types and filters
+- `packages/queue-contracts/` - Shared queue names, job types, and realtime contracts
+- `packages/runtime-config/` - Shared env, Redis, logger, and Sentry factories
+- `packages/typescript-config/` - Shared base TypeScript config
 
 ### Code Style
 
 - Use **ES modules** (`.js` extensions in imports, even for `.ts` files)
 - **Destructure imports** when possible: `import { foo } from 'bar'`
-- Logger available as `import logger from './utils/logger.js'`
+- Create process-local runtime instances from shared factories; do not share live Redis/BullMQ/DB instances across apps
 - **Prefix logs** with component name: `logger.info('[ComponentName] Message')`
 - **All database operations** via Drizzle ORM
 - Use `db.transaction()` for multi-step database operations
@@ -242,7 +244,7 @@ When done, open a pull request to the main branch.
 
 ### Database Migrations
 
-When done modifying the schema in `src/db/schema.ts`:
+When done modifying the schema in `packages/db/src/schema.ts`:
 
 1. **Generate migration:**
 
@@ -258,7 +260,7 @@ When done modifying the schema in `src/db/schema.ts`:
    pnpm drizzle:migrate
    ```
 
-4. **Commit both** `schema.ts` and generated migration files
+4. **Commit both** `packages/db/src/schema.ts` and generated migration files
 
 ### Tech Stack
 
@@ -275,8 +277,7 @@ When done modifying the schema in `src/db/schema.ts`:
 
 ### Testing
 
-We don't have any tests yet. YOLO.
-Feel free to add meaningful tests though.
+Current automated tests live in `apps/api/src/**/*.test.ts` and run via `pnpm test`.
 
 ### Contributing Guidelines
 
