@@ -1,6 +1,6 @@
 # EliteHub Vault
 
-EliteHub Vault is a real-time data collection and processing system for Elite Dangerous. It subscribes to the [EDDN (Elite Dangerous Data Network)](https://github.com/EDCD/EDDN) feed, processes player-submitted events, and stores game state in a PostgreSQL database with a GraphQL API layer powered by PostGraphile.
+EliteHub Vault is a real-time data collection and processing system for Elite Dangerous. It processes player-submitted events sent over the [EDDN (Elite Dangerous Data Network)](https://github.com/EDCD/EDDN), stores game state in a PostgreSQL database, serves it via a GraphQL API, and publishes selected realtime updates over SSE.
 
 Support the development of this project by [buying me a coffee](https://buymeacoffee.com/jovanblazek).
 
@@ -126,6 +126,8 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
 
 ## For Contributors
 
+This repository uses a Turborepo monorepo with applications under `apps/*` and shared libraries under `packages/*`.
+
 ### Prerequisites
 
 - **Node.js** 22.14.0 or higher
@@ -166,20 +168,22 @@ For API issues or questions, please open an [issue](https://github.com/jovanblaz
    pnpm drizzle:migrate
    ```
 
-6. **Start development server:**
+6. **Start development pipeline:**
    ```bash
    pnpm dev
    ```
+
+`pnpm dev` runs the development pipeline through Turbo. In practice, that starts the three apps and any shared packages that they depend on.
 
 The GraphQL API will be available at `http://localhost:3000/graphql`. Replace the port with the one specified in your `.env` file.
 
 ### Development Commands
 
 ```bash
-pnpm dev                 # Run the API app in watch mode
-pnpm dev:api             # Run the API app in watch mode
-pnpm dev:eddn-listener   # Run the EDDN listener in watch mode
-pnpm dev:eddn-worker     # Run the EDDN worker in watch mode
+pnpm dev                 # Run all workspace dev tasks through Turbo
+pnpm dev:api             # Run apps/api and its local dependencies
+pnpm dev:eddn-listener   # Run apps/eddn-listener and its local dependencies
+pnpm dev:eddn-worker     # Run apps/eddn-worker and its local dependencies
 pnpm typecheck           # Type check the code
 pnpm build               # Build all apps and packages
 pnpm format              # Format all code with Prettier
@@ -212,13 +216,13 @@ flowchart TD
 **Component Responsibilities:**
 
 - `apps/api/` - Koa API, PostGraphile, SSE, auth, and outbox relay
-- `apps/eddn-listener/` - ZeroMQ EDDN consumer that enqueues BullMQ jobs
-- `apps/eddn-worker/` - BullMQ workers and database update pipeline
-- `packages/db/` - Shared Drizzle schema and DB factory
-- `packages/eddn-contracts/` - Shared EDDN message types and filters
-- `packages/queue-contracts/` - Shared queue names, job types, and realtime contracts
-- `packages/runtime-config/` - Shared env, Redis, logger, and Sentry factories
-- `packages/typescript-config/` - Shared base TypeScript config
+- `apps/eddn-listener/` - EDDN listener application that consumes ZeroMQ messages and enqueues BullMQ jobs
+- `apps/eddn-worker/` - worker application that processes BullMQ jobs and updates the database
+- `packages/db/` - shared Drizzle schema, migrations, and DB helpers
+- `packages/eddn-contracts/` - shared EDDN message types and filters
+- `packages/queue-contracts/` - shared queue names, job payloads, and realtime contracts
+- `packages/runtime-config/` - shared env loading, Redis, logger, and Sentry factories
+- `packages/typescript-config/` - shared base TypeScript config
 
 ### Code Style
 
