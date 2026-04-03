@@ -10,8 +10,9 @@ import { IdToNodeIdPlugin } from './plugins/IdToNodeIdPlugin.js'
 import * as Sentry from '@sentry/node'
 import { defaultMaskError } from 'postgraphile/grafserv'
 import { OTELPlugin } from '@haathie/postgraphile-otel'
+import { env } from '../env.js'
 
-const IS_DEVELOPMENT = process.env.NODE_ENV === 'development'
+const IS_DEVELOPMENT = env.NODE_ENV === 'development'
 
 const PGL_Preset: GraphileConfig.Preset = {
   extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
@@ -25,7 +26,7 @@ const PGL_Preset: GraphileConfig.Preset = {
   ],
   pgServices: [
     makePgService({
-      connectionString: process.env.POSTGRES_CONNECTION_STRING,
+      connectionString: env.POSTGRES_CONNECTION_STRING,
       schemas: ['public'],
     }),
   ],
@@ -40,7 +41,7 @@ const PGL_Preset: GraphileConfig.Preset = {
     context(requestContext) {
       return {
         apiKey: requestContext.http?.getHeader('x-api-key') as string | undefined,
-      } as any
+      }
     },
   },
   grafserv: {

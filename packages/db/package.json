@@ -17,8 +17,10 @@
     "db:recreate-migrations-table": "tsx src/scripts/recreateMigrationsTable.ts"
   },
   "dependencies": {
+    "@t3-oss/env-core": "^0.13.11",
     "dotenv": "^17.2.2",
-    "drizzle-orm": "0.45.1"
+    "drizzle-orm": "0.45.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",

@@ -1,8 +1,9 @@
 import type { Context } from 'koa'
+import { env } from '../../env.js'
 import logger from '../../utils/logger.js'
 import { validateApiKey } from '../../auth/apiKeyValidator.js'
 
-const isDevelopmentEnvironment = () => process.env.NODE_ENV === 'development'
+const isDevelopmentEnvironment = () => env.NODE_ENV === 'development'
 
 export type AuthorizedApiKey = {
   apiKeyId: string

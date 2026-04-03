@@ -1,11 +1,12 @@
 import pino from 'pino'
+import { env } from './environment.js'
 
 export const createLogger = () => {
-  const isProduction = process.env.NODE_ENV === 'production'
+  const isProduction = env.NODE_ENV === 'production'
 
   return pino({
-    level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
-    enabled: process.env.NODE_ENV !== 'test',
+    level: env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
+    enabled: env.NODE_ENV !== 'test',
     transport: {
       targets: [
         {

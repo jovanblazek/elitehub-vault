@@ -20,6 +20,7 @@
     "@haathie/postgraphile-otel": "^0.1.0",
     "@haathie/postgraphile-reasonable-limits": "0.2.0",
     "@sentry/node": "^10.32.1",
+    "@t3-oss/env-core": "^0.13.11",
     "drizzle-orm": "0.45.1",
     "ioredis": "^5.7.0",
     "koa": "^3.0.1",

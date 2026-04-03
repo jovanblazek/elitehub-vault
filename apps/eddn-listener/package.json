@@ -15,6 +15,7 @@
     "@elitehub/queue-contracts": "workspace:*",
     "@elitehub/runtime-config": "workspace:*",
     "@sentry/node": "^10.32.1",
+    "@t3-oss/env-core": "^0.13.11",
     "bullmq": "^5.58.5",
     "zeromq": "^6.5.0"
   },

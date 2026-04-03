@@ -1,7 +1,8 @@
 import * as Sentry from '@sentry/node'
+import { env } from './environment.js'
 
 export const initializeSentry = () => {
-  const isProduction = process.env.NODE_ENV === 'production'
+  const isProduction = env.NODE_ENV === 'production'
 
   if (Sentry.getClient()) {
     return
@@ -9,8 +10,8 @@ export const initializeSentry = () => {
 
   Sentry.init({
     enabled: isProduction,
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV || 'development',
+    dsn: env.SENTRY_DSN,
+    environment: env.NODE_ENV,
     tracesSampler: ({ attributes, inheritOrSampleWith }) => {
       if (!isProduction) {
         if (attributes?.['sentry.op'] === 'queue.process') {

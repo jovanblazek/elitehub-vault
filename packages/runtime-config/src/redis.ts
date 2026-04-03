@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis'
-import { getRequiredEnv } from './environment.js'
+import { env } from './environment.js'
 
 export type RedisConfig = {
   port: number
@@ -10,10 +10,10 @@ export type RedisConfig = {
 }
 
 export const getRedisConfig = (): RedisConfig => ({
-  port: Number.parseInt(getRequiredEnv('REDIS_PORT'), 10),
-  password: process.env.REDIS_PASSWORD,
-  host: getRequiredEnv('REDIS_HOST'),
-  username: process.env.REDIS_USERNAME,
+  port: env.REDIS_PORT,
+  password: env.REDIS_PASSWORD,
+  host: env.REDIS_HOST,
+  username: env.REDIS_USERNAME,
   maxRetriesPerRequest: null,
 })
 

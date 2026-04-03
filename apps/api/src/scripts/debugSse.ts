@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { env } from '../env.js'
 
 type CliOptions = {
   baseUrl: string
@@ -17,7 +18,7 @@ const printUsage = () => {
   pnpm debug:sse -- --eventType systemPowerplayUpdated --powerId p1 [--powerId p2] [options]
 
 Options:
-  --baseUrl <url>         Base URL (default: http://localhost:${process.env.PORT ?? '3000'})
+  --baseUrl <url>         Base URL (default: http://localhost:${env.PORT})
   --path <path>           SSE path (default: /realtime/sse)
   --apiKey <key>          API key for X-API-Key header (default: SSE_API_KEY or API_KEY env)
   --eventType <value>     eventType query param
@@ -45,9 +46,9 @@ const requireArgValue = (args: string[], index: number, name: string): string =>
 
 const parseCliArgs = (args: string[]): CliOptions => {
   const options: CliOptions = {
-    baseUrl: `http://localhost:${process.env.PORT ?? '3000'}`,
+    baseUrl: `http://localhost:${env.PORT}`,
     path: '/realtime/sse',
-    apiKey: process.env.SSE_API_KEY ?? process.env.API_KEY ?? null,
+    apiKey: env.SSE_API_KEY ?? env.API_KEY ?? null,
     eventType: null,
     powerIds: [],
     systemIds: [],

@@ -4,5 +4,5 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "include": ["src", "../../packages/runtime-config/src/environment.d.ts"]
+  "include": ["src"]
 }

@@ -10,6 +10,7 @@ import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
 import { routeAccessMiddleware } from './middleware/routeAccess.js'
 import { pgl } from './postgraphile/pgl.js'
 import { shutdownRealtimeSse } from './realtime/sse/sseService.js'
+import { env } from './env.js'
 import logger from './utils/logger.js'
 import { Redis } from './utils/redis.js'
 
@@ -18,7 +19,7 @@ Sentry.setupKoaErrorHandler(koaApp)
 
 koaApp.use(
   ratelimit({
-    whitelist: () => process.env.NODE_ENV === 'development',
+    whitelist: () => env.NODE_ENV === 'development',
     driver: 'redis',
     db: Redis as never,
     namespace: 'api-rate-limit',
@@ -43,8 +44,8 @@ koaApp.use(routeAccessMiddleware)
 const serv = pgl.createServ(grafserv)
 serv.addTo(koaApp, null)
 
-const server = koaApp.listen(process.env.PORT, () => {
-  logger.info(`[Koa] Server listening on port ${process.env.PORT!}`)
+const server = koaApp.listen(env.PORT, () => {
+  logger.info(`[Koa] Server listening on port ${env.PORT}`)
 })
 
 Redis.on('ready', () => {

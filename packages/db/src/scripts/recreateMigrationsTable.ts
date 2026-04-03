@@ -5,7 +5,8 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js/driver'
 import { PgDialect, PgSession } from 'drizzle-orm/pg-core'
 import { createDb } from '../db.js'
 import path from 'node:path'
-import { drizzleConfig, packageRoot } from '../drizzleConfig.js'
+// @ts-ignore - drizzle.config.ts is not in root directory
+import drizzleConfig, { dbEnv, packageRoot } from '../../drizzle.config.js'
 
 const config = {
   ...drizzleConfig,
@@ -16,7 +17,7 @@ const config = {
 
 const migrations = readMigrationFiles(config)
 
-const connection = createDb({ connectionString: process.env.POSTGRES_CONNECTION_STRING! })
+const connection = createDb({ connectionString: dbEnv.POSTGRES_CONNECTION_STRING })
 
 const table_name = `${config.migrationsSchema}.${config.migrationsTable}`
 
