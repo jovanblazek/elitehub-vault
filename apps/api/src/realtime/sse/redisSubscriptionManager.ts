@@ -1,6 +1,6 @@
 import type { Redis } from 'ioredis'
+import type { RealtimePayload } from '@elitehub/queue-contracts'
 import logger from '../../utils/logger.js'
-import type { SystemPowerplayUpdatedPayload } from '../systemPowerplayUpdated.js'
 import {
   findRealtimeEventByChannel,
   getRealtimeEventSpec,
@@ -10,10 +10,12 @@ import { captureSseException } from './sseTelemetry.js'
 
 type SubscriptionState = 'idle' | 'subscribing' | 'subscribed' | 'unsubscribing'
 
+type DemandKey = `${RealtimeEventType}:${string}`
+
 export type RoutedRealtimeEvent = {
   eventType: RealtimeEventType
-  powerId: string
-  payload: SystemPowerplayUpdatedPayload
+  routingKey: string
+  payload: RealtimePayload
 }
 
 export type RedisSubscriberLike = Pick<
@@ -26,11 +28,22 @@ export type RedisSubscriberLike = Pick<
   | 'setMaxListeners'
 >
 
+const getDemandKey = (eventType: RealtimeEventType, routingKey: string): DemandKey =>
+  `${eventType}:${routingKey}`
+
+const parseDemandKey = (demandKey: DemandKey) => {
+  const separatorIndex = demandKey.indexOf(':')
+  return {
+    eventType: demandKey.slice(0, separatorIndex) as RealtimeEventType,
+    routingKey: demandKey.slice(separatorIndex + 1),
+  }
+}
+
 export class RedisSubscriptionManager {
   private readonly subscriber: RedisSubscriberLike
-  private readonly powerDemandCount = new Map<string, number>()
-  private readonly subscriptionStateByPower = new Map<string, SubscriptionState>()
-  private readonly subscriptionOpByPower = new Map<string, Promise<void>>()
+  private readonly demandCount = new Map<DemandKey, number>()
+  private readonly subscriptionStateByDemandKey = new Map<DemandKey, SubscriptionState>()
+  private readonly subscriptionOpByDemandKey = new Map<DemandKey, Promise<void>>()
   private isStarted = false
   private redisDisconnected = false
 
@@ -40,7 +53,7 @@ export class RedisSubscriptionManager {
     private readonly callbacks: {
       onRedisError?: () => void
       onRedisDisconnect?: () => void
-      onRedisRecovered?: (demandedPowers: number) => void
+      onRedisRecovered?: (demandedSubscriptions: number) => void
     } = {}
   ) {
     this.subscriber = subscriber
@@ -70,35 +83,37 @@ export class RedisSubscriptionManager {
     this.subscriber.removeListener('error', this.onError)
     this.subscriber.removeListener('close', this.onClose)
 
-    this.powerDemandCount.clear()
-    this.subscriptionStateByPower.clear()
-    this.subscriptionOpByPower.clear()
+    this.demandCount.clear()
+    this.subscriptionStateByDemandKey.clear()
+    this.subscriptionOpByDemandKey.clear()
 
     await this.subscriber.quit()
   }
 
-  async incrementPowerDemand(powerId: string) {
-    await this.runSerialized(powerId, async () => {
-      const current = this.powerDemandCount.get(powerId) ?? 0
+  async incrementDemand(eventType: RealtimeEventType, routingKey: string) {
+    const demandKey = getDemandKey(eventType, routingKey)
+    await this.runSerialized(demandKey, async () => {
+      const current = this.demandCount.get(demandKey) ?? 0
       const next = current + 1
-      this.powerDemandCount.set(powerId, next)
-      await this.subscribePowerIfNeeded(powerId)
+      this.demandCount.set(demandKey, next)
+      await this.subscribeIfNeeded(demandKey)
     })
   }
 
-  async decrementPowerDemand(powerId: string) {
-    await this.runSerialized(powerId, async () => {
-      const current = this.powerDemandCount.get(powerId) ?? 0
+  async decrementDemand(eventType: RealtimeEventType, routingKey: string) {
+    const demandKey = getDemandKey(eventType, routingKey)
+    await this.runSerialized(demandKey, async () => {
+      const current = this.demandCount.get(demandKey) ?? 0
       if (current <= 0) {
         return
       }
 
       const next = current - 1
       if (next === 0) {
-        this.powerDemandCount.delete(powerId)
-        await this.unsubscribePowerIfNeeded(powerId)
+        this.demandCount.delete(demandKey)
+        await this.unsubscribeIfNeeded(demandKey)
       } else {
-        this.powerDemandCount.set(powerId, next)
+        this.demandCount.set(demandKey, next)
       }
     })
   }
@@ -117,20 +132,23 @@ export class RedisSubscriptionManager {
 
     this.onEvent({
       eventType: match.eventType,
-      powerId: match.powerId,
+      routingKey: match.routingKey,
       payload,
     })
   }
 
   private readonly onReady = () => {
-    const demandedPowers = this.powerDemandCount.size
-    for (const powerId of this.powerDemandCount.keys()) {
-      this.subscriptionStateByPower.set(powerId, 'idle')
+    const demandedSubscriptions = this.demandCount.size
+    for (const demandKey of this.demandCount.keys()) {
+      this.subscriptionStateByDemandKey.set(demandKey, 'idle')
     }
 
     if (this.redisDisconnected) {
-      logger.info({ demandedPowers }, '[SSE] Redis subscriber recovered; reconciling subscriptions')
-      this.callbacks.onRedisRecovered?.(demandedPowers)
+      logger.info(
+        { demandedSubscriptions },
+        '[SSE] Redis subscriber recovered; reconciling subscriptions'
+      )
+      this.callbacks.onRedisRecovered?.(demandedSubscriptions)
       this.redisDisconnected = false
     }
 
@@ -144,11 +162,11 @@ export class RedisSubscriptionManager {
       tags: {
         operation: 'redis_error',
         error_type: 'subscriber_error',
-        event_type: 'systemPowerplayUpdated',
+        event_type: 'mixed',
       },
       contexts: {
         sse_redis: {
-          demandedPowers: this.powerDemandCount.size,
+          demandedSubscriptions: this.demandCount.size,
         },
       },
       fingerprint: ['sse', 'redis_subscriptions', 'subscriber_error'],
@@ -160,106 +178,112 @@ export class RedisSubscriptionManager {
     this.redisDisconnected = true
     this.callbacks.onRedisDisconnect?.()
     logger.warn(
-      { demandedPowers: this.powerDemandCount.size },
+      { demandedSubscriptions: this.demandCount.size },
       '[SSE] Redis subscriber connection closed'
     )
-    for (const [powerId, state] of this.subscriptionStateByPower.entries()) {
+    for (const [demandKey, state] of this.subscriptionStateByDemandKey.entries()) {
       if (state === 'subscribed' || state === 'subscribing') {
-        this.subscriptionStateByPower.set(powerId, 'idle')
+        this.subscriptionStateByDemandKey.set(demandKey, 'idle')
       }
     }
   }
 
   private async reconcileAllSubscriptions() {
-    const powers = Array.from(this.powerDemandCount.keys())
+    const demandedKeys = Array.from(this.demandCount.keys())
     await Promise.all(
-      powers.map((powerId) =>
-        this.runSerialized(powerId, async () => {
-          await this.subscribePowerIfNeeded(powerId)
+      demandedKeys.map((demandKey) =>
+        this.runSerialized(demandKey, async () => {
+          await this.subscribeIfNeeded(demandKey)
         })
       )
     )
 
     if (this.isStarted) {
-      logger.info({ demandedPowers: powers.length }, '[SSE] Redis subscription reconciliation complete')
+      logger.info(
+        { demandedSubscriptions: demandedKeys.length },
+        '[SSE] Redis subscription reconciliation complete'
+      )
     }
   }
 
-  private async subscribePowerIfNeeded(powerId: string) {
-    const currentDemand = this.powerDemandCount.get(powerId) ?? 0
+  private async subscribeIfNeeded(demandKey: DemandKey) {
+    const currentDemand = this.demandCount.get(demandKey) ?? 0
     if (currentDemand <= 0) {
       return
     }
 
-    const state = this.subscriptionStateByPower.get(powerId)
+    const state = this.subscriptionStateByDemandKey.get(demandKey)
     if (state === 'subscribed' || state === 'subscribing') {
       return
     }
 
-    const spec = getRealtimeEventSpec('systemPowerplayUpdated')
+    const { eventType, routingKey } = parseDemandKey(demandKey)
+    const spec = getRealtimeEventSpec(eventType)
     if (!spec) {
       return
     }
 
-    this.subscriptionStateByPower.set(powerId, 'subscribing')
-    const channel = spec.getChannel(powerId)
+    this.subscriptionStateByDemandKey.set(demandKey, 'subscribing')
+    const channel = spec.getChannel(routingKey)
 
     try {
       await this.subscriber.subscribe(channel)
-      if ((this.powerDemandCount.get(powerId) ?? 0) > 0) {
-        this.subscriptionStateByPower.set(powerId, 'subscribed')
+      if ((this.demandCount.get(demandKey) ?? 0) > 0) {
+        this.subscriptionStateByDemandKey.set(demandKey, 'subscribed')
       } else {
-        this.subscriptionStateByPower.set(powerId, 'subscribed')
-        await this.unsubscribePowerIfNeeded(powerId)
+        this.subscriptionStateByDemandKey.set(demandKey, 'subscribed')
+        await this.unsubscribeIfNeeded(demandKey)
       }
     } catch (error) {
-      this.subscriptionStateByPower.set(powerId, 'idle')
+      this.subscriptionStateByDemandKey.set(demandKey, 'idle')
       captureSseException(error, {
         component: 'sse-redis-subscriptions',
         tags: {
           operation: 'subscribe_channel',
           error_type: 'subscribe_failed',
-          event_type: 'systemPowerplayUpdated',
+          event_type: eventType,
         },
         contexts: {
           sse_redis: {
-            powerId,
+            eventType,
+            routingKey,
             channel,
-            demandedPowers: this.powerDemandCount.size,
+            demandedSubscriptions: this.demandCount.size,
             subscriptionState: 'idle',
           },
         },
         fingerprint: ['sse', 'redis_subscriptions', 'subscribe_failed'],
       })
-      logger.error({ error, powerId }, '[SSE] Failed subscribing to power channel')
+      logger.error({ error, eventType, routingKey }, '[SSE] Failed subscribing to channel')
     }
   }
 
-  private async unsubscribePowerIfNeeded(powerId: string) {
-    const currentDemand = this.powerDemandCount.get(powerId) ?? 0
+  private async unsubscribeIfNeeded(demandKey: DemandKey) {
+    const currentDemand = this.demandCount.get(demandKey) ?? 0
     if (currentDemand > 0) {
       return
     }
 
-    const state = this.subscriptionStateByPower.get(powerId)
+    const state = this.subscriptionStateByDemandKey.get(demandKey)
     if (!state || state === 'idle' || state === 'unsubscribing') {
       return
     }
 
-    const spec = getRealtimeEventSpec('systemPowerplayUpdated')
+    const { eventType, routingKey } = parseDemandKey(demandKey)
+    const spec = getRealtimeEventSpec(eventType)
     if (!spec) {
       return
     }
 
-    const channel = spec.getChannel(powerId)
-    this.subscriptionStateByPower.set(powerId, 'unsubscribing')
+    const channel = spec.getChannel(routingKey)
+    this.subscriptionStateByDemandKey.set(demandKey, 'unsubscribing')
 
     try {
       await this.subscriber.unsubscribe(channel)
-      if ((this.powerDemandCount.get(powerId) ?? 0) <= 0) {
-        this.subscriptionStateByPower.set(powerId, 'idle')
+      if ((this.demandCount.get(demandKey) ?? 0) <= 0) {
+        this.subscriptionStateByDemandKey.set(demandKey, 'idle')
       } else {
-        this.subscriptionStateByPower.set(powerId, 'subscribed')
+        this.subscriptionStateByDemandKey.set(demandKey, 'subscribed')
       }
     } catch (error) {
       captureSseException(error, {
@@ -267,42 +291,44 @@ export class RedisSubscriptionManager {
         tags: {
           operation: 'unsubscribe_channel',
           error_type: 'unsubscribe_failed',
-          event_type: 'systemPowerplayUpdated',
+          event_type: eventType,
         },
         contexts: {
           sse_redis: {
-            powerId,
+            eventType,
+            routingKey,
             channel,
-            demandedPowers: this.powerDemandCount.size,
-            subscriptionState: this.subscriptionStateByPower.get(powerId) ?? 'idle',
+            demandedSubscriptions: this.demandCount.size,
+            subscriptionState: this.subscriptionStateByDemandKey.get(demandKey) ?? 'idle',
           },
         },
         fingerprint: ['sse', 'redis_subscriptions', 'unsubscribe_failed'],
       })
-      logger.error({ error, powerId }, '[SSE] Failed unsubscribing from power channel')
-      if ((this.powerDemandCount.get(powerId) ?? 0) > 0) {
-        this.subscriptionStateByPower.set(powerId, 'subscribed')
+      logger.error({ error, eventType, routingKey }, '[SSE] Failed unsubscribing from channel')
+      if ((this.demandCount.get(demandKey) ?? 0) > 0) {
+        this.subscriptionStateByDemandKey.set(demandKey, 'subscribed')
       } else {
-        this.subscriptionStateByPower.set(powerId, 'idle')
+        this.subscriptionStateByDemandKey.set(demandKey, 'idle')
       }
     }
   }
 
-  private async runSerialized(powerId: string, operation: () => Promise<void>) {
-    const previous = this.subscriptionOpByPower.get(powerId) ?? Promise.resolve()
+  private async runSerialized(demandKey: DemandKey, operation: () => Promise<void>) {
+    const previous = this.subscriptionOpByDemandKey.get(demandKey) ?? Promise.resolve()
+    const { eventType, routingKey } = parseDemandKey(demandKey)
 
     const current = previous
       .then(operation)
       .catch((error) => {
-        logger.error({ error, powerId }, '[SSE] Power subscription operation failed')
+        logger.error({ error, eventType, routingKey }, '[SSE] Subscription operation failed')
       })
       .finally(() => {
-        if (this.subscriptionOpByPower.get(powerId) === current) {
-          this.subscriptionOpByPower.delete(powerId)
+        if (this.subscriptionOpByDemandKey.get(demandKey) === current) {
+          this.subscriptionOpByDemandKey.delete(demandKey)
         }
       })
 
-    this.subscriptionOpByPower.set(powerId, current)
+    this.subscriptionOpByDemandKey.set(demandKey, current)
     await current
   }
 }

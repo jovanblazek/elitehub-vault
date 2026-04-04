@@ -8,19 +8,19 @@ import {
 } from './redisSubscriptionManager.js'
 import { __setSseTelemetryClientForTests } from './sseTelemetry.js'
 
-class FakeRedisSubscriber extends EventEmitter implements RedisSubscriberLike {
+class FakeRedisSubscriber extends EventEmitter {
   public readonly subscribedChannels: string[] = []
   public readonly unsubscribedChannels: string[] = []
 
-  // @ts-expect-error - This is ok for the test
-  async subscribe(channel: string): Promise<number> {
-    this.subscribedChannels.push(channel)
+  async subscribe(...args: unknown[]): Promise<number> {
+    const [channel] = args
+    this.subscribedChannels.push(String(channel))
     return this.subscribedChannels.length
   }
 
-  // @ts-expect-error - This is ok for the test
-  async unsubscribe(channel: string): Promise<number> {
-    this.unsubscribedChannels.push(channel)
+  async unsubscribe(...args: unknown[]): Promise<number> {
+    const [channel] = args
+    this.unsubscribedChannels.push(String(channel))
     return this.unsubscribedChannels.length
   }
 
@@ -32,7 +32,8 @@ class FakeRedisSubscriber extends EventEmitter implements RedisSubscriberLike {
 class FlakySubscribeRedisSubscriber extends FakeRedisSubscriber {
   private subscribeAttempts = 0
 
-  override async subscribe(channel: string): Promise<number> {
+  override async subscribe(...args: unknown[]): Promise<number> {
+    const [channel] = args
     this.subscribeAttempts += 1
     if (this.subscribeAttempts === 1) {
       throw new Error('temporary subscribe failure')
@@ -53,37 +54,37 @@ test('RedisSubscriptionManager subscribes only on first demand and unsubscribes 
 
   manager.start()
 
-  await manager.incrementPowerDemand('power-a')
-  await manager.incrementPowerDemand('power-a')
+  await manager.incrementDemand('factionStateChanged', 'faction-a')
+  await manager.incrementDemand('factionStateChanged', 'faction-a')
 
   assert.deepEqual(fakeSubscriber.subscribedChannels, [
-    'events:systemPowerplayUpdated:power:power-a',
+    'events:factionStateChanged:faction:faction-a',
   ])
 
-  await manager.decrementPowerDemand('power-a')
+  await manager.decrementDemand('factionStateChanged', 'faction-a')
   assert.equal(fakeSubscriber.unsubscribedChannels.length, 0)
 
-  await manager.decrementPowerDemand('power-a')
+  await manager.decrementDemand('factionStateChanged', 'faction-a')
   assert.deepEqual(fakeSubscriber.unsubscribedChannels, [
-    'events:systemPowerplayUpdated:power:power-a',
+    'events:factionStateChanged:faction:faction-a',
   ])
 
   fakeSubscriber.emit(
     'message',
-    'events:systemPowerplayUpdated:power:power-a',
+    'events:factionStateChanged:faction:faction-a',
     JSON.stringify({
-      event: 'systemPowerplayUpdated',
+      event: 'factionStateChanged',
+      factionId: 'faction-a',
       systemId: 'system-1',
-      powerId: 'power-a',
-      changedFields: ['powerplayState'],
-      timestamp: '2026-02-07T00:00:00.000Z',
-      source: 'eddn-worker',
-      metadata: {},
+      stateKind: 'state',
+      state: 'Retreat',
+      lifecycle: 'active',
+      timestamp: '2026-04-04T00:00:00.000Z',
     })
   )
 
   assert.equal(routedEvents.length, 1)
-  assert.equal(routedEvents[0]?.powerId, 'power-a')
+  assert.equal(routedEvents[0]?.routingKey, 'faction-a')
 
   await manager.stop()
 })
@@ -97,10 +98,10 @@ test('RedisSubscriptionManager retries subscribe on later demand after first sub
 
   manager.start()
 
-  await manager.incrementPowerDemand('power-a')
+  await manager.incrementDemand('systemPowerplayUpdated', 'power-a')
   assert.equal(fakeSubscriber.subscribedChannels.length, 0)
 
-  await manager.incrementPowerDemand('power-a')
+  await manager.incrementDemand('systemPowerplayUpdated', 'power-a')
   assert.deepEqual(fakeSubscriber.subscribedChannels, [
     'events:systemPowerplayUpdated:power:power-a',
   ])
@@ -108,7 +109,7 @@ test('RedisSubscriptionManager retries subscribe on later demand after first sub
   await manager.stop()
 })
 
-test('RedisSubscriptionManager resubscribes demanded powers on ready', async () => {
+test('RedisSubscriptionManager resubscribes demanded routing keys on ready', async () => {
   const fakeSubscriber = new FakeRedisSubscriber()
   const manager = new RedisSubscriptionManager(
     fakeSubscriber as unknown as RedisSubscriberLike,
@@ -116,7 +117,7 @@ test('RedisSubscriptionManager resubscribes demanded powers on ready', async () 
   )
 
   manager.start()
-  await manager.incrementPowerDemand('power-a')
+  await manager.incrementDemand('factionPresenceChanged', 'faction-a')
   assert.equal(fakeSubscriber.subscribedChannels.length, 1)
 
   fakeSubscriber.emit('close')
@@ -124,10 +125,9 @@ test('RedisSubscriptionManager resubscribes demanded powers on ready', async () 
 
   await new Promise((resolve) => setTimeout(resolve, 5))
 
-  assert.equal(fakeSubscriber.subscribedChannels.length, 2)
   assert.deepEqual(fakeSubscriber.subscribedChannels, [
-    'events:systemPowerplayUpdated:power:power-a',
-    'events:systemPowerplayUpdated:power:power-a',
+    'events:factionPresenceChanged:faction:faction-a',
+    'events:factionPresenceChanged:faction:faction-a',
   ])
 
   await manager.stop()
@@ -152,7 +152,7 @@ test('RedisSubscriptionManager captures telemetry for subscriber errors', async 
     )
 
     manager.start()
-    await manager.incrementPowerDemand('power-a')
+    await manager.incrementDemand('factionControlThreatChanged', 'faction-a')
 
     fakeSubscriber.emit('close')
     fakeSubscriber.emit('ready')

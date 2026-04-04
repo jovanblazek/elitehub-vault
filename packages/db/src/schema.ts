@@ -382,6 +382,21 @@ export const ApiKeys = pgTable('apiKeys', {
   updatedAt: timestamp().notNull().defaultNow(),
 })
 
+export const SystemFactionControlThreats = pgTable(
+  'systemFactionControlThreats',
+  {
+    systemId: uuid()
+      .primaryKey()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    factionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
+    challengerFactionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
+    gap: doublePrecision(),
+    isThreatened: boolean().notNull().default(false),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [index().on(table.factionId), index().on(table.challengerFactionId)]
+)
+
 export const EventOutbox = pgTable(
   'eventOutbox',
   {

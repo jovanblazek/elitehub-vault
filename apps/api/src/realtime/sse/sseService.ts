@@ -28,8 +28,8 @@ const redisSubscriptions = new RedisSubscriptionManager(
     onRedisDisconnect: () => {
       sseMetrics.onRedisDisconnect()
     },
-    onRedisRecovered: (demandedPowers) => {
-      logger.info({ demandedPowers }, '[SSE] Redis subscriber recovered')
+    onRedisRecovered: (demandedSubscriptions) => {
+      logger.info({ demandedSubscriptions }, '[SSE] Redis subscriber recovered')
     },
   }
 )
@@ -40,7 +40,7 @@ const sseBroker = new SseBroker(redisSubscriptions, {
     apiKeyId,
     keyName,
     eventType,
-    powerIdCount,
+    routingKeyCount,
     systemIdCount,
     activeChannels,
   }) => {
@@ -53,7 +53,7 @@ const sseBroker = new SseBroker(redisSubscriptions, {
         apiKeyId,
         keyName,
         eventType,
-        powerIdCount,
+        routingKeyCount,
         systemIdCount,
         activeChannels,
       },
@@ -179,7 +179,7 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
       eventType: eventSpec.eventType as RealtimeEventType,
       apiKeyId: apiKey.apiKeyId,
       keyName: apiKey.keyName,
-      powerIds: query.data.powerIds,
+      routingKeys: query.data.routingKeys,
       systemIds: query.data.systemIds,
     })
   } catch (error) {
@@ -195,7 +195,7 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
         sse_connection: {
           apiKeyId: apiKey.apiKeyId,
           eventType: query.data.eventType,
-          powerIdCount: query.data.powerIds.length,
+          routingKeyCount: query.data.routingKeys.length,
           systemIdCount: query.data.systemIds?.length ?? 0,
         },
       },

@@ -2,13 +2,13 @@
 import { eq, sql } from 'drizzle-orm'
 import { EventOutbox, SystemPowerplayPowers } from '@elitehub/db'
 import {
-  buildSystemPowerplayPublishTargets,
   parseSystemPowerplayUpdatedOutboxPayload,
   SYSTEM_POWERPLAY_UPDATED_EVENT,
 } from '@elitehub/queue-contracts'
 import { db } from '../db/db.js'
 import logger from '../utils/logger.js'
 import { Redis } from '../utils/redis.js'
+import { buildPublishTargetsForOutboxRow } from './eventPublishTargets.js'
 
 type OutboxRow = {
   id: string
@@ -87,7 +87,39 @@ export class EventOutboxRelay {
     }
 
     for (const row of rows.rows) {
-      if (row.eventType !== SYSTEM_POWERPLAY_UPDATED_EVENT) {
+      let powerIds: string[] | undefined
+      if (row.eventType === SYSTEM_POWERPLAY_UPDATED_EVENT) {
+        const powerplayPayload = parseSystemPowerplayUpdatedOutboxPayload(row.payload)
+        if (!powerplayPayload) {
+          logger.error(
+            { eventType: row.eventType, rowId: row.id },
+            '[EventOutboxRelay] Invalid powerplay payload'
+          )
+          await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
+          continue
+        }
+
+        const powerRows = await tx
+          .select({ powerId: SystemPowerplayPowers.powerId })
+          .from(SystemPowerplayPowers)
+          .where(eq(SystemPowerplayPowers.systemId, powerplayPayload.systemId))
+
+        if (powerRows.length === 0) {
+          await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
+          continue
+        }
+
+        powerIds = powerRows.map((powerRow) => powerRow.powerId)
+      }
+
+      const targets = buildPublishTargetsForOutboxRow({
+        eventType: row.eventType,
+        outboxPayload: row.payload,
+        createdAt: row.createdAt,
+        powerIds,
+      })
+
+      if (targets === null) {
         logger.error(
           { eventType: row.eventType },
           '[EventOutboxRelay] Unknown event type in outbox'
@@ -96,38 +128,10 @@ export class EventOutboxRelay {
         continue
       }
 
-      const validatedPayload = parseSystemPowerplayUpdatedOutboxPayload(row.payload)
-      if (!validatedPayload) {
-        logger.error(
-          { eventType: row.eventType, rowId: row.id },
-          '[EventOutboxRelay] Invalid payload'
-        )
-        await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
-        continue
-      }
-
-      const systemId = validatedPayload.systemId
-
-      const powerRows = await tx
-        .select({ powerId: SystemPowerplayPowers.powerId })
-        .from(SystemPowerplayPowers)
-        .where(eq(SystemPowerplayPowers.systemId, systemId))
-
-      if (powerRows.length === 0) {
-        await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
-        continue
-      }
-
-      const targets = buildSystemPowerplayPublishTargets({
-        outboxPayload: validatedPayload,
-        createdAt: row.createdAt,
-        powerIds: powerRows.map((powerRow) => powerRow.powerId),
-      })
-
       if (targets.length === 0) {
         logger.error(
           { eventType: row.eventType, rowId: row.id },
-          '[EventOutboxRelay] Failed to build power scoped payloads'
+          '[EventOutboxRelay] Invalid payload or no publish targets built'
         )
         await tx.delete(EventOutbox).where(eq(EventOutbox.id, row.id))
         continue
