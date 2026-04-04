@@ -19,7 +19,12 @@ type OutboxRow = {
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 type PublishTargets = Exclude<ReturnType<typeof buildPublishTargetsForOutboxRow>, null>
-type DiscardRowResult = { status: 'discard'; reason: string; logContext?: Record<string, unknown> }
+type DiscardRowResult = {
+  status: 'discard'
+  reason: string
+  shouldLog?: boolean
+  logContext?: Record<string, unknown>
+}
 type RowHandlingResult = { status: 'publish'; targets: PublishTargets } | DiscardRowResult
 
 export class EventOutboxRelay {
@@ -105,14 +110,17 @@ export class EventOutboxRelay {
     const result = await this.prepareRowForPublishing(tx, row)
 
     if (result.status === 'discard') {
-      logger.error(
-        {
-          eventType: row.eventType,
-          rowId: row.id,
-          ...result.logContext,
-        },
-        result.reason
-      )
+      if (result.shouldLog !== false) {
+        logger.error(
+          {
+            eventType: row.eventType,
+            rowId: row.id,
+            ...result.logContext,
+          },
+          result.reason
+        )
+      }
+
       await this.deleteOutboxRow(tx, row.id)
       return
     }
@@ -181,8 +189,8 @@ export class EventOutboxRelay {
     if (powerRows.length === 0) {
       return {
         status: 'discard',
-        reason: '[EventOutboxRelay] No power publish targets found for system',
-        logContext: { systemId: powerplayPayload.systemId },
+        reason: '[EventOutboxRelay] Skipping powerplay outbox row with no mapped powers',
+        shouldLog: false,
       }
     }
 
