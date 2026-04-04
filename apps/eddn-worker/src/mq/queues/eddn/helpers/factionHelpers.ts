@@ -119,6 +119,20 @@ const cleanupFactionStates = async (
   )
 }
 
+const syncSystemControllingFaction = async (
+  tx: Transaction,
+  systemId: string,
+  controllingFactionId: string | null
+) => {
+  await tx
+    .update(Systems)
+    .set({
+      controllingFactionId,
+      updatedAt: new Date(),
+    })
+    .where(eq(Systems.id, systemId))
+}
+
 /**
  * Maps faction states from message format to database format
  */
@@ -300,21 +314,12 @@ export const processFactionsData = async (
   const factions = await upsertFactions(tx, message.Factions)
   const factionIdMap = createFactionIdMap(factions)
   const controllingFactionId = message.SystemFaction?.Name
-    ? factionIdMap[message.SystemFaction.Name]
-    : undefined
+    ? factionIdMap[message.SystemFaction.Name] ?? null
+    : null
 
   await upsertSystemFactions(tx, systemId, factions)
   await cleanupFactionStates(tx, systemId, factions)
+  await syncSystemControllingFaction(tx, systemId, controllingFactionId)
   await upsertFactionStates(tx, systemId, message, factionIdMap)
   await upsertFactionConflicts(tx, systemId, message)
-
-  if (controllingFactionId) {
-    await tx
-      .update(Systems)
-      .set({
-        controllingFactionId,
-        updatedAt: new Date(),
-      })
-      .where(eq(Systems.id, systemId))
-  }
 }

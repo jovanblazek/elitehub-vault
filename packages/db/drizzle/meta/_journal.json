@@ -99,6 +99,13 @@
       "when": 1775301252814,
       "tag": "20260404111412_groovy_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1775305681352,
+      "tag": "20260404122801_fix_faction_state_trigger",
+      "breakpoints": true
     }
   ]
 }
