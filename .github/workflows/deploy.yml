@@ -1,0 +1,134 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+      COOLIFY_API_UUID: ${{ secrets.COOLIFY_API_UUID }}
+      COOLIFY_EDDN_WORKER_UUID: ${{ secrets.COOLIFY_EDDN_WORKER_UUID }}
+      COOLIFY_DB_MIGRATOR_UUID: ${{ secrets.COOLIFY_DB_MIGRATOR_UUID }}
+      WORKER_DRAIN_SECONDS: ${{ vars.WORKER_DRAIN_SECONDS || '20' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate deploy configuration
+        shell: bash
+        run: |
+          # Ensure all required Coolify identifiers and tokens are present
+          # before we start touching production.
+          source .github/scripts/coolify.sh
+          validate_deploy_config
+
+      - name: Pin Coolify apps to this commit
+        shell: bash
+        run: |
+          # Force all three Coolify apps to deploy the exact same git SHA.
+          # This avoids one app picking up a different commit than the others.
+          source .github/scripts/coolify.sh
+          pin_app_to_commit "${COOLIFY_API_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_EDDN_WORKER_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_DB_MIGRATOR_UUID}" "${GITHUB_SHA}"
+
+      - name: Stop eddn-worker and allow it to drain
+        shell: bash
+        run: |
+          # Stop the worker before running migrations so it does not write
+          # against a schema that is in the middle of changing.
+          source .github/scripts/coolify.sh
+          stop_app "${COOLIFY_EDDN_WORKER_UUID}"
+
+          # Give BullMQ a short drain window so in-flight jobs can finish.
+          sleep "${WORKER_DRAIN_SECONDS}"
+
+      - name: Run database migrations
+        shell: bash
+        run: |
+          # The migrator app is a helper container. In Coolify it should:
+          # - run `pnpm build && pnpm drizzle:migrate` in the build command
+          # - use `sh -lc 'sleep infinity'` as the start command
+          #
+          # That way the deployment only succeeds if the migration succeeds,
+          # and we can stop the helper container explicitly in the next step.
+          source .github/scripts/coolify.sh
+          migration_deployment_uuid="$(start_app "${COOLIFY_DB_MIGRATOR_UUID}")"
+          wait_for_deployment "${migration_deployment_uuid}" "Migration"
+
+      - name: Stop migrator helper container
+        shell: bash
+        run: |
+          # The migration has already completed at this point, so the helper
+          # container is no longer needed.
+          source .github/scripts/coolify.sh
+          stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
+
+      - name: Deploy eddn-worker
+        shell: bash
+        run: |
+          # Start the worker again only after the migration job completed.
+          source .github/scripts/coolify.sh
+          worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
+          wait_for_deployment "${worker_deployment_uuid}" "eddn-worker"
+
+      - name: Deploy api
+        shell: bash
+        run: |
+          # Restart API last so it comes up against the already-migrated schema.
+          source .github/scripts/coolify.sh
+          api_deployment_uuid="$(restart_app "${COOLIFY_API_UUID}")"
+          wait_for_deployment "${api_deployment_uuid}" "api"
