@@ -1,4 +1,4 @@
-import { eq, and, notInArray, inArray } from 'drizzle-orm'
+import { eq, and, notInArray, inArray, sql } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalFSDJumpMessage,
@@ -89,13 +89,23 @@ export const upsertPowerplayConflicts = async (
   message: PowerplayMessage,
   powerplayPowers: { id: string; name: string }[]
 ) => {
-  const powerplayConflictsData = (message.PowerplayConflictProgress ?? [])
-    .map(({ Power, ConflictProgress }) => ({
+  const powerplayConflictsByPowerId = new Map<string, { systemId: string; powerId: string; conflictProgress: number }>()
+
+  for (const conflict of message.PowerplayConflictProgress ?? []) {
+    const powerId = powerplayPowers.find((power) => power.name === conflict.Power)?.id
+
+    if (!powerId) {
+      continue
+    }
+
+    powerplayConflictsByPowerId.set(powerId, {
       systemId,
-      powerId: powerplayPowers.find((power) => power.name === Power)?.id,
-      conflictProgress: ConflictProgress,
-    }))
-    .filter((conflict) => conflict.powerId)
+      powerId,
+      conflictProgress: conflict.ConflictProgress,
+    })
+  }
+
+  const powerplayConflictsData = [...powerplayConflictsByPowerId.values()]
 
   if (powerplayConflictsData.length === 0) {
     // Clean up all powerplay conflicts for this system if none exist
@@ -106,7 +116,16 @@ export const upsertPowerplayConflicts = async (
   const validatedPowerplayConflictsData =
     PowerplayConflictsInsertSchema.array().parse(powerplayConflictsData)
 
-  await tx.insert(PowerplayConflicts).values(validatedPowerplayConflictsData).onConflictDoNothing()
+  await tx
+    .insert(PowerplayConflicts)
+    .values(validatedPowerplayConflictsData)
+    .onConflictDoUpdate({
+      target: [PowerplayConflicts.systemId, PowerplayConflicts.powerId],
+      set: {
+        conflictProgress: sql`excluded."conflictProgress"`,
+        updatedAt: new Date(),
+      },
+    })
 
   await tx.delete(PowerplayConflicts).where(
     and(
