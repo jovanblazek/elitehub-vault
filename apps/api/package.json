@@ -9,7 +9,8 @@
     "start": "node --import ./dist/utils/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src",
-    "test": "NODE_ENV=test node --import tsx --test \"src/**/*.test.ts\""
+    "test": "NODE_ENV=test node --import tsx --test \"src/**/*.test.ts\"",
+    "debug:sse": "tsx src/scripts/debugSse.ts"
   },
   "dependencies": {
     "@elitehub/db": "workspace:*",

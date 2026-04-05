@@ -1,5 +1,11 @@
 import process from 'node:process'
 import { loadEnvironment } from '@elitehub/runtime-config'
+import {
+  FACTION_CONTROL_THREAT_CHANGED_EVENT,
+  FACTION_PRESENCE_CHANGED_EVENT,
+  FACTION_STATE_CHANGED_EVENT,
+  SYSTEM_POWERPLAY_UPDATED_EVENT,
+} from '@elitehub/queue-contracts'
 
 loadEnvironment()
 
@@ -9,6 +15,7 @@ type CliOptions = {
   apiKey: string | null
   eventType: string | null
   powerIds: string[]
+  factionIds: string[]
   systemIds: string[]
   extraParams: Array<[string, string]>
   showComments: boolean
@@ -17,14 +24,16 @@ type CliOptions = {
 
 const printUsage = () => {
   console.log(`Usage:
-  pnpm debug:sse -- --eventType systemPowerplayUpdated --powerId p1 [--powerId p2] [options]
+  pnpm debug:sse -- --eventType ${SYSTEM_POWERPLAY_UPDATED_EVENT} --powerId p1 [--powerId p2] [options]
+  pnpm debug:sse -- --eventType ${FACTION_STATE_CHANGED_EVENT} --factionId f1 [--factionId f2] [options]
 
 Options:
   --baseUrl <url>         Base URL (default: http://localhost:${process.env.PORT})
   --path <path>           SSE path (default: /realtime/sse)
   --apiKey <key>          API key for X-API-Key header (default: SSE_API_KEY or API_KEY env)
   --eventType <value>     eventType query param
-  --powerId <id>          Repeatable powerId query param
+  --powerId <id>          Repeatable powerId query param for ${SYSTEM_POWERPLAY_UPDATED_EVENT}
+  --factionId <id>        Repeatable factionId query param for faction SSE events
   --systemId <id>         Repeatable systemId query param
   --param <k=v>           Repeatable generic query param for any event type
   --showComments          Print SSE comment frames (heartbeats)
@@ -32,9 +41,12 @@ Options:
   --help                  Show help
 
 Examples:
-  pnpm debug:sse -- --eventType systemPowerplayUpdated --powerId aisling --apiKey dev-key
-  pnpm debug:sse -- --eventType systemPowerplayUpdated --powerId p1 --systemId s1 --systemId s2
-  pnpm debug:sse -- --param eventType=systemPowerplayUpdated --param powerId=aisling --apiKey dev-key
+  pnpm debug:sse -- --eventType ${SYSTEM_POWERPLAY_UPDATED_EVENT} --powerId aisling --apiKey dev-key
+  pnpm debug:sse -- --eventType ${SYSTEM_POWERPLAY_UPDATED_EVENT} --powerId p1 --systemId s1 --systemId s2
+  pnpm debug:sse -- --eventType ${FACTION_PRESENCE_CHANGED_EVENT} --factionId faction-1 --systemId system-1
+  pnpm debug:sse -- --eventType ${FACTION_STATE_CHANGED_EVENT} --factionId faction-1 --factionId faction-2
+  pnpm debug:sse -- --eventType ${FACTION_CONTROL_THREAT_CHANGED_EVENT} --factionId faction-1
+  pnpm debug:sse -- --param eventType=${SYSTEM_POWERPLAY_UPDATED_EVENT} --param powerId=aisling --apiKey dev-key
 `)
 }
 
@@ -53,6 +65,7 @@ const parseCliArgs = (args: string[]): CliOptions => {
     apiKey: process.env.SSE_API_KEY ?? process.env.API_KEY ?? null,
     eventType: null,
     powerIds: [],
+    factionIds: [],
     systemIds: [],
     extraParams: [],
     showComments: false,
@@ -87,6 +100,10 @@ const parseCliArgs = (args: string[]): CliOptions => {
         break
       case '--powerId':
         options.powerIds.push(requireArgValue(args, i, 'powerId'))
+        i += 1
+        break
+      case '--factionId':
+        options.factionIds.push(requireArgValue(args, i, 'factionId'))
         i += 1
         break
       case '--systemId':
@@ -173,6 +190,10 @@ const streamSse = async () => {
 
   for (const powerId of options.powerIds) {
     endpoint.searchParams.append('powerId', powerId)
+  }
+
+  for (const factionId of options.factionIds) {
+    endpoint.searchParams.append('factionId', factionId)
   }
 
   for (const systemId of options.systemIds) {
