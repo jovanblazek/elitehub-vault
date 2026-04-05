@@ -21,6 +21,7 @@ export const loadEnvironment = () => {
 }
 
 loadEnvironment()
+const isTestEnvironment = process.env.NODE_ENV === 'test'
 
 export const baseServerEnvSchema = {
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -51,5 +52,6 @@ export const env = createEnv({
     ...redisServerEnvSchema,
   },
   runtimeEnv: process.env,
+  skipValidation: isTestEnvironment,
   emptyStringAsUndefined: true,
 })

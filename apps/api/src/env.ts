@@ -8,6 +8,7 @@ import {
 import { z } from 'zod'
 
 loadEnvironment()
+const isTestEnvironment = process.env.NODE_ENV === 'test'
 
 export const env = createEnv({
   server: {
@@ -17,5 +18,6 @@ export const env = createEnv({
     PORT: z.coerce.number().int().positive().default(3000),
   },
   runtimeEnv: process.env,
+  skipValidation: isTestEnvironment,
   emptyStringAsUndefined: true,
 })
