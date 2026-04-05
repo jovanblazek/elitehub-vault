@@ -1,4 +1,4 @@
-import type { EDDNJournalLocationMessage } from '../../../../eddn/types.js'
+import type { EDDNJournalLocationMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
 import {
   upsertSystem,

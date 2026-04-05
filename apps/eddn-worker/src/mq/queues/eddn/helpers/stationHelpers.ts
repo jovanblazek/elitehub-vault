@@ -1,9 +1,9 @@
+import { Stations } from '@elitehub/db/schema'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalDockedMessage,
   ShortFactionInfo,
-} from '../../../../eddn/types.js'
-import { Stations } from '../../../../db/schema.js'
+} from '@elitehub/eddn-contracts'
 import { StationsInsertSchema } from '../validationSchemas.js'
 import {
   EXCLUDED_STATION_GOVERNMENTS,

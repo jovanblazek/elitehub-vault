@@ -4,7 +4,7 @@ import type {
   EDDNJournalLocationMessage,
   EDDNJournalFSDJumpMessage,
   EDDNJournalDockedMessage,
-} from '../../../../eddn/types.js'
+} from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
 import { SystemsInsertSchema } from '../validationSchemas.js'
 import {

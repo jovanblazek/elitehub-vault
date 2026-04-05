@@ -1,4 +1,4 @@
-import type { EDDNJournalDockedMessage } from '../../../../eddn/types.js'
+import type { EDDNJournalDockedMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
 import { upsertSystem, buildPartialSystemData, upsertStationFromDocked } from '../helpers/index.js'
 

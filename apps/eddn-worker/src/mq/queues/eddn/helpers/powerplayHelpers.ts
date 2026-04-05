@@ -1,13 +1,13 @@
-import { eq, and, notInArray, inArray, sql } from 'drizzle-orm'
-import type {
-  EDDNJournalLocationMessage,
-  EDDNJournalFSDJumpMessage,
-} from '../../../../eddn/types.js'
 import {
   PowerplayPowers,
   SystemPowerplayPowers,
   PowerplayConflicts,
-} from '../../../../db/schema.js'
+} from '@elitehub/db/schema'
+import { eq, and, notInArray, inArray, sql } from 'drizzle-orm'
+import type {
+  EDDNJournalLocationMessage,
+  EDDNJournalFSDJumpMessage,
+} from '@elitehub/eddn-contracts'
 import { PowerplayConflictsInsertSchema } from '../validationSchemas.js'
 import { PowerplayPowersFromLowercaseMap, ValidPowerplayPowersLowercased } from '../constants.js'
 import type { Transaction } from './systemHelpers.js'

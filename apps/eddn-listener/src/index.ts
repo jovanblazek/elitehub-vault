@@ -4,23 +4,21 @@ import * as Sentry from '@sentry/node'
 import { Queue } from 'bullmq'
 import { Subscriber } from 'zeromq'
 import zlib from 'zlib'
-import {
-  EDDN_URL,
-  isSupportedEddnMessage,
-  type EDDNJournalMessage,
-} from '@elitehub/eddn-contracts'
+import { EDDN_URL, isSupportedEddnMessage, type EDDNJournalMessage } from '@elitehub/eddn-contracts'
 import {
   createEddnQueueOptions,
   EDDN_JOURNAL_PROCESS_JOB_NAME,
   QueueNames,
 } from '@elitehub/queue-contracts'
 import logger from './logger.js'
+import { startQueueMonitor } from './queueMonitor.js'
 import { Redis } from './redis.js'
 
 const queue = new Queue<EDDNJournalMessage>(QueueNames.eddn, createEddnQueueOptions(Redis))
 
 let socket: Subscriber | null = null
 let isShuttingDown = false
+let stopQueueMonitor: (() => void) | null = null
 
 const shutdown = async () => {
   if (isShuttingDown) {
@@ -29,6 +27,11 @@ const shutdown = async () => {
 
   isShuttingDown = true
   logger.info('[EDDN Listener] Shutting down...')
+
+  if (stopQueueMonitor) {
+    stopQueueMonitor()
+    stopQueueMonitor = null
+  }
 
   socket?.close()
   await queue.close()
@@ -45,6 +48,8 @@ process.on('SIGINT', () => {
 })
 
 const run = async () => {
+  stopQueueMonitor = startQueueMonitor(queue)
+
   socket = new Subscriber()
   socket.connect(EDDN_URL)
   socket.subscribe('')

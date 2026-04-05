@@ -117,18 +117,16 @@ jobs:
           source .github/scripts/coolify.sh
           stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
 
-      - name: Deploy eddn-worker
+      - name: Deploy eddn-worker and api concurrently
         shell: bash
         run: |
-          # Start the worker again only after the migration job completed.
+          # Once migrations are done, the worker and API can roll forward in
+          # parallel. We queue both deployments first, then wait for both.
           source .github/scripts/coolify.sh
-          worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
-          wait_for_deployment "${worker_deployment_uuid}" "eddn-worker"
 
-      - name: Deploy api
-        shell: bash
-        run: |
-          # Restart API last so it comes up against the already-migrated schema.
-          source .github/scripts/coolify.sh
           api_deployment_uuid="$(restart_app "${COOLIFY_API_UUID}")"
+          worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
+
+          # Wait for both deployments after they have been queued.
           wait_for_deployment "${api_deployment_uuid}" "api"
+          wait_for_deployment "${worker_deployment_uuid}" "eddn-worker"

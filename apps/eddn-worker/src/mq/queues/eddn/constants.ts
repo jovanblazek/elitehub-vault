@@ -9,7 +9,7 @@ import {
   PowerplayState,
   FactionConflictType,
   FactionConflictStatus,
-} from '../../../db/schema.js'
+} from '@elitehub/db/schema'
 
 export const SystemSecurityMap = {
   '$galaxy_map_info_state_anarchy;': SystemSecurity.Anarchy,
