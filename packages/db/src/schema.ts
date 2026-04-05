@@ -359,18 +359,22 @@ export const SystemPowerplayPowers = pgTable(
   (table) => [primaryKey({ columns: [table.systemId, table.powerId] })]
 )
 
-export const PowerplayConflicts = pgTable('powerplayConflicts', {
-  id: uuid().primaryKey().defaultRandom(),
-  systemId: uuid()
-    .notNull()
-    .references(() => Systems.id, { onDelete: 'cascade' }),
-  powerId: uuid()
-    .notNull()
-    .references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
-  conflictProgress: doublePrecision().notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-})
+export const PowerplayConflicts = pgTable(
+  'powerplayConflicts',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    powerId: uuid()
+      .notNull()
+      .references(() => PowerplayPowers.id, { onDelete: 'cascade' }),
+    conflictProgress: doublePrecision().notNull(),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [unique().on(table.systemId, table.powerId)]
+)
 
 export const ApiKeys = pgTable('apiKeys', {
   id: uuid().primaryKey().defaultRandom(),
