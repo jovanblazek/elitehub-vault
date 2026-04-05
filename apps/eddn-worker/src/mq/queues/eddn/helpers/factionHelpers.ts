@@ -124,6 +124,10 @@ const syncSystemControllingFaction = async (
   systemId: string,
   controllingFactionId: string | null
 ) => {
+  if (controllingFactionId === null) {
+    return
+  }
+
   await tx
     .update(Systems)
     .set({
