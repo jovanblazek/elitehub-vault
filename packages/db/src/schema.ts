@@ -210,6 +210,7 @@ export const Systems = pgTable(
     economy: EconomyEnum(),
     secondEconomy: EconomyEnum(),
     security: SystemSecurityEnum(),
+    controllingFactionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
     controllingPowerId: uuid().references(() => PowerplayPowers.id, { onDelete: 'set null' }),
     powerplayState: PowerplayStateEnum(),
     powerplayStateControlProgress: doublePrecision(),
@@ -218,7 +219,11 @@ export const Systems = pgTable(
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
-  (table) => [index().on(table.name)]
+  (table) => [
+    index().on(table.name),
+    index().on(table.controllingFactionId),
+    index().on(table.controllingPowerId),
+  ]
 )
 
 export const Factions = pgTable('factions', {
@@ -376,6 +381,21 @@ export const ApiKeys = pgTable('apiKeys', {
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 })
+
+export const SystemFactionControlThreats = pgTable(
+  'systemFactionControlThreats',
+  {
+    systemId: uuid()
+      .primaryKey()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    factionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
+    challengerFactionId: uuid().references(() => Factions.id, { onDelete: 'set null' }),
+    gap: doublePrecision(),
+    isThreatened: boolean().notNull().default(false),
+    updatedAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [index().on(table.factionId), index().on(table.challengerFactionId)]
+)
 
 export const EventOutbox = pgTable(
   'eventOutbox',

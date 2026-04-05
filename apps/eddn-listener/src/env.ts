@@ -1,7 +1,12 @@
 import { createEnv } from '@t3-oss/env-core'
-import { baseServerEnvSchema, loadEnvironment, redisServerEnvSchema } from '@elitehub/runtime-config'
+import {
+  baseServerEnvSchema,
+  loadEnvironment,
+  redisServerEnvSchema,
+} from '@elitehub/runtime-config'
 
 loadEnvironment()
+const isTestEnvironment = process.env.NODE_ENV === 'test'
 
 export const env = createEnv({
   server: {
@@ -9,5 +14,6 @@ export const env = createEnv({
     ...redisServerEnvSchema,
   },
   runtimeEnv: process.env,
+  skipValidation: isTestEnvironment,
   emptyStringAsUndefined: true,
 })

@@ -1,11 +1,4 @@
-import {
-  EventOutbox,
-  Systems,
-} from '@elitehub/db'
-import {
-  SYSTEM_POWERPLAY_TRACKED_FIELDS,
-  SYSTEM_POWERPLAY_UPDATED_EVENT,
-} from '@elitehub/queue-contracts'
+import { Systems } from '@elitehub/db'
 import { eq } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
@@ -63,12 +56,6 @@ export const upsertSystem = async (
   data: ReturnType<typeof buildFullSystemData> | ReturnType<typeof buildPartialSystemData>
 ) => {
   const validatedSystemData = SystemsInsertSchema.parse(data)
-  const [existingSystem] = await tx
-    .select()
-    .from(Systems)
-    .where(eq(Systems.systemAddress, validatedSystemData.systemAddress))
-    .limit(1)
-
   const [system] = await tx
     .insert(Systems)
     .values(validatedSystemData)
@@ -83,24 +70,6 @@ export const upsertSystem = async (
 
   if (!system) {
     throw new Error(`Failed to find system after upsert: ${data.name}`)
-  }
-
-  if (existingSystem) {
-    const changedFields = SYSTEM_POWERPLAY_TRACKED_FIELDS.filter((field) => {
-      return existingSystem[field] !== validatedSystemData[field]
-    })
-
-    if (changedFields.length > 0) {
-      await tx.insert(EventOutbox).values({
-        eventType: SYSTEM_POWERPLAY_UPDATED_EVENT,
-        aggregateId: system.id,
-        payload: {
-          systemId: system.id,
-          changedFields,
-          source: 'eddn-worker',
-        },
-      })
-    }
   }
 
   return system

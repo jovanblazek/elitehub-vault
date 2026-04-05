@@ -22,6 +22,38 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '-*',
         },
       },
+      eventOutbox: {
+        tags: {
+          // Disable everything for the internal event outbox table
+          behavior: '-*',
+        },
+      },
+      systemFactionControlThreats: {
+        tags: {
+          // Disable everything for the internal system faction control threats table
+          behavior: '-*',
+        },
+      },
+    },
+    procedure: {
+      refresh_system_faction_control_threat: {
+        tags: {
+          // Disable GraphQL exposure for the internal control threat refresh routine
+          behavior: '-*',
+        },
+      },
+      emit_faction_conflict_lifecycle_event: {
+        tags: {
+          // Disable GraphQL exposure for the internal conflict lifecycle emitter
+          behavior: '-*',
+        },
+      },
+      emit_faction_state_lifecycle_events: {
+        tags: {
+          // Disable GraphQL exposure for the internal state lifecycle emitter
+          behavior: '-*',
+        },
+      },
     },
   },
 })

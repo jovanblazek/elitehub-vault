@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { parseSseSubscriptionQuery } from './subscriptionParams.js'
 
-test('parseSseSubscriptionQuery parses repeated powerIds and optional systemIds', () => {
+test('parseSseSubscriptionQuery parses repeated power routing keys and optional systemIds', () => {
   const query = new URLSearchParams(
     'eventType=systemPowerplayUpdated&powerId=p1&powerId=p2&systemId=s1&systemId=s2'
   )
@@ -16,14 +16,15 @@ test('parseSseSubscriptionQuery parses repeated powerIds and optional systemIds'
 
   assert.deepEqual(parsed.data, {
     eventType: 'systemPowerplayUpdated',
-    powerIds: ['p1', 'p2'],
+    routingKeyParam: 'powerId',
+    routingKeys: ['p1', 'p2'],
     systemIds: ['s1', 's2'],
   })
 })
 
-test('parseSseSubscriptionQuery deduplicates powerIds and systemIds', () => {
+test('parseSseSubscriptionQuery parses faction subscriptions', () => {
   const query = new URLSearchParams(
-    'eventType=systemPowerplayUpdated&powerId=p1&powerId=p1&systemId=s1&systemId=s1'
+    'eventType=factionStateChanged&factionId=f1&factionId=f2&systemId=s1'
   )
 
   const parsed = parseSseSubscriptionQuery(query)
@@ -33,12 +34,32 @@ test('parseSseSubscriptionQuery deduplicates powerIds and systemIds', () => {
     return
   }
 
-  assert.deepEqual(parsed.data.powerIds, ['p1'])
+  assert.deepEqual(parsed.data, {
+    eventType: 'factionStateChanged',
+    routingKeyParam: 'factionId',
+    routingKeys: ['f1', 'f2'],
+    systemIds: ['s1'],
+  })
+})
+
+test('parseSseSubscriptionQuery deduplicates routing keys and systemIds', () => {
+  const query = new URLSearchParams(
+    'eventType=factionPresenceChanged&factionId=f1&factionId=f1&systemId=s1&systemId=s1'
+  )
+
+  const parsed = parseSseSubscriptionQuery(query)
+  assert.equal(parsed.success, true)
+
+  if (!parsed.success) {
+    return
+  }
+
+  assert.deepEqual(parsed.data.routingKeys, ['f1'])
   assert.deepEqual(parsed.data.systemIds, ['s1'])
 })
 
 test('parseSseSubscriptionQuery returns null systemIds when omitted', () => {
-  const query = new URLSearchParams('eventType=systemPowerplayUpdated&powerId=p1')
+  const query = new URLSearchParams('eventType=factionControlThreatChanged&factionId=f1')
 
   const parsed = parseSseSubscriptionQuery(query)
   assert.equal(parsed.success, true)
@@ -50,7 +71,7 @@ test('parseSseSubscriptionQuery returns null systemIds when omitted', () => {
   assert.equal(parsed.data.systemIds, null)
 })
 
-test('parseSseSubscriptionQuery rejects missing powerIds', () => {
+test('parseSseSubscriptionQuery rejects missing powerIds for powerplay', () => {
   const query = new URLSearchParams('eventType=systemPowerplayUpdated')
 
   const parsed = parseSseSubscriptionQuery(query)
@@ -63,11 +84,8 @@ test('parseSseSubscriptionQuery rejects missing powerIds', () => {
   assert.match(parsed.error, /powerId/i)
 })
 
-test('parseSseSubscriptionQuery rejects more than 4 powerIds', () => {
-  const query = new URLSearchParams('eventType=systemPowerplayUpdated')
-  for (let i = 0; i < 5; i += 1) {
-    query.append('powerId', `p-${i}`)
-  }
+test('parseSseSubscriptionQuery rejects missing factionIds for faction events', () => {
+  const query = new URLSearchParams('eventType=factionStateChanged')
 
   const parsed = parseSseSubscriptionQuery(query)
   assert.equal(parsed.success, false)
@@ -76,13 +94,13 @@ test('parseSseSubscriptionQuery rejects more than 4 powerIds', () => {
     return
   }
 
-  assert.match(parsed.error, /powerId/i)
+  assert.match(parsed.error, /factionId/i)
 })
 
-test('parseSseSubscriptionQuery rejects more than 20 systemIds', () => {
-  const query = new URLSearchParams('eventType=systemPowerplayUpdated&powerId=p1')
+test('parseSseSubscriptionQuery rejects more than 20 factionIds', () => {
+  const query = new URLSearchParams('eventType=factionStateChanged')
   for (let i = 0; i < 21; i += 1) {
-    query.append('systemId', `s-${i}`)
+    query.append('factionId', `f-${i}`)
   }
 
   const parsed = parseSseSubscriptionQuery(query)
@@ -92,5 +110,5 @@ test('parseSseSubscriptionQuery rejects more than 20 systemIds', () => {
     return
   }
 
-  assert.match(parsed.error, /systemId/i)
+  assert.match(parsed.error, /factionId/i)
 })

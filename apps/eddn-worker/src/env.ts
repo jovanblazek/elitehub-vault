@@ -7,6 +7,7 @@ import {
 } from '@elitehub/runtime-config'
 
 loadEnvironment()
+const isTestEnvironment = process.env.NODE_ENV === 'test'
 
 export const env = createEnv({
   server: {
@@ -15,5 +16,6 @@ export const env = createEnv({
     ...postgresServerEnvSchema,
   },
   runtimeEnv: process.env,
+  skipValidation: isTestEnvironment,
   emptyStringAsUndefined: true,
 })

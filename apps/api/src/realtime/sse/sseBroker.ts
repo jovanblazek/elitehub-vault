@@ -28,7 +28,7 @@ type SseConnection = {
   eventType: RealtimeEventType
   apiKeyId: string
   keyName: string
-  powerIds: Set<string>
+  routingKeys: Set<string>
   systemIdAllowlist: Set<string> | null
   queue: string[]
   queuedBytes: number
@@ -43,15 +43,15 @@ export type RegisterConnectionInput = {
   eventType: RealtimeEventType
   apiKeyId: string
   keyName: string
-  powerIds: string[]
+  routingKeys: string[]
   systemIds: string[] | null
 }
 
-type PowerDemandManager = {
+type RoutingDemandManager = {
   start: () => void
   stop: () => Promise<void>
-  incrementPowerDemand: (powerId: string) => Promise<void>
-  decrementPowerDemand: (powerId: string) => Promise<void>
+  incrementDemand: (eventType: RealtimeEventType, routingKey: string) => Promise<void>
+  decrementDemand: (eventType: RealtimeEventType, routingKey: string) => Promise<void>
 }
 
 type SseBrokerCallbacks = {
@@ -60,7 +60,7 @@ type SseBrokerCallbacks = {
     apiKeyId: string
     keyName: string
     eventType: RealtimeEventType
-    powerIdCount: number
+    routingKeyCount: number
     systemIdCount: number
     activeChannels: number
   }) => void
@@ -76,7 +76,7 @@ type SseBrokerCallbacks = {
   onWriteError?: () => void
 }
 
-const getChannelKey = (eventType: string, powerId: string) => `${eventType}:${powerId}`
+const getChannelKey = (eventType: string, routingKey: string) => `${eventType}:${routingKey}`
 
 const createSseEventFrame = (eventType: string, eventId: number, data: string) =>
   `id: ${eventId}\nevent: ${eventType}\ndata: ${data}\n\n`
@@ -87,7 +87,7 @@ export class SseBroker {
   private nextConnectionId = 1
 
   constructor(
-    private readonly redisSubscriptions: PowerDemandManager,
+    private readonly redisSubscriptions: RoutingDemandManager,
     private readonly callbacks: SseBrokerCallbacks = {}
   ) {
     this.redisSubscriptions.start()
@@ -103,7 +103,7 @@ export class SseBroker {
       eventType: input.eventType,
       apiKeyId: input.apiKeyId,
       keyName: input.keyName,
-      powerIds: new Set(input.powerIds),
+      routingKeys: new Set(input.routingKeys),
       systemIdAllowlist,
       queue: [],
       queuedBytes: 0,
@@ -115,8 +115,8 @@ export class SseBroker {
 
     this.connectionsById.set(connectionId, connection)
 
-    for (const powerId of connection.powerIds) {
-      const channelKey = getChannelKey(connection.eventType, powerId)
+    for (const routingKey of connection.routingKeys) {
+      const channelKey = getChannelKey(connection.eventType, routingKey)
       let connectionIds = this.connectionIdsByChannelKey.get(channelKey)
       if (!connectionIds) {
         connectionIds = new Set<ConnectionId>()
@@ -127,8 +127,8 @@ export class SseBroker {
 
     try {
       await Promise.all(
-        Array.from(connection.powerIds, (powerId) =>
-          this.redisSubscriptions.incrementPowerDemand(powerId)
+        Array.from(connection.routingKeys, (routingKey) =>
+          this.redisSubscriptions.incrementDemand(connection.eventType, routingKey)
         )
       )
     } catch (error) {
@@ -144,13 +144,13 @@ export class SseBroker {
             connectionId,
             apiKeyId: connection.apiKeyId,
             eventType: connection.eventType,
-            powerIdCount: connection.powerIds.size,
+            routingKeyCount: connection.routingKeys.size,
             systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
           },
         },
         fingerprint: ['sse', 'broker', 'increment_power_demand_failed'],
       })
-      logger.error(error, '[SSE] Failed to increment power demand for new connection')
+      logger.error(error, '[SSE] Failed to increment routing demand for new connection')
       await this.cleanupConnection(connectionId, 'write_error')
       throw error
     }
@@ -166,7 +166,7 @@ export class SseBroker {
       apiKeyId: connection.apiKeyId,
       keyName: connection.keyName,
       eventType: connection.eventType,
-      powerIdCount: connection.powerIds.size,
+      routingKeyCount: connection.routingKeys.size,
       systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
       activeChannels: this.connectionIdsByChannelKey.size,
     })
@@ -175,7 +175,7 @@ export class SseBroker {
   }
 
   routeEvent(event: RoutedRealtimeEvent) {
-    const channelKey = getChannelKey(event.eventType, event.powerId)
+    const channelKey = getChannelKey(event.eventType, event.routingKey)
     const connectionIds = this.connectionIdsByChannelKey.get(channelKey)
     if (!connectionIds || connectionIds.size === 0) {
       return
@@ -234,8 +234,8 @@ export class SseBroker {
       connection.heartbeat = null
     }
 
-    for (const powerId of connection.powerIds) {
-      const channelKey = getChannelKey(connection.eventType, powerId)
+    for (const routingKey of connection.routingKeys) {
+      const channelKey = getChannelKey(connection.eventType, routingKey)
       const connectionIds = this.connectionIdsByChannelKey.get(channelKey)
       if (!connectionIds) {
         continue
@@ -259,8 +259,8 @@ export class SseBroker {
     }
 
     await Promise.all(
-      Array.from(connection.powerIds, (powerId) =>
-        this.redisSubscriptions.decrementPowerDemand(powerId)
+      Array.from(connection.routingKeys, (routingKey) =>
+        this.redisSubscriptions.decrementDemand(connection.eventType, routingKey)
       )
     )
 
@@ -340,7 +340,7 @@ export class SseBroker {
             connectionId,
             apiKeyId: connection.apiKeyId,
             eventType: connection.eventType,
-            powerIdCount: connection.powerIds.size,
+            routingKeyCount: connection.routingKeys.size,
             systemIdCount: connection.systemIdAllowlist ? connection.systemIdAllowlist.size : 0,
           },
           sse_queue: {
