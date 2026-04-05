@@ -18,7 +18,6 @@ const SystemPowerplayUpdatedPayloadSchema = z.object({
   powerId: z.string(),
   changedFields: z.array(SystemPowerplayChangedFieldSchema),
   timestamp: z.string(),
-  source: z.string(),
   metadata: z.record(z.string(), z.unknown()),
 })
 

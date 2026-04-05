@@ -150,7 +150,6 @@ test('SseBroker keeps existing powerplay routing behavior', async () => {
       powerId: 'power-a',
       changedFields: ['powerplayState'],
       timestamp: '2026-02-07T00:00:00.000Z',
-      source: 'eddn-worker',
       metadata: {},
     },
   })
@@ -164,7 +163,6 @@ test('SseBroker keeps existing powerplay routing behavior', async () => {
       powerId: 'power-b',
       changedFields: ['powerplayStateUndermining'],
       timestamp: '2026-02-07T00:00:01.000Z',
-      source: 'eddn-worker',
       metadata: {},
     },
   })

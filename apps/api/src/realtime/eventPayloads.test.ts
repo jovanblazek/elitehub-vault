@@ -43,7 +43,6 @@ test('buildSystemPowerplayUpdatedPowerScopedPayload adds powerId and timestamp f
     powerId: 'power-123',
     changedFields: ['powerplayStateControlProgress'],
     timestamp: '2026-02-07T00:00:00.000Z',
-    source: 'eddn-worker',
     metadata: {},
   })
 })

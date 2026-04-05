@@ -61,7 +61,6 @@ export type SystemPowerplayUpdatedPayload = {
   powerId: string
   changedFields: SystemPowerplayChangedField[]
   timestamp: string
-  source: string
   metadata: Record<string, unknown>
 }
 
@@ -191,7 +190,6 @@ export const buildSystemPowerplayUpdatedPayload = (args: {
   powerId: string
   changedFields: string[]
   createdAt: Date | string
-  source?: string
   metadata?: Record<string, unknown>
 }): SystemPowerplayUpdatedPayload => ({
   event: SYSTEM_POWERPLAY_UPDATED_EVENT,
@@ -199,7 +197,6 @@ export const buildSystemPowerplayUpdatedPayload = (args: {
   powerId: args.powerId,
   changedFields: filterSystemPowerplayChangedFields(args.changedFields),
   timestamp: timestampFromCreatedAt(args.createdAt),
-  source: args.source ?? 'eddn-worker',
   metadata: args.metadata ?? {},
 })
 
@@ -269,7 +266,6 @@ export const buildSystemPowerplayUpdatedPowerScopedPayload = (args: {
     powerId: args.powerId,
     changedFields: parsedPayload.changedFields,
     createdAt: args.createdAt,
-    source: parsedPayload.source,
     metadata: parsedPayload.metadata,
   })
 }
