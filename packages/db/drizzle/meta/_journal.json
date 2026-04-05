@@ -120,6 +120,13 @@
       "when": 1775401054576,
       "tag": "20260405145734_low_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1775410482878,
+      "tag": "20260405173442_optimize_faction_state_refresh",
+      "breakpoints": true
     }
   ]
 }
