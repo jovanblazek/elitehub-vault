@@ -19,6 +19,8 @@ export const createEddnWorker = () =>
   new Worker<EDDNJournalMessage>(
     QueueNames.eddn,
     async (job) => {
+      const queueWaitMs = Math.max(0, (job.processedOn ?? Date.now()) - job.timestamp)
+
       return await Sentry.startSpan(
         {
           op: 'queue.process',
@@ -27,6 +29,7 @@ export const createEddnWorker = () =>
             'job.id': job.id || 'unknown',
             'job.name': job.name || 'unknown',
             'job.attempt': job.attemptsMade,
+            'job.queue_wait_ms': queueWaitMs,
           },
         },
         async () => {
@@ -39,6 +42,7 @@ export const createEddnWorker = () =>
               data: {
                 event,
                 attempt: job.attemptsMade,
+                queueWaitMs,
               },
             })
 
