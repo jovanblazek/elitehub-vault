@@ -8,7 +8,7 @@ import {
   FactionState,
   Systems,
 } from '@elitehub/db/schema'
-import { eq, and, notInArray } from 'drizzle-orm'
+import { eq, and, notInArray, sql } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalFSDJumpMessage,
@@ -55,11 +55,12 @@ export const upsertFactions = async (
     .onConflictDoUpdate({
       target: [Factions.name],
       set: {
-        ...validatedFactionsData,
+        government: sql`excluded."government"`,
+        allegiance: sql`excluded."allegiance"`,
         updatedAt: new Date(),
       },
     })
-    .returning()
+    .returning() // No setWhere possible because we need returning()
 
   return factions
 }
@@ -175,9 +176,26 @@ const upsertFactionStates = async (
     .onConflictDoUpdate({
       target: [FactionStates.factionId, FactionStates.systemId],
       set: {
-        ...validatedFactionStatesData,
+        happiness: sql`excluded."happiness"`,
+        influence: sql`excluded."influence"`,
+        activeStates: sql`excluded."activeStates"`,
+        recoveringStates: sql`excluded."recoveringStates"`,
+        pendingStates: sql`excluded."pendingStates"`,
+        activeStatesRaw: sql`excluded."activeStatesRaw"`,
+        recoveringStatesRaw: sql`excluded."recoveringStatesRaw"`,
+        pendingStatesRaw: sql`excluded."pendingStatesRaw"`,
         updatedAt: new Date(),
       },
+      setWhere: sql`
+        "factionStates"."happiness" IS DISTINCT FROM excluded."happiness"
+        OR "factionStates"."influence" IS DISTINCT FROM excluded."influence"
+        OR "factionStates"."activeStates" IS DISTINCT FROM excluded."activeStates"
+        OR "factionStates"."recoveringStates" IS DISTINCT FROM excluded."recoveringStates"
+        OR "factionStates"."pendingStates" IS DISTINCT FROM excluded."pendingStates"
+        OR "factionStates"."activeStatesRaw" IS DISTINCT FROM excluded."activeStatesRaw"
+        OR "factionStates"."recoveringStatesRaw" IS DISTINCT FROM excluded."recoveringStatesRaw"
+        OR "factionStates"."pendingStatesRaw" IS DISTINCT FROM excluded."pendingStatesRaw"
+      `,
     })
 }
 
@@ -286,11 +304,18 @@ const upsertFactionConflicts = async (
         FactionConflicts.opponentFactionId,
       ],
       set: {
-        ...validatedConflictsData,
+        type: sql`excluded."type"`,
+        status: sql`excluded."status"`,
+        factionWonDays: sql`excluded."factionWonDays"`,
+        opponentWonDays: sql`excluded."opponentWonDays"`,
+        factionStake: sql`excluded."factionStake"`,
+        factionStakeStationId: sql`excluded."factionStakeStationId"`,
+        opponentStake: sql`excluded."opponentStake"`,
+        opponentStakeStationId: sql`excluded."opponentStakeStationId"`,
         updatedAt: new Date(),
       },
     })
-    .returning()
+    .returning() // No setWhere possible because we need returning()
 
   await tx.delete(FactionConflicts).where(
     and(
@@ -318,7 +343,7 @@ export const processFactionsData = async (
   const factions = await upsertFactions(tx, message.Factions)
   const factionIdMap = createFactionIdMap(factions)
   const controllingFactionId = message.SystemFaction?.Name
-    ? factionIdMap[message.SystemFaction.Name] ?? null
+    ? (factionIdMap[message.SystemFaction.Name] ?? null)
     : null
 
   await upsertSystemFactions(tx, systemId, factions)
