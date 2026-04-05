@@ -9,7 +9,7 @@ import {
   parseFactionPresenceChangedOutboxPayload,
   parseFactionStateChangedOutboxPayload,
   parseSystemPowerplayUpdatedOutboxPayload,
-} from './eventPayloads.js'
+} from '@elitehub/queue-contracts'
 
 test('parseSystemPowerplayUpdatedOutboxPayload validates required fields', () => {
   const parsed = parseSystemPowerplayUpdatedOutboxPayload({

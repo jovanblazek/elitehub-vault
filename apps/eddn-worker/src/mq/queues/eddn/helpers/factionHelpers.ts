@@ -1,9 +1,4 @@
 // oxlint-disable no-await-in-loop
-import { eq, and, notInArray } from 'drizzle-orm'
-import type {
-  EDDNJournalLocationMessage,
-  EDDNJournalFSDJumpMessage,
-} from '../../../../eddn/types.js'
 import {
   Factions,
   SystemFactions,
@@ -12,7 +7,12 @@ import {
   Stations,
   FactionState,
   Systems,
-} from '../../../../db/schema.js'
+} from '@elitehub/db/schema'
+import { eq, and, notInArray } from 'drizzle-orm'
+import type {
+  EDDNJournalLocationMessage,
+  EDDNJournalFSDJumpMessage,
+} from '@elitehub/eddn-contracts'
 import {
   FactionsInsertSchema,
   FactionStatesInsertSchema,

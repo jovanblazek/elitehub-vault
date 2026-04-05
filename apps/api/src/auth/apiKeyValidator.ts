@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
+import { ApiKeys } from '@elitehub/db/schema'
 import { db } from '../db/db.js'
-import { ApiKeys } from '../db/schema.js'
 import logger from '../utils/logger.js'
 
 export type ApiKeyValidationResult =

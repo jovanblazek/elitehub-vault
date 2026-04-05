@@ -1,4 +1,4 @@
-import type { EDDNJournalFSDJumpMessage } from '../../../../eddn/types.js'
+import type { EDDNJournalFSDJumpMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
 import {
   upsertSystem,

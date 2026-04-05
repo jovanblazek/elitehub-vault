@@ -6,7 +6,7 @@ import {
   FactionConflicts,
   Stations,
   PowerplayConflicts,
-} from '../../../db/schema.js'
+} from '@elitehub/db/schema'
 
 export const SystemsInsertSchema = createInsertSchema(Systems)
 export const FactionsInsertSchema = createInsertSchema(Factions)
