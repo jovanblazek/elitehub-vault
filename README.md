@@ -11,10 +11,10 @@ Support the development of this project by [buying me a coffee](https://buymeaco
 - [Why another data collection system?](#why-another-data-collection-system)
 - [Usage For API Consumers](#usage-for-api-consumers)
   - [Authentication](#authentication)
-  - [Rate Limits](#rate-limits)
   - [API Endpoints](#api-endpoints)
+  - [Using The GraphQL API](#using-the-graphql-api)
   - [Realtime SSE Endpoint](#realtime-sse-endpoint)
-  - [Example Queries](#example-queries)
+  - [Rate Limits](#rate-limits)
   - [Support](#support)
 - [For Contributors](#for-contributors)
 - [Roadmap](#roadmap)
@@ -44,25 +44,30 @@ curl -H "X-API-Key: your-api-key" https://your-endpoint/graphql
 
 Contact [jovanblazek](https://github.com/jovanblazek) on Discord, username: qwerty22, or create an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) to obtain an API key.
 
-### Rate Limits
-
-- **GraphQL:** 60 requests per minute per API key (subject to change)
-- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`)
-- Rate limit headers are included in GraphQL responses
-
 ### API Endpoints
 
 ```
 POST /graphql
-GET /graphql (for GraphiQL playground)
+GET /graphql (for GraphiQL playground, open in your browser)
 GET /realtime/sse
 ```
 
-### Example Queries
+### Using The GraphQL API
 
-Use `POST /graphql` for application requests. `GET /graphql` serves GraphiQL, which is also available in production so you can inspect the schema, test queries, and explore relations interactively.
+If you have not used GraphQL before, the short version is: you ask for exactly the fields you want, and the API returns data in the same shape.
 
-Example query:
+Use `POST /graphql` for requests from your application, script, or backend.
+
+Use `GET /graphql` when you want the interactive GraphiQL explorer. You can view it by opening the API URL directly in your browser. GraphiQL is available in production, so you can inspect the schema, discover available fields, and test queries before writing code. If you define the `X-API-Key` header in GraphiQL, you can also run queries there directly.
+
+Typical workflow:
+
+1. Open `https://your-endpoint/graphql` in your browser.
+2. Explore the schema in GraphiQL and find the field you want.
+3. Build a query with only the fields you need.
+4. Run the same query from your application with `POST /graphql` and your API key.
+
+Example query (get all conflicts for the faction "Anti Xeno Initiative"):
 
 ```graphql
 query MyQuery {
@@ -137,6 +142,22 @@ Example response:
 }
 ```
 
+The response mirrors the query structure:
+
+- `factionByName` is the top-level field you requested
+- `id` and `name` are returned directly on that faction
+- `factionConflicts.edges` contains related conflict records
+- each `node` contains the conflict fields you asked for, plus nested `opponentFaction` and `system` objects
+
+Minimal `curl` example:
+
+```bash
+curl https://your-endpoint/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{"query":"query MyQuery { factionByName(name: \"Anti Xeno Initiative\") { id name factionConflicts { edges { node { id factionWonDays opponentWonDays opponentFaction { id name } system { name } } cursor } } } }"}'
+```
+
 ### Realtime SSE Endpoint
 
 `GET /realtime/sse` opens a long-lived `text/event-stream` response. Every connection must include:
@@ -195,6 +216,12 @@ Common error responses:
 - `429` max concurrent SSE connections reached for the API key
 
 Event payloads are sent in the SSE `data` field as JSON and are intentionally lean. Use the stream to detect that something changed, then call the GraphQL API if you need more details or the current complete data for the affected entity. For full payload schemas, event-specific examples, semantics, and runtime behavior, see [docs/sse.md](docs/sse.md).
+
+### Rate Limits
+
+- **GraphQL:** 60 requests per minute per API key (subject to change)
+- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`, subject to change)
+- Rate limit headers are included in GraphQL responses
 
 ### Support
 
