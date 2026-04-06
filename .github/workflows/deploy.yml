@@ -2,7 +2,8 @@ name: Deploy Production
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 concurrency:
@@ -19,6 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
