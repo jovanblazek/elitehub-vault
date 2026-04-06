@@ -11,11 +11,10 @@ Support the development of this project by [buying me a coffee](https://buymeaco
 - [Why another data collection system?](#why-another-data-collection-system)
 - [Usage For API Consumers](#usage-for-api-consumers)
   - [Authentication](#authentication)
-  - [Rate Limits](#rate-limits)
   - [API Endpoints](#api-endpoints)
+  - [Using The GraphQL API](#using-the-graphql-api)
   - [Realtime SSE Endpoint](#realtime-sse-endpoint)
-  - [Realtime SSE Event Payload](#realtime-sse-event-payload)
-  - [Example Queries](#example-queries)
+  - [Rate Limits](#rate-limits)
   - [Support](#support)
 - [For Contributors](#for-contributors)
 - [Roadmap](#roadmap)
@@ -33,7 +32,7 @@ After EliteBGS started to have frequent availability issues with their API, I de
 EliteHub Vault provides:
 
 - a **read-only GraphQL API** with Elite Dangerous galaxy data (systems, factions, stations, powerplay, conflicts)
-- a **real-time SSE stream** for selected powerplay updates
+- a **real-time SSE stream** for selected powerplay and faction updates
 
 ### Authentication
 
@@ -45,38 +44,142 @@ curl -H "X-API-Key: your-api-key" https://your-endpoint/graphql
 
 Contact [jovanblazek](https://github.com/jovanblazek) on Discord, username: qwerty22, or create an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) to obtain an API key.
 
-### Rate Limits
-
-- **GraphQL:** 60 requests per minute per API key (subject to change)
-- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`)
-- Rate limit headers are included in GraphQL responses
-
 ### API Endpoints
 
 ```
 POST /graphql
-GET /graphql (for GraphiQL playground)
+GET /graphql (for GraphiQL playground, open in your browser)
 GET /realtime/sse
+```
+
+### Using The GraphQL API
+
+If you have not used GraphQL before, the short version is: you ask for exactly the fields you want, and the API returns data in the same shape.
+
+Use `POST /graphql` for requests from your application, script, or backend.
+
+Use `GET /graphql` when you want the interactive GraphiQL explorer. You can view it by opening the API URL directly in your browser. GraphiQL is available in production, so you can inspect the schema, discover available fields, and test queries before writing code. If you define the `X-API-Key` header in GraphiQL, you can also run queries there directly.
+
+Typical workflow:
+
+1. Open `https://your-endpoint/graphql` in your browser.
+2. Explore the schema in GraphiQL and find the field you want.
+3. Build a query with only the fields you need.
+4. Run the same query from your application with `POST /graphql` and your API key.
+
+Example query (get all conflicts for the faction "Anti Xeno Initiative"):
+
+```graphql
+query MyQuery {
+  factionByName(name: "Anti Xeno Initiative") {
+    id
+    name
+    factionConflicts {
+      edges {
+        node {
+          id
+          factionWonDays
+          opponentWonDays
+          opponentFaction {
+            id
+            name
+          }
+          system {
+            name
+          }
+        }
+        cursor
+      }
+    }
+  }
+}
+```
+
+Example response:
+
+```json
+{
+  "data": {
+    "factionByName": {
+      "id": "51acfdae-4d60-4ebe-a564-ef65dccad913",
+      "name": "Anti Xeno Initiative",
+      "factionConflicts": {
+        "edges": [
+          {
+            "node": {
+              "id": "2d5348b3-df9b-4434-b2f9-b5f165cec523",
+              "factionWonDays": 3,
+              "opponentWonDays": 2,
+              "opponentFaction": {
+                "id": "999be1f9-c035-483c-bb47-a243ee344f9b",
+                "name": "OrioN Navy"
+              },
+              "system": {
+                "name": "LHS 2"
+              }
+            },
+            "cursor": "WyI2NjhkNWYxYWE2IiwiMmQ1MzQ4YjMtZGY5Yi00NDM0LWIyZjktYjVmMTY1Y2VjNTIzIl0="
+          },
+          {
+            "node": {
+              "id": "3aaacd25-1dab-4538-b9c0-f83ce8cf5dd4",
+              "factionWonDays": 0,
+              "opponentWonDays": 0,
+              "opponentFaction": {
+                "id": "d1061512-78c8-4bba-80a8-d262a5d6f462",
+                "name": "Noblemen of LHS 475"
+              },
+              "system": {
+                "name": "Crucis Sector VJ-R a4-2"
+              }
+            },
+            "cursor": "WyI2NjhkNWYxYWE2IiwiM2FhYWNkMjUtMWRhYi00NTM4LWI5YzAtZjgzY2U4Y2Y1ZGQ0Il0="
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+The response mirrors the query structure:
+
+- `factionByName` is the top-level field you requested
+- `id` and `name` are returned directly on that faction
+- `factionConflicts.edges` contains related conflict records
+- each `node` contains the conflict fields you asked for, plus nested `opponentFaction` and `system` objects
+
+Minimal `curl` example:
+
+```bash
+curl https://your-endpoint/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{"query":"query MyQuery { factionByName(name: \"Anti Xeno Initiative\") { id name factionConflicts { edges { node { id factionWonDays opponentWonDays opponentFaction { id name } system { name } } cursor } } } }"}'
 ```
 
 ### Realtime SSE Endpoint
 
-`GET /realtime/sse` requires:
+`GET /realtime/sse` opens a long-lived `text/event-stream` response. Every connection must include:
 
-- `eventType=systemPowerplayUpdated`
-- `powerId=<id>` repeated 1-4 times
+- `eventType=<type>`
+- a routing key filter matching that event type
 
-Optional filters:
+Supported search params:
 
-- `systemId=<id>` repeated up to 20 times
+| Param       | Required                         | Applies to                                                                     | Notes                                                                                                           |
+| ----------- | -------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `eventType` | yes                              | all SSE subscriptions                                                          | One of `systemPowerplayUpdated`, `factionPresenceChanged`, `factionStateChanged`, `factionControlThreatChanged` |
+| `powerId`   | yes for `systemPowerplayUpdated` | powerplay events                                                               | Repeat `1-4` times                                                                                              |
+| `factionId` | yes for faction events           | `factionPresenceChanged`, `factionStateChanged`, `factionControlThreatChanged` | Repeat `1-20` times                                                                                             |
+| `systemId`  | no                               | all SSE subscriptions                                                          | Repeat up to `20` times to further narrow events to specific systems                                            |
 
 Notes:
 
-- duplicate `powerId` and `systemId` values are deduplicated server-side
-- stream uses standard SSE framing with `id`, `event`, and `data`
-- heartbeat comments are emitted periodically to keep connections alive
+- stream uses standard SSE framing with `retry`, comment frames, `id`, `event`, and `data`
+- keepalive comments are emitted periodically to keep idle connections open
 
-Example:
+Quick start:
 
 ```bash
 curl -N \
@@ -85,40 +188,40 @@ curl -N \
   "https://your-endpoint/realtime/sse?eventType=systemPowerplayUpdated&powerId=<power-id>"
 ```
 
+General SSE frame example:
+
+```text
+retry: 2000
+
+: connected
+
+id: 1
+event: systemPowerplayUpdated
+data: {"event":"systemPowerplayUpdated","systemId":"<system-id>","powerId":"<power-id>","changedFields":["powerplayState"],"timestamp":"2026-02-07T00:00:00.000Z","metadata":{}}
+
+: keepalive
+```
+
+Supported event types:
+
+- `systemPowerplayUpdated`
+- `factionPresenceChanged`
+- `factionStateChanged`
+- `factionControlThreatChanged`
+
 Common error responses:
 
 - `400` invalid/missing subscription query params
 - `401` missing/invalid API key
 - `429` max concurrent SSE connections reached for the API key
 
-### Realtime SSE Event Payload
+Event payloads are sent in the SSE `data` field as JSON and are intentionally lean. Use the stream to detect that something changed, then call the GraphQL API if you need more details or the current complete data for the affected entity. For full payload schemas, event-specific examples, semantics, and runtime behavior, see [docs/sse.md](docs/sse.md).
 
-Current supported realtime event: `systemPowerplayUpdated`
+### Rate Limits
 
-Example `data` payload:
-
-```json
-{
-  "event": "systemPowerplayUpdated",
-  "systemId": "uuid",
-  "powerId": "uuid",
-  "changedFields": [
-    "powerplayState",
-    "powerplayStateControlProgress",
-    "powerplayStateReinforcement",
-    "powerplayStateUndermining"
-  ],
-  "timestamp": "2026-02-07T00:00:00.000Z",
-  "source": "eddn-worker",
-  "metadata": {}
-}
-```
-
-### Example Queries
-
-<!-- TODO: Add example queries -->
-
-TODO: Add example queries
+- **GraphQL:** 60 requests per minute per API key (subject to change)
+- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`, subject to change)
+- Rate limit headers are included in GraphQL responses
 
 ### Support
 
