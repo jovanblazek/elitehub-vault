@@ -14,7 +14,6 @@ Support the development of this project by [buying me a coffee](https://buymeaco
   - [Rate Limits](#rate-limits)
   - [API Endpoints](#api-endpoints)
   - [Realtime SSE Endpoint](#realtime-sse-endpoint)
-  - [Realtime SSE Event Payload](#realtime-sse-event-payload)
   - [Example Queries](#example-queries)
   - [Support](#support)
 - [For Contributors](#for-contributors)
@@ -33,7 +32,7 @@ After EliteBGS started to have frequent availability issues with their API, I de
 EliteHub Vault provides:
 
 - a **read-only GraphQL API** with Elite Dangerous galaxy data (systems, factions, stations, powerplay, conflicts)
-- a **real-time SSE stream** for selected powerplay updates
+- a **real-time SSE stream** for selected powerplay and faction updates
 
 ### Authentication
 
@@ -61,22 +60,26 @@ GET /realtime/sse
 
 ### Realtime SSE Endpoint
 
-`GET /realtime/sse` requires:
+`GET /realtime/sse` opens a long-lived `text/event-stream` response. Every connection must include:
 
-- `eventType=systemPowerplayUpdated`
-- `powerId=<id>` repeated 1-4 times
+- `eventType=<type>`
+- a routing key filter matching that event type
 
-Optional filters:
+Supported search params:
 
-- `systemId=<id>` repeated up to 20 times
+| Param       | Required                         | Applies to                                                                     | Notes                                                                                                           |
+| ----------- | -------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `eventType` | yes                              | all SSE subscriptions                                                          | One of `systemPowerplayUpdated`, `factionPresenceChanged`, `factionStateChanged`, `factionControlThreatChanged` |
+| `powerId`   | yes for `systemPowerplayUpdated` | powerplay events                                                               | Repeat `1-4` times                                                                                              |
+| `factionId` | yes for faction events           | `factionPresenceChanged`, `factionStateChanged`, `factionControlThreatChanged` | Repeat `1-20` times                                                                                             |
+| `systemId`  | no                               | all SSE subscriptions                                                          | Repeat up to `20` times to further narrow events to specific systems                                            |
 
 Notes:
 
-- duplicate `powerId` and `systemId` values are deduplicated server-side
-- stream uses standard SSE framing with `id`, `event`, and `data`
-- heartbeat comments are emitted periodically to keep connections alive
+- stream uses standard SSE framing with `retry`, comment frames, `id`, `event`, and `data`
+- keepalive comments are emitted periodically to keep idle connections open
 
-Example:
+Quick start:
 
 ```bash
 curl -N \
@@ -85,34 +88,34 @@ curl -N \
   "https://your-endpoint/realtime/sse?eventType=systemPowerplayUpdated&powerId=<power-id>"
 ```
 
+General SSE frame example:
+
+```text
+retry: 2000
+
+: connected
+
+id: 1
+event: systemPowerplayUpdated
+data: {"event":"systemPowerplayUpdated","systemId":"<system-id>","powerId":"<power-id>","changedFields":["powerplayState"],"timestamp":"2026-02-07T00:00:00.000Z","metadata":{}}
+
+: keepalive
+```
+
+Supported event types:
+
+- `systemPowerplayUpdated`
+- `factionPresenceChanged`
+- `factionStateChanged`
+- `factionControlThreatChanged`
+
 Common error responses:
 
 - `400` invalid/missing subscription query params
 - `401` missing/invalid API key
 - `429` max concurrent SSE connections reached for the API key
 
-### Realtime SSE Event Payload
-
-Current supported realtime event: `systemPowerplayUpdated`
-
-Example `data` payload:
-
-```json
-{
-  "event": "systemPowerplayUpdated",
-  "systemId": "uuid",
-  "powerId": "uuid",
-  "changedFields": [
-    "powerplayState",
-    "powerplayStateControlProgress",
-    "powerplayStateReinforcement",
-    "powerplayStateUndermining"
-  ],
-  "timestamp": "2026-02-07T00:00:00.000Z",
-  "source": "eddn-worker",
-  "metadata": {}
-}
-```
+Event payloads are sent in the SSE `data` field as JSON and are intentionally lean. Use the stream to detect that something changed, then call the GraphQL API if you need more details or the current complete data for the affected entity. For full payload schemas, event-specific examples, semantics, and runtime behavior, see [docs/sse.md](docs/sse.md).
 
 ### Example Queries
 
