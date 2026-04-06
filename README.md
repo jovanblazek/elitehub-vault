@@ -58,6 +58,85 @@ GET /graphql (for GraphiQL playground)
 GET /realtime/sse
 ```
 
+### Example Queries
+
+Use `POST /graphql` for application requests. `GET /graphql` serves GraphiQL, which is also available in production so you can inspect the schema, test queries, and explore relations interactively.
+
+Example query:
+
+```graphql
+query MyQuery {
+  factionByName(name: "Anti Xeno Initiative") {
+    id
+    name
+    factionConflicts {
+      edges {
+        node {
+          id
+          factionWonDays
+          opponentWonDays
+          opponentFaction {
+            id
+            name
+          }
+          system {
+            name
+          }
+        }
+        cursor
+      }
+    }
+  }
+}
+```
+
+Example response:
+
+```json
+{
+  "data": {
+    "factionByName": {
+      "id": "51acfdae-4d60-4ebe-a564-ef65dccad913",
+      "name": "Anti Xeno Initiative",
+      "factionConflicts": {
+        "edges": [
+          {
+            "node": {
+              "id": "2d5348b3-df9b-4434-b2f9-b5f165cec523",
+              "factionWonDays": 3,
+              "opponentWonDays": 2,
+              "opponentFaction": {
+                "id": "999be1f9-c035-483c-bb47-a243ee344f9b",
+                "name": "OrioN Navy"
+              },
+              "system": {
+                "name": "LHS 2"
+              }
+            },
+            "cursor": "WyI2NjhkNWYxYWE2IiwiMmQ1MzQ4YjMtZGY5Yi00NDM0LWIyZjktYjVmMTY1Y2VjNTIzIl0="
+          },
+          {
+            "node": {
+              "id": "3aaacd25-1dab-4538-b9c0-f83ce8cf5dd4",
+              "factionWonDays": 0,
+              "opponentWonDays": 0,
+              "opponentFaction": {
+                "id": "d1061512-78c8-4bba-80a8-d262a5d6f462",
+                "name": "Noblemen of LHS 475"
+              },
+              "system": {
+                "name": "Crucis Sector VJ-R a4-2"
+              }
+            },
+            "cursor": "WyI2NjhkNWYxYWE2IiwiM2FhYWNkMjUtMWRhYi00NTM4LWI5YzAtZjgzY2U4Y2Y1ZGQ0Il0="
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
 ### Realtime SSE Endpoint
 
 `GET /realtime/sse` opens a long-lived `text/event-stream` response. Every connection must include:
@@ -116,12 +195,6 @@ Common error responses:
 - `429` max concurrent SSE connections reached for the API key
 
 Event payloads are sent in the SSE `data` field as JSON and are intentionally lean. Use the stream to detect that something changed, then call the GraphQL API if you need more details or the current complete data for the affected entity. For full payload schemas, event-specific examples, semantics, and runtime behavior, see [docs/sse.md](docs/sse.md).
-
-### Example Queries
-
-<!-- TODO: Add example queries -->
-
-TODO: Add example queries
 
 ### Support
 
