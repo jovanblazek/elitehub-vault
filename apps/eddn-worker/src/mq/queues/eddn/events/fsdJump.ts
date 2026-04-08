@@ -1,14 +1,15 @@
 import type { EDDNJournalFSDJumpMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
-import {
-  upsertSystem,
-  buildFullSystemData,
-  processPowerplayData,
-  processFactionsData,
-  shouldDeleteSystem,
-  deleteSystem,
-} from '../helpers/index.js'
+
 import logger from '../../../../utils/logger.js'
+import {
+  buildFullSystemData,
+  deleteSystem,
+  shouldDeleteSystem,
+  upsertSystem,
+} from '../helpers/systemHelpers.js'
+import { processPowerplayData } from '../helpers/powerplayHelpers.js'
+import { processFactionsData } from '../helpers/factionHelpers.js'
 
 export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) => {
   await db.transaction(async (tx) => {

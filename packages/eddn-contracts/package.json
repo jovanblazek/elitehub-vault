@@ -15,9 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
-  "dependencies": {
-    "zod": "^4.1.12"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*"
   }
