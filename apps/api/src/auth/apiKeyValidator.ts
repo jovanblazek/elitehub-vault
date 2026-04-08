@@ -3,7 +3,7 @@ import { ApiKeys } from '@elitehub/db/schema'
 import { db } from '../db/db.js'
 import logger from '../utils/logger.js'
 
-export type ApiKeyValidationResult =
+type ApiKeyValidationResult =
   | { ok: true; apiKeyId: string; keyName: string; maxSseConnections: number }
   | { ok: false; reason: 'missing' | 'invalid' | 'internal_error' }
 

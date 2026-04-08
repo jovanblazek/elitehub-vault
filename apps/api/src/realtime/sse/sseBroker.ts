@@ -38,7 +38,7 @@ type SseConnection = {
   nextEventId: number
 }
 
-export type RegisterConnectionInput = {
+type RegisterConnectionInput = {
   response: ServerResponse
   eventType: RealtimeEventType
   apiKeyId: string
@@ -220,7 +220,10 @@ export class SseBroker {
     await this.redisSubscriptions.stop()
   }
 
-  async cleanupConnection(connectionId: ConnectionId, reason: SseCloseReason = 'client_disconnect') {
+  async cleanupConnection(
+    connectionId: ConnectionId,
+    reason: SseCloseReason = 'client_disconnect'
+  ) {
     const connection = this.connectionsById.get(connectionId)
     if (!connection || connection.isClosed) {
       return
@@ -271,10 +274,6 @@ export class SseBroker {
       reason,
       activeChannels: this.connectionIdsByChannelKey.size,
     })
-  }
-
-  getActiveConnectionCount() {
-    return this.connectionsById.size
   }
 
   private enqueueRawFrame(connectionId: ConnectionId, frame: string) {

@@ -10,7 +10,7 @@ import {
   type RealtimePayload,
 } from '@elitehub/queue-contracts'
 
-export type RealtimePublishTarget = {
+type RealtimePublishTarget = {
   channel: string
   payload: RealtimePayload
 }

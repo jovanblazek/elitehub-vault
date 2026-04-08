@@ -1,15 +1,15 @@
 import type { EDDNJournalLocationMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
-import {
-  upsertSystem,
-  buildFullSystemData,
-  processPowerplayData,
-  processFactionsData,
-  upsertStationFromLocation,
-  shouldDeleteSystem,
-  deleteSystem,
-} from '../helpers/index.js'
 import logger from '../../../../utils/logger.js'
+import {
+  buildFullSystemData,
+  deleteSystem,
+  shouldDeleteSystem,
+  upsertSystem,
+} from '../helpers/systemHelpers.js'
+import { processPowerplayData } from '../helpers/powerplayHelpers.js'
+import { processFactionsData } from '../helpers/factionHelpers.js'
+import { upsertStationFromLocation } from '../helpers/stationHelpers.js'
 
 export const processLocationEvent = async (message: EDDNJournalLocationMessage) => {
   await db.transaction(async (tx) => {

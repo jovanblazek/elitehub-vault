@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/node'
 
-export type SseTelemetryComponent = 'sse-service' | 'sse-broker' | 'sse-redis-subscriptions'
+type SseTelemetryComponent = 'sse-service' | 'sse-broker' | 'sse-redis-subscriptions'
 
-export type SseTelemetryCaptureOptions = {
+type SseTelemetryCaptureOptions = {
   component: SseTelemetryComponent
   level?: 'info' | 'warning' | 'error'
   tags?: Record<string, string>

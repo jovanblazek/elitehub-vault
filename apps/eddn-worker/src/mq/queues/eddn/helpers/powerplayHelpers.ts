@@ -17,7 +17,7 @@ type PowerplayMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
 /**
  * Upserts powerplay powers and returns the inserted records
  */
-export const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayMessage) => {
+const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayMessage) => {
   const incomingPowersLowercased = [...(message.Powers ?? []), message.ControllingPower]
     .map((power) => power?.toLowerCase())
     .filter((power): power is string => !!power)
@@ -53,7 +53,7 @@ export const upsertPowerplayPowers = async (tx: Transaction, message: PowerplayM
 /**
  * Upserts system powerplay powers associations and cleans up stale ones
  */
-export const upsertSystemPowerplayPowers = async (
+const upsertSystemPowerplayPowers = async (
   tx: Transaction,
   systemId: string,
   powerplayPowers: { id: string; name: string }[]
@@ -83,7 +83,7 @@ export const upsertSystemPowerplayPowers = async (
 /**
  * Upserts powerplay conflicts and cleans up stale ones
  */
-export const upsertPowerplayConflicts = async (
+const upsertPowerplayConflicts = async (
   tx: Transaction,
   systemId: string,
   message: PowerplayMessage,
