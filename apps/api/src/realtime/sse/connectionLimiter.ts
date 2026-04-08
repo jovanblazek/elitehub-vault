@@ -1,15 +1,15 @@
-export type OpenQuotaInput = {
+type OpenQuotaInput = {
   apiKeyId: string
   maxConnections: number
 }
 
-export type OpenQuotaDecision = {
+type OpenQuotaDecision = {
   ok: boolean
   active: number
   max: number
 }
 
-export type SseConnectionLimiter = {
+type SseConnectionLimiter = {
   canOpen: (input: OpenQuotaInput) => OpenQuotaDecision
   onOpen: (apiKeyId: string) => void
   onClose: (apiKeyId: string) => void
