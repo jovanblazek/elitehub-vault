@@ -41,7 +41,7 @@ type FactionSubscriptionQuery = {
   systemIds: string[] | null
 }
 
-export type SseSubscriptionQuery = PowerplaySubscriptionQuery | FactionSubscriptionQuery
+type SseSubscriptionQuery = PowerplaySubscriptionQuery | FactionSubscriptionQuery
 
 const dedupeList = (values: string[]) => Array.from(new Set(values))
 

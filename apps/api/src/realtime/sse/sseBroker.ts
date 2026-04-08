@@ -38,7 +38,7 @@ type SseConnection = {
   nextEventId: number
 }
 
-export type RegisterConnectionInput = {
+type RegisterConnectionInput = {
   response: ServerResponse
   eventType: RealtimeEventType
   apiKeyId: string

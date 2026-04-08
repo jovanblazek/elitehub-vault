@@ -114,18 +114,7 @@ export const upsertStationFromLocation = async (
   ])
 
   const stationData = buildStationDataFromLocation(message, systemId, controllingFaction.id)
-  const validatedStationData = StationsInsertSchema.parse(stationData)
-
-  await tx
-    .insert(Stations)
-    .values(validatedStationData)
-    .onConflictDoUpdate({
-      target: Stations.marketId,
-      set: {
-        ...validatedStationData,
-        updatedAt: new Date(),
-      },
-    })
+  await upsertStation(tx, stationData)
 }
 
 /**
@@ -149,7 +138,11 @@ export const upsertStationFromDocked = async (
   ])
 
   const stationData = buildStationDataFromDocked(message, systemId, controllingFaction.id)
-  const validatedStationData = StationsInsertSchema.parse(stationData)
+  await upsertStation(tx, stationData)
+}
+
+const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert) => {
+  const validatedStationData = StationsInsertSchema.parse(data)
 
   await tx
     .insert(Stations)
