@@ -1,5 +1,4 @@
 import { Systems } from '@elitehub/db'
-import { eq } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalFSDJumpMessage,
@@ -8,6 +7,7 @@ import type {
 import { db } from '../../../../db/db.js'
 import { SystemsInsertSchema } from '../validationSchemas.js'
 import {
+  EXCLUDED_STATION_GOVERNMENTS,
   mapGovernment,
   mapAllegiance,
   mapEconomy,
@@ -18,6 +18,9 @@ import {
 export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 type FullSystemMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
+
+const hasExcludedStationGovernment = (stationGovernment?: string) =>
+  EXCLUDED_STATION_GOVERNMENTS.has(stationGovernment?.toLowerCase() ?? '')
 
 export const buildFullSystemData = (message: FullSystemMessage) => ({
   name: message.StarSystem,
@@ -76,24 +79,26 @@ export const upsertSystem = async (
 }
 
 /**
- * Checks if a system should be deleted based on population and government
+ * Only keep systems that have at least one meaningful signal in the incoming event.
  */
-export const shouldDeleteSystem = (data: ReturnType<typeof buildFullSystemData>): boolean => {
-  return data.population === 0 && (data.government === null || data.government === undefined)
+export const shouldUpsertSystem = (
+  message: FullSystemMessage,
+  data: ReturnType<typeof buildFullSystemData>
+): boolean => {
+  const hasPopulation = data.population > 0
+  const hasGovernment = data.government !== null && data.government !== undefined
+  const hasFactions = (message.Factions?.length ?? 0) > 0
+  const hasStation =
+    message.event === 'Location' &&
+    !hasExcludedStationGovernment(message.StationGovernment) &&
+    (message.Docked === true ||
+      !!message.StationName ||
+      !!message.MarketID ||
+      !!message.StationType)
+
+  return hasPopulation || hasGovernment || hasFactions || hasStation
 }
 
-/**
- * Deletes a system by systemAddress if it exists
- * Returns the deleted system if found, null if not found
- */
-export const deleteSystem = async (
-  tx: Transaction,
-  systemAddress: number
-): Promise<{ id: string; name: string } | null> => {
-  const [deleted] = await tx
-    .delete(Systems)
-    .where(eq(Systems.systemAddress, systemAddress))
-    .returning({ id: Systems.id, name: Systems.name })
-
-  return deleted ?? null
+export const shouldUpsertSystemFromDocked = (message: EDDNJournalDockedMessage): boolean => {
+  return !hasExcludedStationGovernment(message.StationGovernment)
 }
