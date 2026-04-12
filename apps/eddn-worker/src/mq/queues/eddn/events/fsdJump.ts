@@ -7,9 +7,12 @@ import {
 } from '../helpers/systemHelpers.js'
 import { processPowerplayData } from '../helpers/powerplayHelpers.js'
 import { processFactionsData } from '../helpers/factionHelpers.js'
+import { applyEddnTransactionTimeouts } from '../helpers/transactionTimeouts.js'
 
 export const processFSDJumpEvent = async (message: EDDNJournalFSDJumpMessage) => {
   await db.transaction(async (tx) => {
+    await applyEddnTransactionTimeouts(tx)
+
     const systemData = buildFullSystemData(message)
     if (!shouldUpsertSystem(message, systemData)) {
       return

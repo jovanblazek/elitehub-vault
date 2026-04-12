@@ -8,9 +8,12 @@ import {
 import { processPowerplayData } from '../helpers/powerplayHelpers.js'
 import { processFactionsData } from '../helpers/factionHelpers.js'
 import { upsertStationFromLocation } from '../helpers/stationHelpers.js'
+import { applyEddnTransactionTimeouts } from '../helpers/transactionTimeouts.js'
 
 export const processLocationEvent = async (message: EDDNJournalLocationMessage) => {
   await db.transaction(async (tx) => {
+    await applyEddnTransactionTimeouts(tx)
+
     const systemData = buildFullSystemData(message)
     if (!shouldUpsertSystem(message, systemData)) {
       return
