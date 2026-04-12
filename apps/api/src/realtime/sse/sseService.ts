@@ -14,6 +14,7 @@ const SUMMARY_INTERVAL_MS = 30_000
 
 const sseMetrics = new SseMetrics()
 const connectionLimiter = new InMemorySseConnectionLimiter()
+let lastSummaryLogSignature: string | null = null
 
 const redisSubscriber = Redis.duplicate()
 const redisSubscriptions = new RedisSubscriptionManager(
@@ -89,13 +90,18 @@ const sseBroker = new SseBroker(redisSubscriptions, {
 const summaryInterval = setInterval(() => {
   const summary = sseMetrics.getSummary()
   const activeConnectionsByApiKey = connectionLimiter.getActiveConnectionsByApiKey()
-  logger.info(
-    {
-      ...summary,
-      activeConnectionsByApiKey,
-    },
-    '[SSE] Summary'
-  )
+  const summaryLog = {
+    ...summary,
+    activeConnectionsByApiKey,
+  }
+  const summaryLogSignature = JSON.stringify(summaryLog)
+
+  if (summaryLogSignature === lastSummaryLogSignature) {
+    return
+  }
+
+  lastSummaryLogSignature = summaryLogSignature
+  logger.info(summaryLog, '[SSE] Summary')
 }, SUMMARY_INTERVAL_MS)
 summaryInterval.unref()
 
