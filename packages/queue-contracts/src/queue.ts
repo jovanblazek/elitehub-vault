@@ -6,6 +6,7 @@ export const QueueNames = {
 } as const
 
 export const EDDN_JOURNAL_PROCESS_JOB_NAME = 'journal-processing'
+export const EDDN_WORKER_CONCURRENCY = 4
 
 export type EddnJobPayload = EDDNJournalMessage
 
@@ -28,4 +29,5 @@ export const createEddnWorkerOptions = (
   connection: WorkerOptions['connection']
 ): WorkerOptions => ({
   connection,
+  concurrency: EDDN_WORKER_CONCURRENCY,
 })

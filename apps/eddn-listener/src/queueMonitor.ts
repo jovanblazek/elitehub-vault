@@ -5,10 +5,11 @@ import { QueueNames } from '@elitehub/queue-contracts'
 import logger from './logger.js'
 
 const QUEUE_MONITOR_INTERVAL_MS = 60_000
-const WAITING_JOBS_ALERT_THRESHOLD = 1000 // High number to avoid alerting during deployments when worker is offline for a few minutes
+const WAITING_JOBS_ALERT_THRESHOLD = 3000 // High number to avoid alerting during deployments when worker is offline for a few minutes
 
 export const startQueueMonitor = (queue: Queue<EDDNJournalMessage>) => {
   let backlogAlertOpen = false
+  let lastLoggedState: string | null = null
 
   const getOldestWaitingJobAgeMs = async () => {
     const [oldestWaitingJob] = await queue.getWaiting(0, 0)
@@ -22,20 +23,26 @@ export const startQueueMonitor = (queue: Queue<EDDNJournalMessage>) => {
   const monitorQueueHealth = async () => {
     const counts = await queue.getJobCounts('waiting', 'active', 'delayed')
     const oldestWaitingJobAgeMs = counts.waiting ? await getOldestWaitingJobAgeMs() : 0
-
-    logger.info(
-      {
-        queue: QueueNames.eddn,
-        waiting: counts.waiting ?? 0,
-        active: counts.active ?? 0,
-        delayed: counts.delayed ?? 0,
-        oldestWaitingJobAgeMs,
-        waitingThreshold: WAITING_JOBS_ALERT_THRESHOLD,
-      },
-      '[EDDN Listener] Queue health'
-    )
-
     const waiting = counts.waiting ?? 0
+    const active = counts.active ?? 0
+    const delayed = counts.delayed ?? 0
+    const isIdle = waiting === 0 && active === 0 && delayed === 0
+    const stateKey = `${waiting}:${active}:${delayed}:${oldestWaitingJobAgeMs}`
+
+    if (!isIdle || lastLoggedState !== stateKey) {
+      logger.info(
+        {
+          queue: QueueNames.eddn,
+          waiting,
+          active,
+          delayed,
+          oldestWaitingJobAgeMs,
+          waitingThreshold: WAITING_JOBS_ALERT_THRESHOLD,
+        },
+        '[EDDN Listener] Queue health'
+      )
+      lastLoggedState = stateKey
+    }
 
     if (waiting > WAITING_JOBS_ALERT_THRESHOLD && !backlogAlertOpen) {
       backlogAlertOpen = true
@@ -48,8 +55,8 @@ export const startQueueMonitor = (queue: Queue<EDDNJournalMessage>) => {
         },
         extra: {
           waiting,
-          active: counts.active ?? 0,
-          delayed: counts.delayed ?? 0,
+          active,
+          delayed,
           oldestWaitingJobAgeMs,
           waitingThreshold: WAITING_JOBS_ALERT_THRESHOLD,
         },
@@ -67,8 +74,8 @@ export const startQueueMonitor = (queue: Queue<EDDNJournalMessage>) => {
         },
         extra: {
           waiting,
-          active: counts.active ?? 0,
-          delayed: counts.delayed ?? 0,
+          active,
+          delayed,
           oldestWaitingJobAgeMs,
           waitingThreshold: WAITING_JOBS_ALERT_THRESHOLD,
         },
