@@ -14,7 +14,7 @@ type OutboxRow = {
   id: string
   eventType: string
   payload: unknown
-  createdAt: Date
+  createdAt: Date | string
 }
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]

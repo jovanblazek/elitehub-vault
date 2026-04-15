@@ -18,7 +18,7 @@ type RealtimePublishTarget = {
 export const buildPublishTargetsForOutboxRow = (args: {
   eventType: string
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
   powerIds?: string[]
 }): RealtimePublishTarget[] | null => {
   switch (args.eventType) {
