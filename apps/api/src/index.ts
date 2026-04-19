@@ -3,8 +3,7 @@ import './utils/environment.js'
 import * as Sentry from '@sentry/node'
 
 import bodyParser from 'koa-bodyparser'
-import Koa, { type Context } from 'koa'
-import ratelimit from 'koa-ratelimit'
+import Koa from 'koa'
 import { grafserv } from 'postgraphile/grafserv/koa/v2'
 import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
 import { routeAccessMiddleware } from './middleware/routeAccess.js'
@@ -16,27 +15,6 @@ import { Redis } from './utils/redis.js'
 
 const koaApp = new Koa()
 Sentry.setupKoaErrorHandler(koaApp)
-
-koaApp.use(
-  ratelimit({
-    whitelist: () => env.NODE_ENV === 'development',
-    driver: 'redis',
-    db: Redis as any, // ioredis is compatible but has type conflicts,
-    namespace: 'api-rate-limit',
-    duration: 60 * 1000,
-    max: 60,
-    errorMessage: JSON.stringify({
-      error: 'rate_limit_exceeded',
-      message: 'Rate limit exceeded. Please try again later.',
-    }),
-    id: (ctx: Context) => ctx.headers['x-api-key']?.toString() || ctx.ip,
-    headers: {
-      remaining: 'X-RateLimit-Remaining',
-      reset: 'X-RateLimit-Reset',
-      total: 'X-RateLimit-Limit',
-    },
-  })
-)
 
 koaApp.use(bodyParser())
 koaApp.use(routeAccessMiddleware)
