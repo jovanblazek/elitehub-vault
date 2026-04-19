@@ -1,6 +1,5 @@
+import crypto from 'node:crypto'
 import type { Context } from 'koa'
-import { RateLimiterRedis, type RateLimiterRes } from 'rate-limiter-flexible'
-import { Redis } from '../utils/redis.js'
 
 type RateLimitHeaders = {
   limit: number
@@ -21,27 +20,84 @@ type RateLimitDecision =
     }
 
 type ApiRateLimiterOptions = {
-  redisClient?: typeof Redis
+  redisClient?: SlidingWindowRedisClient
+  now?: () => number
+  createMemberId?: () => string
 }
 
 const ANONYMOUS_GRAPHQL_LIMIT = 30
 const INVALID_API_KEY_ATTEMPT_LIMIT = 20
 const SSE_CONNECT_LIMIT = 10
 const WINDOW_SECONDS = 60
+const WINDOW_MS = WINDOW_SECONDS * 1000
+const KEY_TTL_SECONDS = WINDOW_SECONDS + 5
 
-const isRateLimiterRes = (value: unknown): value is RateLimiterRes =>
-  !!value &&
-  typeof value === 'object' &&
-  'msBeforeNext' in value &&
-  'remainingPoints' in value &&
-  'consumedPoints' in value
+type SlidingWindowRedisClient = {
+  eval: (
+    script: string,
+    numKeys: number,
+    key: string,
+    windowStart: number,
+    now: number,
+    limit: number,
+    member: string,
+    ttlSeconds: number
+  ) => Promise<unknown>
+}
 
-const toHeaders = (rateLimiterRes: RateLimiterRes, limit: number): RateLimitHeaders => ({
-  limit,
-  remaining: Math.max(rateLimiterRes.remainingPoints ?? limit - rateLimiterRes.consumedPoints, 0),
-  reset: Math.ceil((Date.now() + rateLimiterRes.msBeforeNext) / 1000),
-  retryAfter: Math.max(1, Math.ceil(rateLimiterRes.msBeforeNext / 1000)),
-})
+const defaultRedisClient: SlidingWindowRedisClient = {
+  eval: async (...args) => {
+    const { Redis } = await import('../utils/redis.js')
+    return Redis.eval(...args)
+  },
+}
+
+type SlidingWindowResult = {
+  allowed: boolean
+  count: number
+  oldestTimestampMs: number
+}
+
+const SLIDING_WINDOW_SCRIPT = `
+local key = KEYS[1]
+local windowStart = tonumber(ARGV[1])
+local now = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+local member = ARGV[4]
+local ttlSeconds = tonumber(ARGV[5])
+
+redis.call('ZREMRANGEBYSCORE', key, '-inf', windowStart)
+
+local count = redis.call('ZCARD', key)
+if count >= limit then
+  local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+  local oldestScore = tonumber(oldest[2]) or now
+  return {0, count, oldestScore}
+end
+
+redis.call('ZADD', key, now, member)
+redis.call('EXPIRE', key, ttlSeconds)
+
+local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+local oldestScore = tonumber(oldest[2]) or now
+return {1, count + 1, oldestScore}
+`
+
+const toHeaders = (
+  slidingWindowResult: SlidingWindowResult,
+  limit: number,
+  now: number
+): RateLimitHeaders => {
+  const resetAtMs = slidingWindowResult.oldestTimestampMs + WINDOW_MS
+  const msBeforeReset = Math.max(resetAtMs - now, 0)
+
+  return {
+    limit,
+    remaining: slidingWindowResult.allowed ? Math.max(limit - slidingWindowResult.count, 0) : 0,
+    reset: Math.ceil(resetAtMs / 1000),
+    retryAfter: Math.max(1, Math.ceil(msBeforeReset / 1000)),
+  }
+}
 
 export const applyRateLimitHeaders = (ctx: Context, headers: RateLimitHeaders) => {
   ctx.set('X-RateLimit-Limit', String(headers.limit))
@@ -54,76 +110,71 @@ export const applyRateLimitHeaders = (ctx: Context, headers: RateLimitHeaders) =
 }
 
 export class ApiRateLimiter {
-  private readonly anonymousGraphqlLimiter: RateLimiterRedis
-  private readonly invalidApiKeyLimiter: RateLimiterRedis
-  private readonly sseConnectLimiter: RateLimiterRedis
-  private readonly graphqlLimiterByLimit = new Map<number, RateLimiterRedis>()
-  private readonly redisClient: typeof Redis
+  private readonly redisClient: SlidingWindowRedisClient
+  private readonly now: () => number
+  private readonly createMemberId: () => string
 
-  constructor({ redisClient = Redis }: ApiRateLimiterOptions = {}) {
+  constructor({
+    redisClient = defaultRedisClient,
+    now = () => Date.now(),
+    createMemberId = () => crypto.randomUUID(),
+  }: ApiRateLimiterOptions = {}) {
     this.redisClient = redisClient
-    this.anonymousGraphqlLimiter = this.createLimiter('graphql:anon', ANONYMOUS_GRAPHQL_LIMIT)
-    this.invalidApiKeyLimiter = this.createLimiter('auth:invalid', INVALID_API_KEY_ATTEMPT_LIMIT)
-    this.sseConnectLimiter = this.createLimiter('sse:connect', SSE_CONNECT_LIMIT)
+    this.now = now
+    this.createMemberId = createMemberId
   }
 
   async consumeAnonymousGraphql(ipAddress: string): Promise<RateLimitDecision> {
-    return this.consume(this.anonymousGraphqlLimiter, `graphql:anon:${ipAddress}`, ANONYMOUS_GRAPHQL_LIMIT)
+    return this.consume(`graphql:anon:${ipAddress}`, ANONYMOUS_GRAPHQL_LIMIT)
   }
 
   async consumeAuthenticatedGraphql(apiKeyId: string, limit: number): Promise<RateLimitDecision> {
-    const limiter = this.getGraphqlLimiter(limit)
-    return this.consume(limiter, `graphql:key:${apiKeyId}`, limit)
+    return this.consume(`graphql:key:${apiKeyId}`, limit)
   }
 
   async consumeInvalidApiKeyAttempt(ipAddress: string): Promise<RateLimitDecision> {
-    return this.consume(this.invalidApiKeyLimiter, `auth:invalid:${ipAddress}`, INVALID_API_KEY_ATTEMPT_LIMIT)
+    return this.consume(`auth:invalid:${ipAddress}`, INVALID_API_KEY_ATTEMPT_LIMIT)
   }
 
   async consumeSseConnect(apiKeyId: string): Promise<RateLimitDecision> {
-    return this.consume(this.sseConnectLimiter, `sse:connect:${apiKeyId}`, SSE_CONNECT_LIMIT)
+    return this.consume(`sse:connect:${apiKeyId}`, SSE_CONNECT_LIMIT)
   }
 
-  private getGraphqlLimiter(limit: number) {
-    const existing = this.graphqlLimiterByLimit.get(limit)
-    if (existing) {
-      return existing
-    }
+  private async consume(key: string, limit: number): Promise<RateLimitDecision> {
+    const now = this.now()
+    const member = `${now}:${this.createMemberId()}`
 
-    const created = this.createLimiter(`graphql:key:${limit}`, limit)
-    this.graphqlLimiterByLimit.set(limit, created)
-    return created
-  }
-
-  private createLimiter(keyPrefix: string, points: number) {
-    return new RateLimiterRedis({
-      storeClient: this.redisClient,
-      keyPrefix,
-      points,
-      duration: WINDOW_SECONDS,
-    })
-  }
-
-  private async consume(
-    limiter: RateLimiterRedis,
-    key: string,
-    limit: number
-  ): Promise<RateLimitDecision> {
     try {
-      const result = await limiter.consume(key)
-      return {
-        ok: true,
-        headers: toHeaders(result, limit),
+      const result = (await this.redisClient.eval(
+        SLIDING_WINDOW_SCRIPT,
+        1,
+        key,
+        now - WINDOW_MS,
+        now,
+        limit,
+        member,
+        KEY_TTL_SECONDS
+      )) as [number, number, number]
+
+      const slidingWindowResult: SlidingWindowResult = {
+        allowed: result[0] === 1,
+        count: result[1],
+        oldestTimestampMs: result[2],
       }
-    } catch (error) {
-      if (isRateLimiterRes(error)) {
+
+      if (slidingWindowResult.allowed) {
         return {
-          ok: false,
-          reason: 'rate_limited',
-          headers: toHeaders(error, limit),
+          ok: true,
+          headers: toHeaders(slidingWindowResult, limit, now),
         }
       }
 
+      return {
+        ok: false,
+        reason: 'rate_limited',
+        headers: toHeaders(slidingWindowResult, limit, now),
+      }
+    } catch {
       return {
         ok: false,
         reason: 'service_unavailable',
