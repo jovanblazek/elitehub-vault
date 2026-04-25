@@ -150,5 +150,6 @@ const main = async () => {
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Unknown error'
   console.error(`[generate-api-key] ${message}`)
+  console.error(error)
   process.exit(1)
 })
