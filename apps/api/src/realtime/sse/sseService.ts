@@ -1,19 +1,22 @@
+import crypto from 'node:crypto'
 import type { Context } from 'koa'
 import type { AuthorizedApiKey } from '../../middleware/auth/requireApiKey.js'
 import { Redis } from '../../utils/redis.js'
 import logger from '../../utils/logger.js'
-import { InMemorySseConnectionLimiter } from './connectionLimiter.js'
+import { RedisSseConnectionLimiter } from './connectionLimiter.js'
 import { RedisSubscriptionManager } from './redisSubscriptionManager.js'
 import { SseBroker, type SseCloseReason } from './sseBroker.js'
 import { parseSseSubscriptionQuery } from './subscriptionParams.js'
 import { getRealtimeEventSpec, type RealtimeEventType } from './eventRegistry.js'
 import { SseMetrics } from './sseMetrics.js'
 import { captureSseException } from './sseTelemetry.js'
+import { refreshSseLeaseOrClose } from './sseLeaseHeartbeat.js'
 
 const SUMMARY_INTERVAL_MS = 30_000
+const LEASE_HEARTBEAT_INTERVAL_MS = 30_000
 
 const sseMetrics = new SseMetrics()
-const connectionLimiter = new InMemorySseConnectionLimiter()
+const connectionLimiter = new RedisSseConnectionLimiter()
 let lastSummaryLogSignature: string | null = null
 
 const redisSubscriber = Redis.duplicate()
@@ -128,10 +131,23 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
     return
   }
 
-  const quotaDecision = connectionLimiter.canOpen({
-    apiKeyId: apiKey.apiKeyId,
-    maxConnections: apiKey.maxSseConnections,
-  })
+  const connectionLeaseId = crypto.randomUUID()
+  let quotaDecision
+  try {
+    quotaDecision = await connectionLimiter.tryOpen({
+      apiKeyId: apiKey.apiKeyId,
+      connectionLeaseId,
+      maxConnections: apiKey.maxSseConnections,
+    })
+  } catch (error) {
+    logger.error(error, '[SSE] Failed checking Redis-backed SSE quota')
+    ctx.status = 503
+    ctx.body = {
+      error: 'Service Unavailable',
+      message: 'Failed to enforce SSE connection limits',
+    }
+    return
+  }
 
   if (!quotaDecision.ok) {
     logger.warn(
@@ -155,17 +171,6 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
   connectionLimiter.onOpen(apiKey.apiKeyId)
   sseMetrics.setActiveConnections(connectionLimiter.getActiveConnectionsTotal())
 
-  let quotaReleased = false
-  const releaseQuota = () => {
-    if (quotaReleased) {
-      return
-    }
-
-    quotaReleased = true
-    connectionLimiter.onClose(apiKey.apiKeyId)
-    sseMetrics.setActiveConnections(connectionLimiter.getActiveConnectionsTotal())
-  }
-
   ctx.respond = false
   ctx.req.socket.setTimeout(0)
   ctx.req.socket.setKeepAlive(true)
@@ -177,6 +182,36 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
   response.setHeader('Connection', 'keep-alive')
   response.setHeader('X-Accel-Buffering', 'no')
   response.flushHeaders()
+
+  let heartbeat: NodeJS.Timeout | null = null
+  let quotaReleased = false
+  const releaseQuota = () => {
+    if (quotaReleased) {
+      return
+    }
+
+    quotaReleased = true
+    if (heartbeat) {
+      clearInterval(heartbeat)
+      heartbeat = null
+    }
+    connectionLimiter.onClose(apiKey.apiKeyId)
+    sseMetrics.setActiveConnections(connectionLimiter.getActiveConnectionsTotal())
+    void connectionLimiter.releaseLease(apiKey.apiKeyId, connectionLeaseId).catch((error) => {
+      logger.error(error, '[SSE] Failed releasing SSE quota lease')
+    })
+  }
+
+  heartbeat = setInterval(() => {
+    void refreshSseLeaseOrClose({
+      apiKeyId: apiKey.apiKeyId,
+      connectionLeaseId,
+      response,
+      releaseQuota,
+      connectionLimiter,
+    })
+  }, LEASE_HEARTBEAT_INTERVAL_MS)
+  heartbeat.unref()
 
   let connectionId: string | null = null
   try {
