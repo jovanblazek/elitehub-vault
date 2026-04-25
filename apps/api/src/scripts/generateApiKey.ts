@@ -17,7 +17,7 @@ const API_KEY_PREFIX = 'eh_live_'
 
 const printUsage = () => {
   console.log(`Usage:
-  pnpm generate:api-key -- --name <name> [options]
+  pnpm key:generate -- --name <name> [options]
 
 Options:
   --name <name>                 Human-readable key name
@@ -27,8 +27,8 @@ Options:
   --help                        Show help
 
 Examples:
-  pnpm generate:api-key -- --name local-dev
-  pnpm generate:api-key -- --name staging-client --rpmLimit 120 --maxSseConnections 5
+  pnpm key:generate -- --name local-dev
+  pnpm key:generate -- --name staging-client --rpmLimit 120 --maxSseConnections 5
 `)
 }
 
