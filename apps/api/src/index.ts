@@ -8,7 +8,7 @@ import { grafserv } from 'postgraphile/grafserv/koa/v2'
 import { eventOutboxRelay } from './realtime/eventOutboxRelay.js'
 import { routeAccessMiddleware } from './middleware/routeAccess.js'
 import { pgl } from './postgraphile/pgl.js'
-import { shutdownRealtimeSse } from './realtime/sse/sseService.js'
+import { initializeRealtimeSse, shutdownRealtimeSse } from './realtime/sse/sseService.js'
 import { env } from './env.js'
 import logger from './utils/logger.js'
 import { Redis } from './utils/redis.js'
@@ -22,16 +22,19 @@ koaApp.use(routeAccessMiddleware)
 const serv = pgl.createServ(grafserv)
 serv.addTo(koaApp, null)
 
-const server = koaApp.listen(env.PORT, () => {
-  logger.info(`[Koa] Server listening on port ${env.PORT}`)
-})
-
 Redis.on('ready', () => {
   logger.info('[Redis] Connection established')
   eventOutboxRelay.start()
 })
 
 let isShuttingDown = false
+
+await initializeRealtimeSse()
+logger.info('[SSE] Cleared startup-stale SSE leases')
+
+const server = koaApp.listen(env.PORT, () => {
+  logger.info(`[Koa] Server listening on port ${env.PORT}`)
+})
 
 const shutdown = async () => {
   if (isShuttingDown) {
