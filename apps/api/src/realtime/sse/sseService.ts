@@ -10,6 +10,7 @@ import { parseSseSubscriptionQuery } from './subscriptionParams.js'
 import { getRealtimeEventSpec, type RealtimeEventType } from './eventRegistry.js'
 import { SseMetrics } from './sseMetrics.js'
 import { captureSseException } from './sseTelemetry.js'
+import { refreshSseLeaseOrClose } from './sseLeaseHeartbeat.js'
 
 const SUMMARY_INTERVAL_MS = 30_000
 const LEASE_HEARTBEAT_INTERVAL_MS = 30_000
@@ -170,13 +171,19 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
   connectionLimiter.onOpen(apiKey.apiKeyId)
   sseMetrics.setActiveConnections(connectionLimiter.getActiveConnectionsTotal())
 
-  let heartbeat: NodeJS.Timeout | null = setInterval(() => {
-    void connectionLimiter.refreshLease(apiKey.apiKeyId, connectionLeaseId).catch((error) => {
-      logger.error(error, '[SSE] Failed refreshing SSE quota lease')
-    })
-  }, LEASE_HEARTBEAT_INTERVAL_MS)
-  heartbeat.unref()
+  ctx.respond = false
+  ctx.req.socket.setTimeout(0)
+  ctx.req.socket.setKeepAlive(true)
 
+  const response = ctx.res
+  response.statusCode = 200
+  response.setHeader('Content-Type', 'text/event-stream')
+  response.setHeader('Cache-Control', 'no-cache')
+  response.setHeader('Connection', 'keep-alive')
+  response.setHeader('X-Accel-Buffering', 'no')
+  response.flushHeaders()
+
+  let heartbeat: NodeJS.Timeout | null = null
   let quotaReleased = false
   const releaseQuota = () => {
     if (quotaReleased) {
@@ -195,17 +202,16 @@ export const openRealtimeSseConnection = async (ctx: Context, apiKey: Authorized
     })
   }
 
-  ctx.respond = false
-  ctx.req.socket.setTimeout(0)
-  ctx.req.socket.setKeepAlive(true)
-
-  const response = ctx.res
-  response.statusCode = 200
-  response.setHeader('Content-Type', 'text/event-stream')
-  response.setHeader('Cache-Control', 'no-cache')
-  response.setHeader('Connection', 'keep-alive')
-  response.setHeader('X-Accel-Buffering', 'no')
-  response.flushHeaders()
+  heartbeat = setInterval(() => {
+    void refreshSseLeaseOrClose({
+      apiKeyId: apiKey.apiKeyId,
+      connectionLeaseId,
+      response,
+      releaseQuota,
+      connectionLimiter,
+    })
+  }, LEASE_HEARTBEAT_INTERVAL_MS)
+  heartbeat.unref()
 
   let connectionId: string | null = null
   try {

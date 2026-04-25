@@ -1,5 +1,3 @@
-import { Redis } from '../../utils/redis.js'
-
 type OpenQuotaInput = {
   apiKeyId: string
   connectionLeaseId: string
@@ -62,14 +60,34 @@ end
 return 1
 `
 
+type RedisEvalClient = {
+  eval: (
+    script: string,
+    numKeys: number,
+    key: string,
+    ...args: Array<string | number>
+  ) => Promise<unknown>
+}
+
+const getRedis = async () => {
+  const { Redis } = await import('../../utils/redis.js')
+  return Redis
+}
+
+const defaultRedisClient: RedisEvalClient = {
+  eval: async (script, numKeys, key, ...args) => (await getRedis()).eval(script, numKeys, key, ...args),
+}
+
 export class RedisSseConnectionLimiter {
   private readonly activeByApiKey = new Map<string, number>()
   private activeTotal = 0
 
+  constructor(private readonly redisClient: RedisEvalClient = defaultRedisClient) {}
+
   async tryOpen(input: OpenQuotaInput): Promise<OpenQuotaDecision> {
     const now = Date.now()
     const expiresAt = now + LEASE_TTL_MS
-    const result = (await Redis.eval(
+    const result = (await this.redisClient.eval(
       ACQUIRE_SCRIPT,
       1,
       getLeaseKey(input.apiKeyId),
@@ -87,20 +105,22 @@ export class RedisSseConnectionLimiter {
     }
   }
 
-  async refreshLease(apiKeyId: string, connectionLeaseId: string) {
+  async refreshLease(apiKeyId: string, connectionLeaseId: string): Promise<boolean> {
     const expiresAt = Date.now() + LEASE_TTL_MS
-    await Redis.eval(
+    const result = (await this.redisClient.eval(
       REFRESH_SCRIPT,
       1,
       getLeaseKey(apiKeyId),
       expiresAt,
       connectionLeaseId,
       LEASE_TTL_SECONDS
-    )
+    )) as number
+
+    return result === 1
   }
 
   async releaseLease(apiKeyId: string, connectionLeaseId: string) {
-    await Redis.eval(RELEASE_SCRIPT, 1, getLeaseKey(apiKeyId), connectionLeaseId)
+    await this.redisClient.eval(RELEASE_SCRIPT, 1, getLeaseKey(apiKeyId), connectionLeaseId)
   }
 
   onOpen(apiKeyId: string) {

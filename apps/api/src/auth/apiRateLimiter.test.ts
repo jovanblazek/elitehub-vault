@@ -64,6 +64,8 @@ test('ApiRateLimiter accepts requests below the anonymous GraphQL limit and decr
   assert.equal(first.ok && first.headers.limit, 30)
   assert.equal(first.ok && first.headers.remaining, 29)
   assert.equal(second.ok && second.headers.remaining, 28)
+  assert.equal(first.ok && first.headers.retryAfter, undefined)
+  assert.equal(second.ok && second.headers.retryAfter, undefined)
   assert.equal(redis.getCount('graphql:anon:203.0.113.10'), 2)
 })
 
@@ -78,6 +80,7 @@ test('ApiRateLimiter blocks the first request beyond the rolling window limit', 
   })
 
   for (let index = 0; index < 30; index += 1) {
+    // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeAnonymousGraphql('198.51.100.1')
     assert.equal(decision.ok, true)
     now += 1
@@ -109,6 +112,7 @@ test('ApiRateLimiter allows a request after the oldest entry ages out of the sli
   })
 
   for (let index = 0; index < 30; index += 1) {
+    // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeAnonymousGraphql('192.0.2.25')
     assert.equal(decision.ok, true)
     now += 1
@@ -120,7 +124,7 @@ test('ApiRateLimiter allows a request after the oldest entry ages out of the sli
   assert.equal(allowed.ok, true)
   assert.equal(allowed.ok && allowed.headers.remaining, 1)
   assert.equal(allowed.ok && allowed.headers.reset, 62)
-  assert.equal(allowed.ok && allowed.headers.retryAfter, 1)
+  assert.equal(allowed.ok && allowed.headers.retryAfter, undefined)
 })
 
 test('ApiRateLimiter does not allow fixed-window bursts across a minute boundary', async () => {
@@ -134,6 +138,7 @@ test('ApiRateLimiter does not allow fixed-window bursts across a minute boundary
   })
 
   for (let index = 0; index < 30; index += 1) {
+    // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeAnonymousGraphql('203.0.113.50')
     assert.equal(decision.ok, true)
   }
@@ -180,6 +185,7 @@ test('ApiRateLimiter applies sliding-window limits to invalid API key attempts',
   })
 
   for (let index = 0; index < 20; index += 1) {
+    // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeInvalidApiKeyAttempt('198.51.100.20')
     assert.equal(decision.ok, true)
   }
@@ -202,6 +208,7 @@ test('ApiRateLimiter applies sliding-window limits to SSE connect attempts', asy
   })
 
   for (let index = 0; index < 10; index += 1) {
+    // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeSseConnect('key-sse')
     assert.equal(decision.ok, true)
   }

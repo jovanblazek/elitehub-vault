@@ -46,7 +46,6 @@ test('graphqlRoute rate-limits anonymous GET requests by IP and forwards on succ
         limit: 30,
         remaining: 29,
         reset: 123,
-        retryAfter: 60,
       },
     }
   }
@@ -63,7 +62,7 @@ test('graphqlRoute rate-limits anonymous GET requests by IP and forwards on succ
   assert.equal(ctx.responseHeaders.get('X-RateLimit-Limit'), '30')
   assert.equal(ctx.responseHeaders.get('X-RateLimit-Remaining'), '29')
   assert.equal(ctx.responseHeaders.get('X-RateLimit-Reset'), '123')
-  assert.equal(ctx.responseHeaders.get('Retry-After'), '60')
+  assert.equal(ctx.responseHeaders.get('Retry-After'), undefined)
 })
 
 test('graphqlRoute resolves API keys and applies the authenticated rpm limit on POST', async (t) => {
@@ -101,7 +100,6 @@ test('graphqlRoute resolves API keys and applies the authenticated rpm limit on 
         limit,
         remaining: 76,
         reset: 555,
-        retryAfter: 60,
       },
     }
   }
@@ -144,7 +142,6 @@ test('requireApiKey rate-limits repeated invalid API key attempts and returns 40
         limit: 20,
         remaining: 19,
         reset: 800,
-        retryAfter: 60,
       },
     }
   }

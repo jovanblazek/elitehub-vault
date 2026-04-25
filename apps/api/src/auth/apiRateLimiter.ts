@@ -86,17 +86,23 @@ return {1, count + 1, oldestScore}
 const toHeaders = (
   slidingWindowResult: SlidingWindowResult,
   limit: number,
-  now: number
+  now: number,
+  includeRetryAfter = false
 ): RateLimitHeaders => {
   const resetAtMs = slidingWindowResult.oldestTimestampMs + WINDOW_MS
   const msBeforeReset = Math.max(resetAtMs - now, 0)
 
-  return {
+  const headers: RateLimitHeaders = {
     limit,
     remaining: slidingWindowResult.allowed ? Math.max(limit - slidingWindowResult.count, 0) : 0,
     reset: Math.ceil(resetAtMs / 1000),
-    retryAfter: Math.max(1, Math.ceil(msBeforeReset / 1000)),
   }
+
+  if (includeRetryAfter) {
+    headers.retryAfter = Math.max(1, Math.ceil(msBeforeReset / 1000))
+  }
+
+  return headers
 }
 
 export const applyRateLimitHeaders = (ctx: Context, headers: RateLimitHeaders) => {
@@ -172,7 +178,7 @@ export class ApiRateLimiter {
       return {
         ok: false,
         reason: 'rate_limited',
-        headers: toHeaders(slidingWindowResult, limit, now),
+        headers: toHeaders(slidingWindowResult, limit, now, true),
       }
     } catch {
       return {
