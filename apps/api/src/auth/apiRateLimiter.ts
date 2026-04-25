@@ -25,9 +25,9 @@ type ApiRateLimiterOptions = {
   createMemberId?: () => string
 }
 
-const ANONYMOUS_GRAPHQL_LIMIT = 30
-const INVALID_API_KEY_ATTEMPT_LIMIT = 20
-const SSE_CONNECT_LIMIT = 10
+const ANONYMOUS_GRAPHQL_REQUESTS_PER_MINUTE = 30
+const INVALID_API_KEY_ATTEMPTS_PER_MINUTE = 20
+const SSE_CONNECT_ATTEMPTS_PER_MINUTE = 10
 const WINDOW_SECONDS = 60
 const WINDOW_MS = WINDOW_SECONDS * 1000
 const KEY_TTL_SECONDS = WINDOW_SECONDS + 5
@@ -125,7 +125,7 @@ export class ApiRateLimiter {
   }
 
   async consumeAnonymousGraphql(ipAddress: string): Promise<RateLimitDecision> {
-    return this.consume(`graphql:anon:${ipAddress}`, ANONYMOUS_GRAPHQL_LIMIT)
+    return this.consume(`graphql:anon:${ipAddress}`, ANONYMOUS_GRAPHQL_REQUESTS_PER_MINUTE)
   }
 
   async consumeAuthenticatedGraphql(apiKeyId: string, limit: number): Promise<RateLimitDecision> {
@@ -133,11 +133,11 @@ export class ApiRateLimiter {
   }
 
   async consumeInvalidApiKeyAttempt(ipAddress: string): Promise<RateLimitDecision> {
-    return this.consume(`auth:invalid:${ipAddress}`, INVALID_API_KEY_ATTEMPT_LIMIT)
+    return this.consume(`auth:invalid:${ipAddress}`, INVALID_API_KEY_ATTEMPTS_PER_MINUTE)
   }
 
   async consumeSseConnect(apiKeyId: string): Promise<RateLimitDecision> {
-    return this.consume(`sse:connect:${apiKeyId}`, SSE_CONNECT_LIMIT)
+    return this.consume(`sse:connect:${apiKeyId}`, SSE_CONNECT_ATTEMPTS_PER_MINUTE)
   }
 
   private async consume(key: string, limit: number): Promise<RateLimitDecision> {
