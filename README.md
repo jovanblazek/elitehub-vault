@@ -36,7 +36,9 @@ EliteHub Vault provides:
 
 ### Authentication
 
-All protected API requests require an **API key** in the `X-API-Key` header:
+EliteHub Vault has a small free tier for GraphQL queries. You can call `POST /graphql` without an API key for light usage.
+
+If you need higher GraphQL limits or access to the realtime SSE stream, request an **API key** and send it in the `X-API-Key` header:
 
 ```bash
 curl -H "X-API-Key: your-api-key" https://your-endpoint/graphql
@@ -59,6 +61,8 @@ If you have not used GraphQL before, the short version is: you ask for exactly t
 Use `POST /graphql` for requests from your application, script, or backend.
 
 Use `GET /graphql` when you want the interactive GraphiQL explorer. You can view it by opening the API URL directly in your browser. GraphiQL is available in production, so you can inspect the schema, discover available fields, and test queries before writing code. If you define the `X-API-Key` header in GraphiQL, you can also run queries there directly.
+
+For small-scale usage, you can query the GraphQL API without an API key. If you need higher request limits, use an API key.
 
 Typical workflow:
 
@@ -151,6 +155,16 @@ The response mirrors the query structure:
 
 Minimal `curl` example:
 
+Without API key:
+
+```bash
+curl https://your-endpoint/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"query MyQuery { factionByName(name: \"Anti Xeno Initiative\") { id name factionConflicts { edges { node { id factionWonDays opponentWonDays opponentFaction { id name } system { name } } cursor } } } }"}'
+```
+
+With API key for higher limits:
+
 ```bash
 curl https://your-endpoint/graphql \
   -H "Content-Type: application/json" \
@@ -162,8 +176,9 @@ curl https://your-endpoint/graphql \
 
 `GET /realtime/sse` opens a long-lived `text/event-stream` response. Every connection must include:
 
-- `eventType=<type>`
-- a routing key filter matching that event type
+- an API key in the `X-API-Key` header
+- `eventType=<type>` parameter
+- one or more routing key parameters from table below
 
 Supported search params:
 
@@ -219,8 +234,9 @@ Event payloads are sent in the SSE `data` field as JSON and are intentionally le
 
 ### Rate Limits
 
-- **GraphQL:** 60 requests per minute per API key (subject to change)
-- **SSE:** concurrent connection limit per API key (`maxSseConnections`, default `3`, subject to change)
+- **GraphQL free tier:** limited anonymous access for light usage
+- **GraphQL with API key:** higher per-key request limits
+- **SSE:** concurrent connection limit per API key
 - Rate limit headers are included in GraphQL responses
 
 ### Support
