@@ -16,7 +16,9 @@ const SUMMARY_INTERVAL_MS = 30_000
 const LEASE_HEARTBEAT_INTERVAL_MS = 30_000
 
 const sseMetrics = new SseMetrics()
-const connectionLimiter = new RedisSseConnectionLimiter()
+const connectionLimiter = new RedisSseConnectionLimiter({
+  redisClient: Redis,
+})
 let lastSummaryLogSignature: string | null = null
 
 const redisSubscriber = Redis.duplicate()
@@ -107,6 +109,12 @@ const summaryInterval = setInterval(() => {
   logger.info(summaryLog, '[SSE] Summary')
 }, SUMMARY_INTERVAL_MS)
 summaryInterval.unref()
+
+export const initializeRealtimeSse = async () => {
+  // We cannot do this if we run more than one instance of the API
+  // It's a workaround to ensure state parity between api and redis in case api restarts
+  await connectionLimiter.clearAllLeases()
+}
 
 export const openRealtimeSseConnection = async (ctx: Context, apiKey: AuthorizedApiKey) => {
   const requestUrl = new URL(ctx.req.url ?? '', `http://${ctx.host}`)
