@@ -24,7 +24,7 @@
     "@haathie/postgraphile-reasonable-limits": "0.2.0",
     "@sentry/node": "10.51.0",
     "@t3-oss/env-core": "0.13.11",
-    "drizzle-orm": "0.45.1",
+    "drizzle-orm": "0.45.2",
     "ioredis": "5.10.1",
     "koa": "3.2.0",
     "koa-bodyparser": "4.4.1",
