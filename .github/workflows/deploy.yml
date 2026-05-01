@@ -1,9 +1,9 @@
 name: Deploy Production
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  workflow_run:
+    workflows: ['Release']
+    types: [completed]
   workflow_dispatch:
 
 concurrency:
@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   validate:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -21,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,6 +57,7 @@ jobs:
         run: pnpm test
 
   deploy:
+    if: ${{ always() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'workflow_dispatch' && needs.validate.result == 'success')) }}
     needs: validate
     runs-on: ubuntu-latest
     env:
@@ -66,11 +68,13 @@ jobs:
       COOLIFY_EDDN_WORKER_UUID: ${{ secrets.COOLIFY_EDDN_WORKER_UUID }}
       COOLIFY_DB_MIGRATOR_UUID: ${{ secrets.COOLIFY_DB_MIGRATOR_UUID }}
       WORKER_DRAIN_SECONDS: ${{ vars.WORKER_DRAIN_SECONDS || '20' }}
-      SENTRY_RELEASE: ${{ github.ref_name }}
+      SENTRY_RELEASE: ${{ github.event.workflow_run.head_branch || github.ref_name }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Validate deploy configuration
         shell: bash
