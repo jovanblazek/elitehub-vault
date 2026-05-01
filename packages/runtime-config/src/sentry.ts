@@ -32,6 +32,18 @@ export const initializeSentry = ({
       },
     },
     tracesSampler: ({ attributes, inheritOrSampleWith }) => {
+      const normalizedRequest = attributes?.normalizedRequest as
+        | { method?: string; url?: string }
+        | undefined
+
+      // Do not sample SSE requests, because of long running connections they skew the latency metrics.
+      if (
+        normalizedRequest?.method === 'GET' &&
+        normalizedRequest.url?.startsWith('/realtime/sse')
+      ) {
+        return 0
+      }
+
       if (!isProduction) {
         if (attributes?.['sentry.op'] === 'queue.process') {
           return 0.03
