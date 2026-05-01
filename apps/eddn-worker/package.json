@@ -15,15 +15,15 @@
     "@elitehub/eddn-contracts": "workspace:*",
     "@elitehub/queue-contracts": "workspace:*",
     "@elitehub/runtime-config": "workspace:*",
-    "@sentry/node": "^10.32.1",
-    "@t3-oss/env-core": "^0.13.11",
-    "bullmq": "^5.58.5",
+    "@sentry/node": "10.51.0",
+    "@t3-oss/env-core": "0.13.11",
+    "bullmq": "5.76.4",
     "drizzle-orm": "0.45.1",
     "drizzle-zod": "0.8.3",
-    "zod": "^4.1.12"
+    "zod": "4.4.1"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
-    "tsx": "^4.21.0"
+    "tsx": "4.21.0"
   }
 }

@@ -25,22 +25,22 @@
   "author": "jovanblazek",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@types/koa": "^3.0.0",
-    "@types/koa-bodyparser": "^4.3.13",
+    "@types/koa": "3.0.2",
+    "@types/koa-bodyparser": "4.3.13",
     "@types/node": "^24.3.1",
-    "@types/pg": "^8.15.5",
+    "@types/pg": "8.20.0",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "13.0.1",
     "@semantic-release/exec": "7.1.0",
     "@semantic-release/git": "10.0.1",
     "@semantic-release/github": "12.0.6",
     "@semantic-release/release-notes-generator": "14.1.0",
-    "oxlint": "^1.31.0",
-    "prettier": "^3.6.2",
+    "oxlint": "1.62.0",
+    "prettier": "3.8.3",
     "semantic-release": "25.0.3",
     "tsconfig-paths": "4.2.0",
-    "turbo": "^2.9.3",
-    "typescript": "^5.9.2"
+    "turbo": "2.9.7",
+    "typescript": "5.9.2"
   },
   "engines": {
     "node": "^22.14.0"
