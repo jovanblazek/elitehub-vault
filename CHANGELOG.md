@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/jovanblazek/elitehub-vault/compare/v0.2.0...v0.2.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* Remove SSE endpoint sampling ([#21](https://github.com/jovanblazek/elitehub-vault/issues/21)) ([0dd78d2](https://github.com/jovanblazek/elitehub-vault/commit/0dd78d24cd8a4c4b473c20c0d1f93bfbf1b466d9))
+
 # [0.2.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.1.0...v0.2.0) (2026-05-01)
 
 
