@@ -15,6 +15,7 @@ export const env = createEnv({
     ...baseServerEnvSchema,
     ...redisServerEnvSchema,
     ...postgresServerEnvSchema,
+    API_KEY_SECRET_PEPPER: z.string().min(32),
     PORT: z.coerce.number().int().positive().default(3000),
   },
   runtimeEnv: process.env,

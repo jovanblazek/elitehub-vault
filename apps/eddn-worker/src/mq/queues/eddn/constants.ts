@@ -11,7 +11,7 @@ import {
   FactionConflictStatus,
 } from '@elitehub/db/schema'
 
-export const SystemSecurityMap = {
+const SystemSecurityMap = {
   '$galaxy_map_info_state_anarchy;': SystemSecurity.Anarchy,
   anarchy: SystemSecurity.Anarchy,
   '$galaxy_map_info_state_lawless;': SystemSecurity.Anarchy,
@@ -24,7 +24,7 @@ export const SystemSecurityMap = {
   low: SystemSecurity.Low,
 }
 
-export const FactionStateMap = {
+const FactionStateMap = {
   null: null,
   none: null,
   boom: FactionState.Boom,
@@ -49,7 +49,7 @@ export const FactionStateMap = {
   terrorism: FactionState.TerroristAttack,
 }
 
-export const AllegianceMap = {
+const AllegianceMap = {
   alliance: Allegiance.Alliance,
   empire: Allegiance.Empire,
   federation: Allegiance.Federation,
@@ -61,7 +61,7 @@ export const AllegianceMap = {
   guardian: Allegiance.Guardians,
 }
 
-export const EconomyMap = {
+const EconomyMap = {
   '$economy_agri;': Economy.Agriculture,
   agri: Economy.Agriculture,
   agriculture: Economy.Agriculture,
@@ -94,7 +94,7 @@ export const EconomyMap = {
   damaged: Economy.Damaged,
 }
 
-export const FactionGovernmentMap = {
+const FactionGovernmentMap = {
   '$government_anarchy;': FactionGovernment.Anarchy,
   anarchy: FactionGovernment.Anarchy,
   '$government_communism;': FactionGovernment.Communism,
@@ -129,7 +129,7 @@ export const FactionGovernmentMap = {
 }
 
 // Inspired by EDSM https://github.com/EDSM-NET/Alias/blob/master/Station/Type.php
-export const StationTypeMap = {
+const StationTypeMap = {
   // Coriolis
   coriolis: StationType.Coriolis,
   'coriolis starport': StationType.Coriolis,
@@ -165,7 +165,7 @@ export const StationTypeMap = {
   onfootsettlement: StationType.OnFootSettlement,
 }
 
-export const FactionHappinessMap = {
+const FactionHappinessMap = {
   '$faction_happinessband1;': FactionHappiness.Elated,
   happinessband1: FactionHappiness.Elated,
   '$faction_happinessband2;': FactionHappiness.Happy,
@@ -179,19 +179,19 @@ export const FactionHappinessMap = {
   none: null,
 }
 
-export const FactionConflictTypeMap = {
+const FactionConflictTypeMap = {
   civilwar: FactionConflictType.CivilWar,
   election: FactionConflictType.Election,
   war: FactionConflictType.War,
 }
 
-export const FactionConflictStatusMap = {
+const FactionConflictStatusMap = {
   pending: FactionConflictStatus.Pending,
   active: FactionConflictStatus.Active,
   '': FactionConflictStatus.Concluded,
 }
 
-export const PowerplayStateMap = {
+const PowerplayStateMap = {
   unoccupied: PowerplayState.Unoccupied,
   stronghold: PowerplayState.Stronghold,
   exploited: PowerplayState.Exploited,

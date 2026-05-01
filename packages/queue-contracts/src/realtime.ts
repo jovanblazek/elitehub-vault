@@ -41,8 +41,7 @@ export type FactionStateKind = z.infer<typeof FactionStateKindSchema>
 export type FactionStateLifecycle = z.infer<typeof FactionStateLifecycleSchema>
 export type FactionControlThreatStatus = z.infer<typeof FactionControlThreatStatusSchema>
 
-const timestampFromCreatedAt = (createdAt: Date | string) =>
-  createdAt instanceof Date ? createdAt.toISOString() : createdAt
+const timestampFromCreatedAt = (createdAt: Date | string) => new Date(createdAt).toISOString()
 
 export const SystemPowerplayUpdatedOutboxPayloadSchema = z.object({
   systemId: z.string(),
@@ -253,7 +252,7 @@ export const buildFactionControlThreatChangedPayload = (args: {
 
 export const buildSystemPowerplayUpdatedPowerScopedPayload = (args: {
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
   powerId: string
 }): SystemPowerplayUpdatedPayload | null => {
   const parsedPayload = parseSystemPowerplayUpdatedOutboxPayload(args.outboxPayload)
@@ -272,7 +271,7 @@ export const buildSystemPowerplayUpdatedPowerScopedPayload = (args: {
 
 export const buildFactionPresenceChangedPublishTarget = (args: {
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
 }): { channel: string; payload: FactionPresenceChangedPayload } | null => {
   const parsedPayload = parseFactionPresenceChangedOutboxPayload(args.outboxPayload)
   if (!parsedPayload) {
@@ -292,7 +291,7 @@ export const buildFactionPresenceChangedPublishTarget = (args: {
 
 export const buildFactionStateChangedPublishTarget = (args: {
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
 }): { channel: string; payload: FactionStateChangedPayload } | null => {
   const parsedPayload = parseFactionStateChangedOutboxPayload(args.outboxPayload)
   if (!parsedPayload) {
@@ -315,7 +314,7 @@ export const buildFactionStateChangedPublishTarget = (args: {
 
 export const buildFactionControlThreatChangedPublishTarget = (args: {
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
 }): { channel: string; payload: FactionControlThreatChangedPayload } | null => {
   const parsedPayload = parseFactionControlThreatChangedOutboxPayload(args.outboxPayload)
   if (!parsedPayload) {
@@ -338,7 +337,7 @@ export const buildFactionControlThreatChangedPublishTarget = (args: {
 
 export const buildSystemPowerplayPublishTargets = (args: {
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
   powerIds: string[]
 }): { channel: string; payload: SystemPowerplayUpdatedPayload }[] => {
   const targets = []

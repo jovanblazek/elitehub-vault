@@ -11,6 +11,7 @@ import * as Sentry from '@sentry/node'
 import { defaultMaskError } from 'postgraphile/grafserv'
 import { OTELPlugin } from '@haathie/postgraphile-otel'
 import { env } from '../env.js'
+import { getApiConsumerFromRequestContext } from './requestContext.js'
 
 const IS_DEVELOPMENT = env.NODE_ENV === 'development'
 
@@ -38,9 +39,10 @@ const PGL_Preset: GraphileConfig.Preset = {
       /** Execution timeout in ms */
       execution: 10_000,
     },
-    context(requestContext) {
+    context(requestContext, args) {
       return {
-        apiKey: requestContext.http?.getHeader('x-api-key') as string | undefined,
+        ...args.contextValue,
+        apiConsumer: getApiConsumerFromRequestContext(requestContext),
       }
     },
   },

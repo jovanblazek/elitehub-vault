@@ -26,6 +26,7 @@ const isTestEnvironment = process.env.NODE_ENV === 'test'
 export const baseServerEnvSchema = {
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.string().min(1).optional(),
+  API_KEY_SECRET_PEPPER: z.string().min(32).optional(),
   SENTRY_DSN_API: z.url().optional(),
   SENTRY_DSN_EDDN_WORKER: z.url().optional(),
   SENTRY_DSN_EDDN_LISTENER: z.url().optional(),

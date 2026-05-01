@@ -1,55 +1,108 @@
 import type { Context } from 'koa'
-import { env } from '../../env.js'
-import logger from '../../utils/logger.js'
-import { validateApiKey } from '../../auth/apiKeyValidator.js'
+import { apiKeyResolver, type ApiConsumerResolution } from '../../auth/apiKeyResolver.js'
+import { apiRateLimiter, applyRateLimitHeaders } from '../../auth/apiRateLimiter.js'
+import { type ApiConsumer, type ApiKeyConsumer, isApiKeyConsumer } from '../../auth/apiConsumer.js'
 
-const isDevelopmentEnvironment = () => env.NODE_ENV === 'development'
-
-export type AuthorizedApiKey = {
-  apiKeyId: string
-  keyName: string
-  maxSseConnections: number
-}
-
-const developmentApiKey: AuthorizedApiKey = {
-  apiKeyId: 'development',
-  keyName: 'development',
-  maxSseConnections: Number.MAX_SAFE_INTEGER,
-}
-
-export const requireApiKey = async (ctx: Context): Promise<AuthorizedApiKey | null> => {
-  if (isDevelopmentEnvironment()) {
-    return developmentApiKey
+const respondWithRateLimitError = (ctx: Context) => {
+  ctx.status = 429
+  ctx.body = {
+    error: 'rate_limit_exceeded',
+    message: 'Rate limit exceeded. Please try again later.',
   }
+}
 
-  const apiKey = ctx.headers['x-api-key']?.toString()
-  const validationResult = await validateApiKey(apiKey)
+const respondWithServiceUnavailable = (ctx: Context) => {
+  ctx.status = 503
+  ctx.body = {
+    error: 'service_unavailable',
+    message: 'The API is temporarily unavailable. Please try again later.',
+  }
+}
 
-  if (!validationResult.ok) {
-    if (validationResult.reason === 'internal_error') {
-      ctx.status = 500
-      ctx.body = {
-        error: 'Internal Server Error',
-        message: 'Failed to validate API key',
-      }
+const respondWithInvalidApiKey = async (ctx: Context) => {
+  const invalidAttemptDecision = await apiRateLimiter.consumeInvalidApiKeyAttempt(ctx.ip)
+  if (!invalidAttemptDecision.ok) {
+    if (invalidAttemptDecision.reason === 'service_unavailable') {
+      respondWithServiceUnavailable(ctx)
       return null
     }
 
+    if (invalidAttemptDecision.headers) {
+      applyRateLimitHeaders(ctx, invalidAttemptDecision.headers)
+    }
+    respondWithRateLimitError(ctx)
+    return null
+  }
+
+  applyRateLimitHeaders(ctx, invalidAttemptDecision.headers)
+  ctx.status = 401
+  ctx.body = {
+    error: 'Unauthorized',
+    message: 'Invalid or inactive API key',
+  }
+  return null
+}
+
+const resolveApiConsumerFromHeader = async (
+  ctx: Context
+): Promise<ApiConsumerResolution> => {
+  const apiKey = ctx.headers['x-api-key']?.toString()
+  return apiKeyResolver.resolve(apiKey)
+}
+
+export const resolveApiConsumer = async (ctx: Context): Promise<ApiConsumer | null> => {
+  const resolution = await resolveApiConsumerFromHeader(ctx)
+  if (!resolution.ok) {
+    if (resolution.reason === 'service_unavailable') {
+      respondWithServiceUnavailable(ctx)
+      return null
+    }
+
+    return respondWithInvalidApiKey(ctx)
+  }
+
+  ctx.state.apiConsumer = resolution.consumer
+  return resolution.consumer
+}
+
+export const requireApiKey = async (ctx: Context) => {
+  const consumer = await resolveApiConsumer(ctx)
+  if (!consumer) {
+    return null
+  }
+
+  if (!isApiKeyConsumer(consumer)) {
     ctx.status = 401
     ctx.body = {
       error: 'Unauthorized',
-      message: validationResult.reason === 'missing' ? 'API key is required' : 'Invalid or inactive API key',
+      message: 'API key is required',
     }
     return null
   }
 
-  logger.debug(
-    {
-      apiKeyId: validationResult.apiKeyId,
-      keyName: validationResult.keyName,
-      maxSseConnections: validationResult.maxSseConnections,
-    },
-    '[ApiKeyAuth] Valid API key used'
-  )
-  return validationResult
+  return consumer
+}
+
+export type AuthorizedApiKey = ApiKeyConsumer
+
+export const respondWithRateLimitDecision = (
+  ctx: Context,
+  decision: Awaited<ReturnType<typeof apiRateLimiter.consumeAnonymousGraphql>>
+) => {
+  if (decision.ok) {
+    applyRateLimitHeaders(ctx, decision.headers)
+    return true
+  }
+
+  if (decision.headers) {
+    applyRateLimitHeaders(ctx, decision.headers)
+  }
+
+  if (decision.reason === 'service_unavailable') {
+    respondWithServiceUnavailable(ctx)
+    return false
+  }
+
+  respondWithRateLimitError(ctx)
+  return false
 }

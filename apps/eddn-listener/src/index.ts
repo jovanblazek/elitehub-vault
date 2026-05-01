@@ -5,12 +5,10 @@ import { Queue } from 'bullmq'
 import { Subscriber } from 'zeromq'
 import zlib from 'zlib'
 import { EDDN_URL, isSupportedEddnMessage, type EDDNJournalMessage } from '@elitehub/eddn-contracts'
-import {
-  createEddnQueueOptions,
-  EDDN_JOURNAL_PROCESS_JOB_NAME,
-  QueueNames,
-} from '@elitehub/queue-contracts'
+import { createEddnQueueOptions, QueueNames } from '@elitehub/queue-contracts'
+import { createEnqueueHeartbeatMonitor } from './enqueueHeartbeatMonitor.js'
 import logger from './logger.js'
+import { addToQueueOrThrow } from './queuePublisher.js'
 import { startQueueMonitor } from './queueMonitor.js'
 import { Redis } from './redis.js'
 
@@ -19,6 +17,7 @@ const queue = new Queue<EDDNJournalMessage>(QueueNames.eddn, createEddnQueueOpti
 let socket: Subscriber | null = null
 let isShuttingDown = false
 let stopQueueMonitor: (() => void) | null = null
+const enqueueHeartbeatMonitor = createEnqueueHeartbeatMonitor()
 
 const shutdown = async () => {
   if (isShuttingDown) {
@@ -32,6 +31,8 @@ const shutdown = async () => {
     stopQueueMonitor()
     stopQueueMonitor = null
   }
+
+  enqueueHeartbeatMonitor.stop()
 
   socket?.close()
   await queue.close()
@@ -49,6 +50,7 @@ process.on('SIGINT', () => {
 
 const run = async () => {
   stopQueueMonitor = startQueueMonitor(queue)
+  enqueueHeartbeatMonitor.start()
 
   socket = new Subscriber()
   socket.connect(EDDN_URL)
@@ -70,10 +72,8 @@ const run = async () => {
         continue
       }
 
-      await queue.add(
-        `${EDDN_JOURNAL_PROCESS_JOB_NAME}:${message.message.event}:${message.message.StarSystem}`,
-        message
-      )
+      await addToQueueOrThrow(queue, message)
+      enqueueHeartbeatMonitor.markEnqueueSuccess()
     } catch (error) {
       logger.error(error, '[EDDN Listener] Message processing failed')
       Sentry.captureException(error, {

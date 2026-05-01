@@ -379,8 +379,10 @@ export const PowerplayConflicts = pgTable(
 export const ApiKeys = pgTable('apiKeys', {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
-  key: text().notNull().unique(),
+  publicId: text().notNull().unique(),
+  secretHash: text().notNull(),
   isActive: boolean().notNull().default(true),
+  rpmLimit: integer().notNull().default(60),
   maxSseConnections: integer().notNull().default(3),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),

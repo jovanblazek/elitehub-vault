@@ -1,27 +1,21 @@
 import type { EDDNJournalLocationMessage } from '@elitehub/eddn-contracts'
 import { db } from '../../../../db/db.js'
 import {
-  upsertSystem,
   buildFullSystemData,
-  processPowerplayData,
-  processFactionsData,
-  upsertStationFromLocation,
-  shouldDeleteSystem,
-  deleteSystem,
-} from '../helpers/index.js'
-import logger from '../../../../utils/logger.js'
+  shouldUpsertSystem,
+  upsertSystem,
+} from '../helpers/systemHelpers.js'
+import { processPowerplayData } from '../helpers/powerplayHelpers.js'
+import { processFactionsData } from '../helpers/factionHelpers.js'
+import { upsertStationFromLocation } from '../helpers/stationHelpers.js'
+import { applyEddnTransactionTimeouts } from '../helpers/transactionTimeouts.js'
 
 export const processLocationEvent = async (message: EDDNJournalLocationMessage) => {
   await db.transaction(async (tx) => {
+    await applyEddnTransactionTimeouts(tx)
+
     const systemData = buildFullSystemData(message)
-    if (shouldDeleteSystem(systemData)) {
-      const deleted = await deleteSystem(tx, systemData.systemAddress)
-      if (deleted) {
-        logger.info(
-          { systemAddress: systemData.systemAddress, systemName: systemData.name },
-          '[Location] Deleted system with 0 population and null government'
-        )
-      }
+    if (!shouldUpsertSystem(message, systemData)) {
       return
     }
 

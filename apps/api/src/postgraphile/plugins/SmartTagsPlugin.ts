@@ -35,6 +35,13 @@ export const SmartTagsPlugin = jsonPgSmartTags({
         },
       },
     },
+    attribute: {
+      'factionStates.influence': {
+        tags: {
+          behavior: '+orderBy',
+        },
+      },
+    },
     procedure: {
       refresh_system_faction_control_threat: {
         tags: {

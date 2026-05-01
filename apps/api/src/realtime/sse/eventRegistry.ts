@@ -61,7 +61,7 @@ export type RealtimeEventType =
   | typeof FACTION_STATE_CHANGED_EVENT
   | typeof FACTION_CONTROL_THREAT_CHANGED_EVENT
 
-export type RealtimeEventSpec = {
+type RealtimeEventSpec = {
   eventType: RealtimeEventType
   routingKeyParam: 'powerId' | 'factionId'
   getChannel: (routingKey: string) => string
@@ -90,14 +90,16 @@ const parsePayload = <TPayload extends RealtimePayload>(
   return payload.data
 }
 
-const parseRoutingKeyFromChannel = (prefix: string) => (channel: string): string | null => {
-  if (!channel.startsWith(prefix)) {
-    return null
-  }
+const parseRoutingKeyFromChannel =
+  (prefix: string) =>
+  (channel: string): string | null => {
+    if (!channel.startsWith(prefix)) {
+      return null
+    }
 
-  const routingKey = channel.slice(prefix.length)
-  return routingKey.length > 0 ? routingKey : null
-}
+    const routingKey = channel.slice(prefix.length)
+    return routingKey.length > 0 ? routingKey : null
+  }
 
 const matchesSystemIdFilter = (connection: SseConnectionFilter, payload: RealtimePayload) => {
   if (!connection.systemIdAllowlist) {
@@ -121,7 +123,9 @@ const RealtimeEventSpecs: Record<RealtimeEventType, RealtimeEventSpec> = {
     eventType: FACTION_PRESENCE_CHANGED_EVENT,
     routingKeyParam: 'factionId',
     getChannel: getFactionPresenceChangedFactionChannel,
-    parseRoutingKeyFromChannel: parseRoutingKeyFromChannel('events:factionPresenceChanged:faction:'),
+    parseRoutingKeyFromChannel: parseRoutingKeyFromChannel(
+      'events:factionPresenceChanged:faction:'
+    ),
     parsePayload: (message) => parsePayload(message, FactionPresenceChangedPayloadSchema),
     matchesConnectionFilters: matchesSystemIdFilter,
     toSseData: (payload) => JSON.stringify(payload),

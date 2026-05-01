@@ -10,7 +10,7 @@ import {
   type RealtimePayload,
 } from '@elitehub/queue-contracts'
 
-export type RealtimePublishTarget = {
+type RealtimePublishTarget = {
   channel: string
   payload: RealtimePayload
 }
@@ -18,7 +18,7 @@ export type RealtimePublishTarget = {
 export const buildPublishTargetsForOutboxRow = (args: {
   eventType: string
   outboxPayload: unknown
-  createdAt: Date
+  createdAt: Date | string
   powerIds?: string[]
 }): RealtimePublishTarget[] | null => {
   switch (args.eventType) {
