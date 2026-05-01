@@ -18,11 +18,11 @@
   },
   "dependencies": {
     "@elitehub/eddn-contracts": "workspace:*",
-    "bullmq": "^5.58.5",
-    "zod": "^4.1.12"
+    "bullmq": "5.76.4",
+    "zod": "4.4.1"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
-    "tsx": "^4.21.0"
+    "tsx": "4.21.0"
   }
 }
