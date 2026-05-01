@@ -75,70 +75,69 @@ jobs:
       - name: Validate deploy configuration
         shell: bash
         run: |
-          # Ensure all required Coolify identifiers and tokens are present
-          # before we start touching production.
           source .github/scripts/coolify.sh
           validate_deploy_config
 
-      - name: Pin Coolify apps to this commit
+      - name: Pin migrator helper to this commit
         shell: bash
         run: |
-          # Force all deployable Coolify apps to use the exact same git SHA.
-          # This avoids one app picking up a different commit than the others.
           source .github/scripts/coolify.sh
-          pin_app_to_commit "${COOLIFY_API_UUID}" "${GITHUB_SHA}"
-          pin_app_to_commit "${COOLIFY_EDDN_LISTENER_UUID}" "${GITHUB_SHA}"
-          pin_app_to_commit "${COOLIFY_EDDN_WORKER_UUID}" "${GITHUB_SHA}"
           pin_app_to_commit "${COOLIFY_DB_MIGRATOR_UUID}" "${GITHUB_SHA}"
-
-      - name: Set SENTRY release on Coolify apps
-        shell: bash
-        run: |
-          # Keep runtime Sentry release metadata aligned with the Git tag that
-          # triggered this deployment.
-          source .github/scripts/coolify.sh
-          set_app_env "${COOLIFY_API_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
-          set_app_env "${COOLIFY_EDDN_LISTENER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
-          set_app_env "${COOLIFY_EDDN_WORKER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
 
       - name: Stop eddn-worker and allow it to drain
         shell: bash
         run: |
-          # Stop the worker before running migrations so it does not write
-          # against a schema that is in the middle of changing.
           source .github/scripts/coolify.sh
           stop_app "${COOLIFY_EDDN_WORKER_UUID}"
 
-          # Give BullMQ a short drain window so in-flight jobs can finish.
           sleep "${WORKER_DRAIN_SECONDS}"
 
       - name: Run database migrations
+        id: migrate
         shell: bash
         run: |
-          # The migrator app is a helper container. In Coolify it should:
-          # - run `pnpm build && pnpm drizzle:migrate` in the build command
-          # - use `sh -lc 'sleep infinity'` as the start command
-          #
-          # That way the deployment only succeeds if the migration succeeds,
-          # and we can stop the helper container explicitly in the next step.
           source .github/scripts/coolify.sh
           migration_deployment_uuid="$(start_app "${COOLIFY_DB_MIGRATOR_UUID}")"
           wait_for_deployment "${migration_deployment_uuid}" "Migration"
 
-      - name: Stop migrator helper container
+      - name: Stop migrator helper container after migration failure
+        if: ${{ always() && steps.migrate.outcome == 'failure' }}
         shell: bash
         run: |
-          # The migration has already completed at this point, so the helper
-          # container is no longer needed.
           source .github/scripts/coolify.sh
           stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
+
+      - name: Restart eddn-worker if migrations fail
+        if: ${{ always() && steps.migrate.outcome == 'failure' }}
+        shell: bash
+        run: |
+          source .github/scripts/coolify.sh
+          worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
+          wait_for_deployment "${worker_deployment_uuid}" "eddn-worker recovery"
+
+      - name: Stop migrator helper container
+        if: ${{ steps.migrate.outcome == 'success' }}
+        shell: bash
+        run: |
+          source .github/scripts/coolify.sh
+          stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
+
+      - name: Prepare runtime apps for this release
+        shell: bash
+        run: |
+          source .github/scripts/coolify.sh
+
+          pin_app_to_commit "${COOLIFY_API_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_EDDN_LISTENER_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_EDDN_WORKER_UUID}" "${GITHUB_SHA}"
+
+          set_app_env "${COOLIFY_API_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
+          set_app_env "${COOLIFY_EDDN_LISTENER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
+          set_app_env "${COOLIFY_EDDN_WORKER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
 
       - name: Deploy api, eddn-listener, and eddn-worker concurrently
         shell: bash
         run: |
-          # Once migrations are done, the API, listener, and worker can roll
-          # forward in parallel. We queue all three deployments first, then
-          # wait for all three.
           source .github/scripts/coolify.sh
 
           api_deployment_uuid="$(restart_app "${COOLIFY_API_UUID}")"
