@@ -6,20 +6,9 @@ module.exports = {
     '@semantic-release/release-notes-generator',
     ['@semantic-release/changelog', { changelogFile: 'CHANGELOG.md' }],
     [
-      '@semantic-release/exec',
-      {
-        prepareCmd: 'node ./scripts/sync-workspace-versions.mjs ${nextRelease.version}',
-      },
-    ],
-    [
       '@semantic-release/git',
       {
-        assets: [
-          'CHANGELOG.md',
-          'package.json',
-          'apps/*/package.json',
-          'packages/*/package.json',
-        ],
+        assets: ['CHANGELOG.md'],
         message:
           'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
       },

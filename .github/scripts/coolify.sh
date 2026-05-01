@@ -40,6 +40,7 @@ validate_deploy_config() {
     COOLIFY_BASE_URL
     COOLIFY_TOKEN
     COOLIFY_API_UUID
+    COOLIFY_EDDN_LISTENER_UUID
     COOLIFY_EDDN_WORKER_UUID
     COOLIFY_DB_MIGRATOR_UUID
   )
@@ -56,6 +57,23 @@ pin_app_to_commit() {
 
   payload="$(jq -n --arg sha "${commit_sha}" '{ git_commit_sha: $sha }')"
   coolify_api "PATCH" "/applications/${app_uuid}" "${payload}" >/dev/null
+}
+
+set_app_env() {
+  local app_uuid="$1"
+  local key="$2"
+  local value="$3"
+  local payload
+
+  payload="$(jq -n --arg key "${key}" --arg value "${value}" '{
+    key: $key,
+    value: $value,
+    is_literal: true,
+    is_buildtime: false,
+    is_runtime: true
+  }')"
+
+  coolify_api "PATCH" "/applications/${app_uuid}/envs" "${payload}" >/dev/null
 }
 
 extract_deployment_uuid() {

@@ -30,6 +30,7 @@ export const baseServerEnvSchema = {
   SENTRY_DSN_API: z.url().optional(),
   SENTRY_DSN_EDDN_WORKER: z.url().optional(),
   SENTRY_DSN_EDDN_LISTENER: z.url().optional(),
+  SENTRY_RELEASE: z.string().min(1).optional(),
 } as const
 
 export const redisServerEnvSchema = {
