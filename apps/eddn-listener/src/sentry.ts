@@ -5,4 +5,5 @@ import { env } from './env.js'
 initializeSentry({
   serviceName: 'eddn-listener',
   dsn: env.SENTRY_DSN_EDDN_LISTENER,
+  release: env.SENTRY_RELEASE,
 })

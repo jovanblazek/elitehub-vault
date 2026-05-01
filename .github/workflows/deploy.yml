@@ -1,8 +1,9 @@
 name: Deploy Production
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ['Release']
+    types: [completed]
   workflow_dispatch:
 
 concurrency:
@@ -11,6 +12,7 @@ concurrency:
 
 jobs:
   validate:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -19,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -53,80 +57,98 @@ jobs:
         run: pnpm test
 
   deploy:
+    if: ${{ always() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'workflow_dispatch' && needs.validate.result == 'success')) }}
     needs: validate
     runs-on: ubuntu-latest
     env:
       COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
       COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
       COOLIFY_API_UUID: ${{ secrets.COOLIFY_API_UUID }}
+      COOLIFY_EDDN_LISTENER_UUID: ${{ secrets.COOLIFY_EDDN_LISTENER_UUID }}
       COOLIFY_EDDN_WORKER_UUID: ${{ secrets.COOLIFY_EDDN_WORKER_UUID }}
       COOLIFY_DB_MIGRATOR_UUID: ${{ secrets.COOLIFY_DB_MIGRATOR_UUID }}
       WORKER_DRAIN_SECONDS: ${{ vars.WORKER_DRAIN_SECONDS || '20' }}
+      SENTRY_RELEASE: ${{ github.event.workflow_run.head_branch || github.ref_name }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Validate deploy configuration
         shell: bash
         run: |
-          # Ensure all required Coolify identifiers and tokens are present
-          # before we start touching production.
           source .github/scripts/coolify.sh
           validate_deploy_config
 
-      - name: Pin Coolify apps to this commit
+      - name: Pin migrator helper to this commit
         shell: bash
         run: |
-          # Force all three Coolify apps to deploy the exact same git SHA.
-          # This avoids one app picking up a different commit than the others.
           source .github/scripts/coolify.sh
-          pin_app_to_commit "${COOLIFY_API_UUID}" "${GITHUB_SHA}"
-          pin_app_to_commit "${COOLIFY_EDDN_WORKER_UUID}" "${GITHUB_SHA}"
           pin_app_to_commit "${COOLIFY_DB_MIGRATOR_UUID}" "${GITHUB_SHA}"
 
       - name: Stop eddn-worker and allow it to drain
         shell: bash
         run: |
-          # Stop the worker before running migrations so it does not write
-          # against a schema that is in the middle of changing.
           source .github/scripts/coolify.sh
           stop_app "${COOLIFY_EDDN_WORKER_UUID}"
 
-          # Give BullMQ a short drain window so in-flight jobs can finish.
           sleep "${WORKER_DRAIN_SECONDS}"
 
       - name: Run database migrations
+        id: migrate
         shell: bash
         run: |
-          # The migrator app is a helper container. In Coolify it should:
-          # - run `pnpm build && pnpm drizzle:migrate` in the build command
-          # - use `sh -lc 'sleep infinity'` as the start command
-          #
-          # That way the deployment only succeeds if the migration succeeds,
-          # and we can stop the helper container explicitly in the next step.
           source .github/scripts/coolify.sh
           migration_deployment_uuid="$(start_app "${COOLIFY_DB_MIGRATOR_UUID}")"
           wait_for_deployment "${migration_deployment_uuid}" "Migration"
 
-      - name: Stop migrator helper container
+      - name: Stop migrator helper container after migration failure
+        if: ${{ always() && steps.migrate.outcome == 'failure' }}
         shell: bash
         run: |
-          # The migration has already completed at this point, so the helper
-          # container is no longer needed.
           source .github/scripts/coolify.sh
           stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
 
-      - name: Deploy eddn-worker and api concurrently
+      - name: Restart eddn-worker if migrations fail
+        if: ${{ always() && steps.migrate.outcome == 'failure' }}
         shell: bash
         run: |
-          # Once migrations are done, the worker and API can roll forward in
-          # parallel. We queue both deployments first, then wait for both.
+          source .github/scripts/coolify.sh
+          worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
+          wait_for_deployment "${worker_deployment_uuid}" "eddn-worker recovery"
+
+      - name: Stop migrator helper container
+        if: ${{ steps.migrate.outcome == 'success' }}
+        shell: bash
+        run: |
+          source .github/scripts/coolify.sh
+          stop_app "${COOLIFY_DB_MIGRATOR_UUID}"
+
+      - name: Prepare runtime apps for this release
+        shell: bash
+        run: |
+          source .github/scripts/coolify.sh
+
+          pin_app_to_commit "${COOLIFY_API_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_EDDN_LISTENER_UUID}" "${GITHUB_SHA}"
+          pin_app_to_commit "${COOLIFY_EDDN_WORKER_UUID}" "${GITHUB_SHA}"
+
+          set_app_env "${COOLIFY_API_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
+          set_app_env "${COOLIFY_EDDN_LISTENER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
+          set_app_env "${COOLIFY_EDDN_WORKER_UUID}" "SENTRY_RELEASE" "${SENTRY_RELEASE}"
+
+      - name: Deploy api, eddn-listener, and eddn-worker concurrently
+        shell: bash
+        run: |
           source .github/scripts/coolify.sh
 
           api_deployment_uuid="$(restart_app "${COOLIFY_API_UUID}")"
+          listener_deployment_uuid="$(restart_app "${COOLIFY_EDDN_LISTENER_UUID}")"
           worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
 
-          # Wait for both deployments after they have been queued.
+          # Wait for all deployments after they have been queued.
           wait_for_deployment "${api_deployment_uuid}" "api"
+          wait_for_deployment "${listener_deployment_uuid}" "eddn-listener"
           wait_for_deployment "${worker_deployment_uuid}" "eddn-worker"

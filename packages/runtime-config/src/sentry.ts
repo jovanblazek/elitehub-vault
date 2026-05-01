@@ -4,12 +4,14 @@ import { env } from './environment.js'
 type InitializeSentryOptions = {
   serviceName: string
   dsn: string | undefined
+  release?: string
   integrations?: ReturnType<typeof Sentry.koaIntegration>[]
 }
 
 export const initializeSentry = ({
   serviceName,
   dsn,
+  release,
   integrations = [],
 }: InitializeSentryOptions) => {
   const isProduction = env.NODE_ENV === 'production'
@@ -21,6 +23,7 @@ export const initializeSentry = ({
   Sentry.init({
     enabled: isProduction,
     dsn,
+    release,
     environment: env.NODE_ENV,
     serverName: serviceName,
     initialScope: {

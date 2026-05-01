@@ -6,5 +6,6 @@ import { env } from '../env.js'
 initializeSentry({
   serviceName: 'api',
   dsn: env.SENTRY_DSN_API,
+  release: env.SENTRY_RELEASE,
   integrations: [Sentry.koaIntegration(), Sentry.postgresIntegration()],
 })
