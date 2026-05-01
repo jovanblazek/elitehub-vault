@@ -207,7 +207,7 @@ test('ApiRateLimiter applies sliding-window limits to SSE connect attempts', asy
     createMemberId: () => `req-${++memberId}`,
   })
 
-  for (let index = 0; index < 10; index += 1) {
+  for (let index = 0; index < 20; index += 1) {
     // oxlint-disable-next-line no-await-in-loop
     const decision = await limiter.consumeSseConnect('key-sse')
     assert.equal(decision.ok, true)
@@ -216,7 +216,7 @@ test('ApiRateLimiter applies sliding-window limits to SSE connect attempts', asy
   const blocked = await limiter.consumeSseConnect('key-sse')
 
   assert.equal(blocked.ok, false)
-  assert.equal(blocked.ok ? -1 : blocked.headers?.limit, 10)
+  assert.equal(blocked.ok ? -1 : blocked.headers?.limit, 20)
   assert.equal(blocked.ok ? -1 : blocked.headers?.remaining, 0)
 })
 

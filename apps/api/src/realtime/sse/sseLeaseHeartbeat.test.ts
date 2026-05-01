@@ -16,7 +16,9 @@ class FakeResponse extends EventEmitter {
 
 test('RedisSseConnectionLimiter.refreshLease returns false when the lease is missing', async () => {
   const limiter = new RedisSseConnectionLimiter({
-    eval: async () => 0,
+    redisClient: {
+      eval: async () => 0,
+    },
   })
   const refreshed = await limiter.refreshLease('key-1', 'lease-1')
 

@@ -10,6 +10,8 @@ type OpenQuotaDecision = {
   max: number
 }
 
+type TimeSource = () => number
+
 const LEASE_TTL_MS = 90_000
 const LEASE_TTL_SECONDS = Math.ceil(LEASE_TTL_MS / 1000)
 
@@ -36,9 +38,12 @@ return {1, active + 1, maxConnections}
 
 const REFRESH_SCRIPT = `
 local leaseKey = KEYS[1]
-local expiresAt = tonumber(ARGV[1])
-local connectionLeaseId = ARGV[2]
-local ttlSeconds = tonumber(ARGV[3])
+local now = tonumber(ARGV[1])
+local expiresAt = tonumber(ARGV[2])
+local connectionLeaseId = ARGV[3]
+local ttlSeconds = tonumber(ARGV[4])
+
+redis.call('ZREMRANGEBYSCORE', leaseKey, '-inf', now)
 
 if redis.call('ZSCORE', leaseKey, connectionLeaseId) == false then
   return 0
@@ -60,32 +65,35 @@ end
 return 1
 `
 
-type RedisEvalClient = {
+export type SseLeaseRedisClient = {
   eval: (
     script: string,
     numKeys: number,
     key: string,
     ...args: Array<string | number>
   ) => Promise<unknown>
+  keys?: (pattern: string) => Promise<string[]>
+  del?: (...keys: string[]) => Promise<unknown>
 }
 
-const getRedis = async () => {
-  const { Redis } = await import('../../utils/redis.js')
-  return Redis
-}
-
-const defaultRedisClient: RedisEvalClient = {
-  eval: async (script, numKeys, key, ...args) => (await getRedis()).eval(script, numKeys, key, ...args),
+type RedisSseConnectionLimiterOptions = {
+  redisClient: SseLeaseRedisClient
+  now?: TimeSource
 }
 
 export class RedisSseConnectionLimiter {
   private readonly activeByApiKey = new Map<string, number>()
   private activeTotal = 0
+  private readonly redisClient: SseLeaseRedisClient
+  private readonly now: TimeSource
 
-  constructor(private readonly redisClient: RedisEvalClient = defaultRedisClient) {}
+  constructor({ redisClient, now = Date.now }: RedisSseConnectionLimiterOptions) {
+    this.redisClient = redisClient
+    this.now = now
+  }
 
   async tryOpen(input: OpenQuotaInput): Promise<OpenQuotaDecision> {
-    const now = Date.now()
+    const now = this.now()
     const expiresAt = now + LEASE_TTL_MS
     const result = (await this.redisClient.eval(
       ACQUIRE_SCRIPT,
@@ -106,11 +114,13 @@ export class RedisSseConnectionLimiter {
   }
 
   async refreshLease(apiKeyId: string, connectionLeaseId: string): Promise<boolean> {
-    const expiresAt = Date.now() + LEASE_TTL_MS
+    const now = this.now()
+    const expiresAt = now + LEASE_TTL_MS
     const result = (await this.redisClient.eval(
       REFRESH_SCRIPT,
       1,
       getLeaseKey(apiKeyId),
+      now,
       expiresAt,
       connectionLeaseId,
       LEASE_TTL_SECONDS
@@ -121,6 +131,19 @@ export class RedisSseConnectionLimiter {
 
   async releaseLease(apiKeyId: string, connectionLeaseId: string) {
     await this.redisClient.eval(RELEASE_SCRIPT, 1, getLeaseKey(apiKeyId), connectionLeaseId)
+  }
+
+  async clearAllLeases() {
+    if (!this.redisClient.keys || !this.redisClient.del) {
+      throw new Error('Redis client does not support clearing SSE leases')
+    }
+
+    const keys = await this.redisClient.keys('sse:leases:*')
+    if (keys.length === 0) {
+      return
+    }
+
+    await this.redisClient.del(...keys)
   }
 
   onOpen(apiKeyId: string) {
