@@ -33,8 +33,8 @@ importers:
         specifier: 4.3.13
         version: 4.3.13
       '@types/node':
-        specifier: ^24.3.1
-        version: 24.10.4
+        specifier: 22.19.7
+        version: 22.19.7
       '@types/pg':
         specifier: 8.20.0
         version: 8.20.0
@@ -87,8 +87,8 @@ importers:
         specifier: 0.13.11
         version: 0.13.11(typescript@5.9.3)(zod@4.4.1)
       drizzle-orm:
-        specifier: 0.45.1
-        version: 0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+        specifier: 0.45.2
+        version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       ioredis:
         specifier: 5.10.1
         version: 5.10.1
@@ -176,11 +176,11 @@ importers:
         specifier: 5.76.4
         version: 5.76.4
       drizzle-orm:
-        specifier: 0.45.1
-        version: 0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+        specifier: 0.45.2
+        version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       drizzle-zod:
         specifier: 0.8.3
-        version: 0.8.3(drizzle-orm@0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(zod@4.4.1)
+        version: 0.8.3(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(zod@4.4.1)
       zod:
         specifier: 4.4.1
         version: 4.4.1
@@ -201,8 +201,8 @@ importers:
         specifier: 17.4.2
         version: 17.4.2
       drizzle-orm:
-        specifier: 0.45.1
-        version: 0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+        specifier: 0.45.2
+        version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       zod:
         specifier: 4.4.1
         version: 4.4.1
@@ -257,8 +257,8 @@ importers:
         specifier: 5.10.1
         version: 5.10.1
       pino:
-        specifier: 9.14.0
-        version: 9.14.0
+        specifier: 10.3.1
+        version: 10.3.1
       pino-pretty:
         specifier: 13.1.3
         version: 13.1.3
@@ -1908,8 +1908,8 @@ packages:
   '@types/mysql@2.15.27':
     resolution: {integrity: sha512-YfWiV16IY0OeBfBCk8+hXKmdTKrKlwKN1MNKAPBu5JYxLwBEZl7QzeEpGnlZb3VMGJrrGmB84gXiH+ofs/TezA==}
 
-  '@types/node@22.19.3':
-    resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
+  '@types/node@22.19.7':
+    resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
 
   '@types/node@24.10.4':
     resolution: {integrity: sha512-vnDVpYPMzs4wunl27jHrfmwojOGKya0xyM3sH+UE5iv5uPS6vX7UIoh6m+vQc5LGBq52HBKPIn/zcSZVzeDEZg==}
@@ -2282,8 +2282,8 @@ packages:
     resolution: {integrity: sha512-O9EC/miwdnRDY10qRxM8P3Pg8hXe3LyU4ZipReKOgTwn4OqANmftj8XJz1UPUAS6NMHf0E2htjsbQujUTkncCg==}
     hasBin: true
 
-  drizzle-orm@0.45.1:
-    resolution: {integrity: sha512-Te0FOdKIistGNPMq2jscdqngBRfBpC8uMFVwqjf6gtTVJHIQ/dosgV/CLBU2N4ZJBsXL5savCba9b0YJskKdcA==}
+  drizzle-orm@0.45.2:
+    resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -3516,9 +3516,6 @@ packages:
     resolution: {integrity: sha512-C3FsVNH1udSEX48gGX1xfvwTWfsYWj5U+8/uK15BGzIGrKoUpghX8hWZwa/OFnakBiiVNmBvemTJR5mcy7iPcg==}
     engines: {node: '>=4'}
 
-  pino-abstract-transport@2.0.0:
-    resolution: {integrity: sha512-F63x5tizV6WCh4R6RHyi2Ml+M70DNRXt/+HANowMflpgGFMAym/VKm6G7ZOQRjqN7XbGxK1Lg9t6ZrtzOaivMw==}
-
   pino-abstract-transport@3.0.0:
     resolution: {integrity: sha512-wlfUczU+n7Hy/Ha5j9a/gZNy7We5+cXp8YL+X+PG8S0KXxw7n/JXA3c46Y0zQznIJ83URJiwy7Lh56WLokNuxg==}
 
@@ -3529,8 +3526,8 @@ packages:
   pino-std-serializers@7.0.0:
     resolution: {integrity: sha512-e906FRY0+tV27iq4juKzSYPbUj2do2X2JX4EzSca1631EB2QJQUqGbDuERal7LCtOpxl6x3+nvo9NPZcmjkiFA==}
 
-  pino@9.14.0:
-    resolution: {integrity: sha512-8OEwKp5juEvb/MjpIc4hjqfgCNysrS94RIOMXYvpYCdm/jglrKEiAYmiumbmGhCvs+IcInsphYDFwqrjr7398w==}
+  pino@10.3.1:
+    resolution: {integrity: sha512-r34yH/GlQpKZbU1BvFFqOjhISRo1MNx1tWYsYvmj6KIRHSPMT2+yHOEb1SG6NMvRoHRF0a07kCOox/9yakl1vg==}
     hasBin: true
 
   pkg-conf@2.1.0:
@@ -3983,8 +3980,9 @@ packages:
   thenify@3.3.1:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
 
-  thread-stream@3.1.0:
-    resolution: {integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==}
+  thread-stream@4.0.0:
+    resolution: {integrity: sha512-4iMVL6HAINXWf1ZKZjIPcz5wYaOdPhtO8ATvZ+Xqp3BTdaqtAwQkNmKORqcIo5YkQqGXq5cwfswDwMqqQNrpJA==}
+    engines: {node: '>=20'}
 
   through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
@@ -4301,7 +4299,7 @@ snapshots:
     dependencies:
       '@dataplan/json': 1.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))
       '@graphile/lru': 5.0.0
-      '@types/node': 22.19.3
+      '@types/node': 22.19.7
       chalk: 4.1.2
       debug: 4.4.3
       eventemitter3: 5.0.1
@@ -5662,16 +5660,16 @@ snapshots:
 
   '@types/accepts@1.3.7':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/content-disposition@0.5.9': {}
 
@@ -5680,11 +5678,11 @@ snapshots:
       '@types/connect': 3.4.38
       '@types/express': 5.0.6
       '@types/keygrip': 1.0.6
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/express-serve-static-core@5.1.0':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -5718,19 +5716,20 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/keygrip': 1.0.6
       '@types/koa-compose': 3.2.9
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/mysql@2.15.27':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
-  '@types/node@22.19.3':
+  '@types/node@22.19.7':
     dependencies:
       undici-types: 6.21.0
 
   '@types/node@24.10.4':
     dependencies:
       undici-types: 7.16.0
+    optional: true
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -5740,13 +5739,13 @@ snapshots:
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
   '@types/pg@8.20.0':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -5760,16 +5759,16 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 22.19.7
 
   '@whatwg-node/promise-helpers@1.3.2':
     dependencies:
@@ -6075,15 +6074,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0):
+  drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0):
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@types/pg': 8.20.0
       pg: 8.20.0
 
-  drizzle-zod@0.8.3(drizzle-orm@0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(zod@4.4.1):
+  drizzle-zod@0.8.3(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(zod@4.4.1):
     dependencies:
-      drizzle-orm: 0.45.1(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+      drizzle-orm: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       zod: 4.4.1
 
   dunder-proto@1.0.1:
@@ -6450,7 +6449,7 @@ snapshots:
   graphile-build-pg@5.0.1(@dataplan/pg@1.0.1(@dataplan/json@1.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0)(pg-sql2@5.0.1)(pg@8.20.0))(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-build@5.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0)(pg-sql2@5.0.1)(pg@8.20.0)(tamedevil@0.1.0):
     dependencies:
       '@dataplan/pg': 1.0.1(@dataplan/json@1.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0)(pg-sql2@5.0.1)(pg@8.20.0)
-      '@types/node': 22.19.3
+      '@types/node': 22.19.7
       debug: 4.4.3
       grafast: 1.0.1(@envelop/core@5.4.0)(graphql@16.12.0)
       graphile-build: 5.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0)
@@ -6468,7 +6467,7 @@ snapshots:
 
   graphile-build@5.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0):
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 22.19.7
       '@types/pluralize': 0.0.33
       '@types/semver': 7.7.1
       chalk: 4.1.2
@@ -7216,10 +7215,6 @@ snapshots:
 
   pify@3.0.0: {}
 
-  pino-abstract-transport@2.0.0:
-    dependencies:
-      split2: 4.2.0
-
   pino-abstract-transport@3.0.0:
     dependencies:
       split2: 4.2.0
@@ -7242,19 +7237,19 @@ snapshots:
 
   pino-std-serializers@7.0.0: {}
 
-  pino@9.14.0:
+  pino@10.3.1:
     dependencies:
       '@pinojs/redact': 0.4.0
       atomic-sleep: 1.0.0
       on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 2.0.0
+      pino-abstract-transport: 3.0.0
       pino-std-serializers: 7.0.0
       process-warning: 5.0.0
       quick-format-unescaped: 4.0.4
       real-require: 0.2.0
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.0
-      thread-stream: 3.1.0
+      thread-stream: 4.0.0
 
   pkg-conf@2.1.0:
     dependencies:
@@ -7268,7 +7263,7 @@ snapshots:
       '@dataplan/json': 1.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))
       '@dataplan/pg': 1.0.1(@dataplan/json@1.0.0(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0)))(grafast@1.0.1(@envelop/core@5.4.0)(graphql@16.12.0))(graphile-config@1.0.1)(graphql@16.12.0)(pg-sql2@5.0.1)(pg@8.20.0)
       '@graphile/lru': 5.0.0
-      '@types/node': 22.19.3
+      '@types/node': 22.19.7
       '@types/pg': 8.20.0
       debug: 4.4.3
       grafast: 1.0.1(@envelop/core@5.4.0)(graphql@16.12.0)
@@ -7740,7 +7735,7 @@ snapshots:
     dependencies:
       any-promise: 1.3.0
 
-  thread-stream@3.1.0:
+  thread-stream@4.0.0:
     dependencies:
       real-require: 0.2.0
 
@@ -7829,7 +7824,8 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.16.0: {}
+  undici-types@7.16.0:
+    optional: true
 
   undici@6.24.1: {}
 
