@@ -68,6 +68,7 @@ jobs:
       COOLIFY_EDDN_WORKER_UUID: ${{ secrets.COOLIFY_EDDN_WORKER_UUID }}
       COOLIFY_DB_MIGRATOR_UUID: ${{ secrets.COOLIFY_DB_MIGRATOR_UUID }}
       WORKER_DRAIN_SECONDS: ${{ vars.WORKER_DRAIN_SECONDS || '20' }}
+      APP_DEPLOY_DELAY_SECONDS: ${{ vars.APP_DEPLOY_DELAY_SECONDS || '10' }}
       SENTRY_RELEASE: ${{ github.event.workflow_run.head_branch || github.ref_name }}
 
     steps:
@@ -145,7 +146,12 @@ jobs:
           source .github/scripts/coolify.sh
 
           api_deployment_uuid="$(restart_app "${COOLIFY_API_UUID}")"
+          # Sleep to prevent race condition where coolify picks same id for multiple apps
+          sleep "${APP_DEPLOY_DELAY_SECONDS}"
+
           listener_deployment_uuid="$(restart_app "${COOLIFY_EDDN_LISTENER_UUID}")"
+          sleep "${APP_DEPLOY_DELAY_SECONDS}"
+
           worker_deployment_uuid="$(start_app "${COOLIFY_EDDN_WORKER_UUID}")"
 
           # Wait for all deployments after they have been queued.

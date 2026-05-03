@@ -2,6 +2,7 @@ import {
   PowerplayPowers,
   SystemPowerplayPowers,
   PowerplayConflicts,
+  PowerplayState,
 } from '@elitehub/db/schema'
 import { eq, and, notInArray, inArray, sql } from 'drizzle-orm'
 import type {
@@ -9,8 +10,13 @@ import type {
   EDDNJournalFSDJumpMessage,
 } from '@elitehub/eddn-contracts'
 import { PowerplayConflictsInsertSchema } from '../validationSchemas.js'
-import { PowerplayPowersFromLowercaseMap, ValidPowerplayPowersLowercased } from '../constants.js'
+import {
+  PowerplayPowersFromLowercaseMap,
+  ValidPowerplayPowersLowercased,
+  mapPowerplayState,
+} from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
+import { deleteStrongholdCarriersInSystem } from './strongholdCarrierHelpers.js'
 
 type PowerplayMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
 
@@ -89,7 +95,10 @@ const upsertPowerplayConflicts = async (
   message: PowerplayMessage,
   powerplayPowers: { id: string; name: string }[]
 ) => {
-  const powerplayConflictsByPowerId = new Map<string, { systemId: string; powerId: string; conflictProgress: number }>()
+  const powerplayConflictsByPowerId = new Map<
+    string,
+    { systemId: string; powerId: string; conflictProgress: number }
+  >()
 
   for (const conflict of message.PowerplayConflictProgress ?? []) {
     const powerId = powerplayPowers.find((power) => power.name === conflict.Power)?.id
@@ -149,4 +158,11 @@ export const processPowerplayData = async (
   const powerplayPowers = await upsertPowerplayPowers(tx, message)
   await upsertSystemPowerplayPowers(tx, systemId, powerplayPowers)
   await upsertPowerplayConflicts(tx, systemId, message, powerplayPowers)
+
+  if (
+    message.PowerplayState &&
+    mapPowerplayState(message.PowerplayState) !== PowerplayState.Stronghold
+  ) {
+    await deleteStrongholdCarriersInSystem(tx, systemId)
+  }
 }

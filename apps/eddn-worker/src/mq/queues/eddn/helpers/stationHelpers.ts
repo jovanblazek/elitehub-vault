@@ -1,4 +1,5 @@
 import { Stations } from '@elitehub/db/schema'
+import { and, eq } from 'drizzle-orm'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalDockedMessage,
@@ -14,6 +15,12 @@ import {
 } from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
 import { upsertFactions } from './factionHelpers.js'
+import {
+  findStrongholdCarriersInSystem,
+  isStrongholdCarrier,
+  isSystemCurrentlyStronghold,
+} from './strongholdCarrierHelpers.js'
+import logger from '../../../../utils/logger.js'
 
 /**
  * Checks if a station should be excluded based on its government type
@@ -143,15 +150,120 @@ export const upsertStationFromDocked = async (
 
 const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert) => {
   const validatedStationData = StationsInsertSchema.parse(data)
+  const now = new Date()
 
+  if (isStrongholdCarrier(validatedStationData)) {
+    await upsertStrongholdCarrier(tx, validatedStationData, now)
+    return
+  }
+
+  await upsertRegularStation(tx, validatedStationData, now)
+}
+
+const findStationByMarketId = async (tx: Transaction, marketId: number | null) => {
+  if (marketId === null) {
+    return null
+  }
+
+  const [station] = await tx.select().from(Stations).where(eq(Stations.marketId, marketId)).limit(1)
+
+  return station ?? null
+}
+
+const findStationBySystemAndName = async (tx: Transaction, systemId: string, name: string) => {
+  const [station] = await tx
+    .select()
+    .from(Stations)
+    .where(and(eq(Stations.systemId, systemId), eq(Stations.name, name)))
+    .limit(1)
+
+  return station ?? null
+}
+
+const updateStationById = async (
+  tx: Transaction,
+  stationId: string,
+  data: typeof Stations.$inferInsert,
+  updatedAt: Date
+) => {
   await tx
-    .insert(Stations)
-    .values(validatedStationData)
-    .onConflictDoUpdate({
-      target: Stations.marketId,
-      set: {
-        ...validatedStationData,
-        updatedAt: new Date(),
-      },
+    .update(Stations)
+    .set({
+      ...data,
+      updatedAt,
     })
+    .where(eq(Stations.id, stationId))
+}
+
+const insertStation = async (tx: Transaction, data: typeof Stations.$inferInsert) => {
+  await tx.insert(Stations).values(data)
+}
+
+const deleteStationById = async (tx: Transaction, stationId: string) => {
+  logger.info(`[STATION HELPER] Deleting station ${stationId}`)
+  await tx.delete(Stations).where(eq(Stations.id, stationId))
+}
+
+const upsertRegularStation = async (
+  tx: Transaction,
+  data: typeof Stations.$inferInsert,
+  updatedAt: Date
+) => {
+  const stationByMarketId = await findStationByMarketId(tx, data.marketId ?? null)
+  const stationBySystemAndName = await findStationBySystemAndName(tx, data.systemId, data.name)
+
+  if (!stationByMarketId && !stationBySystemAndName) {
+    await insertStation(tx, data)
+    return
+  }
+
+  if (
+    stationByMarketId &&
+    stationBySystemAndName &&
+    stationByMarketId.id !== stationBySystemAndName.id
+  ) {
+    await deleteStationById(tx, stationByMarketId.id)
+    await updateStationById(tx, stationBySystemAndName.id, data, updatedAt)
+    return
+  }
+
+  const survivor = stationByMarketId ?? stationBySystemAndName
+
+  if (!survivor) {
+    await insertStation(tx, data)
+    return
+  }
+
+  await updateStationById(tx, survivor.id, data, updatedAt)
+}
+
+const upsertStrongholdCarrier = async (
+  tx: Transaction,
+  data: typeof Stations.$inferInsert,
+  updatedAt: Date
+) => {
+  const isSystemStronghold = await isSystemCurrentlyStronghold(tx, data.systemId)
+  if (!isSystemStronghold) {
+    return
+  }
+
+  const carrierRows = await findStrongholdCarriersInSystem(tx, data.systemId)
+  const marketIdStation = await findStationByMarketId(tx, data.marketId ?? null)
+
+  const [survivor, ...duplicates] = carrierRows
+
+  if (duplicates.length > 0) {
+    await Promise.all(duplicates.map((duplicate) => deleteStationById(tx, duplicate.id)))
+  }
+
+  if (marketIdStation && marketIdStation.id !== survivor?.id) {
+    await deleteStationById(tx, marketIdStation.id)
+  }
+
+  if (!survivor) {
+    await insertStation(tx, data)
+    return
+  }
+
+  await updateStationById(tx, survivor.id, data, updatedAt)
 }
