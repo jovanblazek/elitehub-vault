@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.3.0...v0.4.0) (2026-05-03)
+
+
+### Features
+
+* Handle station rename and stronghold carriers disappearing ([#23](https://github.com/jovanblazek/elitehub-vault/issues/23)) ([5a0cc41](https://github.com/jovanblazek/elitehub-vault/commit/5a0cc416d79847961a78e60dcad43d874e85c802))
+
 # [0.3.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.2.1...v0.3.0) (2026-05-03)
 
 
