@@ -36,6 +36,56 @@ export const SmartTagsPlugin = jsonPgSmartTags({
       },
     },
     attribute: {
+      'systems.government': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'systems.allegiance': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'systems.economy': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'systems.security': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'systems.powerplayState': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'factions.government': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'factions.allegiance': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'stations.government': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'stations.allegiance': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
+      'stations.economy': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
       'factionStates.influence': {
         tags: {
           behavior: '+orderBy',
