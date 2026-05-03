@@ -304,7 +304,11 @@ export const FactionConflicts = pgTable(
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
-  (table) => [unique().on(table.factionId, table.systemId, table.opponentFactionId)]
+  (table) => [
+    unique().on(table.factionId, table.systemId, table.opponentFactionId),
+    index().on(table.factionStakeStationId),
+    index().on(table.opponentStakeStationId),
+  ]
 )
 
 export const Stations = pgTable(
@@ -336,7 +340,11 @@ export const Stations = pgTable(
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
-  (table) => [index().on(table.name), unique().on(table.systemId, table.name)]
+  (table) => [
+    index().on(table.name),
+    index().on(table.controllingFactionId),
+    unique().on(table.systemId, table.name),
+  ]
 )
 
 export const PowerplayPowers = pgTable('powerplayPowers', {
