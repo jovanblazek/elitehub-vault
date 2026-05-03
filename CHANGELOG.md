@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.2.1...v0.3.0) (2026-05-03)
+
+
+### Features
+
+* Add common filter fields ([#22](https://github.com/jovanblazek/elitehub-vault/issues/22)) ([0a8cc95](https://github.com/jovanblazek/elitehub-vault/commit/0a8cc95f110180116bacfe64a2bae5d85d76fa88))
+
 ## [0.2.1](https://github.com/jovanblazek/elitehub-vault/compare/v0.2.0...v0.2.1) (2026-05-01)
 
 
