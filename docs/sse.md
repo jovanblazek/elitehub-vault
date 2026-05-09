@@ -54,7 +54,7 @@ Powerplay:
 curl -N \
   -H "X-API-Key: your-api-key" \
   -H "Accept: text/event-stream" \
-  "https://your-endpoint/realtime/sse?eventType=systemPowerplayUpdated&powerId=power-1&powerId=power-2"
+  "https://vault.elitehub.eu/realtime/sse?eventType=systemPowerplayUpdated&powerId=power-1&powerId=power-2"
 ```
 
 Faction presence:
@@ -63,7 +63,7 @@ Faction presence:
 curl -N \
   -H "X-API-Key: your-api-key" \
   -H "Accept: text/event-stream" \
-  "https://your-endpoint/realtime/sse?eventType=factionPresenceChanged&factionId=faction-1&systemId=system-1"
+  "https://vault.elitehub.eu/realtime/sse?eventType=factionPresenceChanged&factionId=faction-1&systemId=system-1"
 ```
 
 Faction state:
@@ -72,7 +72,7 @@ Faction state:
 curl -N \
   -H "X-API-Key: your-api-key" \
   -H "Accept: text/event-stream" \
-  "https://your-endpoint/realtime/sse?eventType=factionStateChanged&factionId=faction-1&factionId=faction-2"
+  "https://vault.elitehub.eu/realtime/sse?eventType=factionStateChanged&factionId=faction-1&factionId=faction-2"
 ```
 
 Faction control threat:
@@ -81,7 +81,7 @@ Faction control threat:
 curl -N \
   -H "X-API-Key: your-api-key" \
   -H "Accept: text/event-stream" \
-  "https://your-endpoint/realtime/sse?eventType=factionControlThreatChanged&factionId=faction-1"
+  "https://vault.elitehub.eu/realtime/sse?eventType=factionControlThreatChanged&factionId=faction-1"
 ```
 
 ## SSE Wire Format
@@ -265,7 +265,7 @@ Node.js example:
 
 ```js
 const response = await fetch(
-  'https://your-endpoint/realtime/sse?eventType=factionStateChanged&factionId=faction-1',
+  'https://vault.elitehub.eu/realtime/sse?eventType=factionStateChanged&factionId=faction-1',
   {
     headers: {
       'X-API-Key': 'your-api-key',
