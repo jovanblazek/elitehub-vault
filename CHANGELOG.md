@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/jovanblazek/elitehub-vault/compare/v0.4.0...v0.4.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* Resolve Sentry release tag fallback ([#25](https://github.com/jovanblazek/elitehub-vault/issues/25)) ([4190184](https://github.com/jovanblazek/elitehub-vault/commit/41901840f41911a6fd7cf4869229062225d71562))
+
 # [0.4.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.3.0...v0.4.0) (2026-05-03)
 
 
