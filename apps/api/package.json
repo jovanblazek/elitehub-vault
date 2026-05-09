@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts --tsconfig ./tsconfig.json",
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "start": "node --import ./dist/utils/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src",
-    "test": "NODE_ENV=test node --import tsx --test \"src/**/*.test.ts\"",
+    "test": "NODE_ENV=test vitest run",
     "debug:sse": "tsx src/scripts/debugSse.ts",
     "key:generate": "tsx src/scripts/generateApiKey.ts",
     "key:update": "tsx src/scripts/updateApiKey.ts"
