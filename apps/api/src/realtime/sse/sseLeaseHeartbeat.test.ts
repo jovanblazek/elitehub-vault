@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
 import type { ServerResponse } from 'node:http'
-import test from 'node:test'
+import { test } from 'vitest'
 import { RedisSseConnectionLimiter } from './connectionLimiter.js'
 import { refreshSseLeaseOrClose } from './sseLeaseHeartbeat.js'
 

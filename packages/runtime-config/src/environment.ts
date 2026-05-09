@@ -16,7 +16,10 @@ export const loadEnvironment = () => {
     return
   }
 
-  dotenv.config({ path: process.env.DOTENV_CONFIG_PATH || defaultEnvPath })
+  dotenv.config({
+    path: process.env.DOTENV_CONFIG_PATH || defaultEnvPath,
+    quiet: process.env.NODE_ENV === 'test',
+  })
   isLoaded = true
 }
 

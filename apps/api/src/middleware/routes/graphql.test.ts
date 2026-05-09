@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import { afterEach, test, vi } from 'vitest'
 import { apiKeyResolver } from '../../auth/apiKeyResolver.js'
 import { apiRateLimiter } from '../../auth/apiRateLimiter.js'
 import { graphqlRoute } from './graphql.js'
@@ -30,25 +30,26 @@ const createContext = (overrides: Partial<TestContext> = {}): TestContext => ({
   ...overrides,
 })
 
-test('graphqlRoute rate-limits anonymous GET requests by IP and forwards on success', async (t) => {
-  const originalConsumeAnonymousGraphql = apiRateLimiter.consumeAnonymousGraphql
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('graphqlRoute rate-limits anonymous GET requests by IP and forwards on success', async () => {
   let nextCalls = 0
 
-  t.after(() => {
-    apiRateLimiter.consumeAnonymousGraphql = originalConsumeAnonymousGraphql
-  })
-
-  apiRateLimiter.consumeAnonymousGraphql = async (ipAddress: string) => {
-    assert.equal(ipAddress, '198.51.100.40')
-    return {
-      ok: true,
-      headers: {
-        limit: 30,
-        remaining: 29,
-        reset: 123,
-      },
+  vi.spyOn(apiRateLimiter, 'consumeAnonymousGraphql').mockImplementation(
+    async (ipAddress: string) => {
+      assert.equal(ipAddress, '198.51.100.40')
+      return {
+        ok: true,
+        headers: {
+          limit: 30,
+          remaining: 29,
+          reset: 123,
+        },
+      }
     }
-  }
+  )
 
   const ctx = createContext({
     ip: '198.51.100.40',
@@ -65,9 +66,7 @@ test('graphqlRoute rate-limits anonymous GET requests by IP and forwards on succ
   assert.equal(ctx.responseHeaders.get('Retry-After'), undefined)
 })
 
-test('graphqlRoute resolves API keys and applies the authenticated rpm limit on POST', async (t) => {
-  const originalResolve = apiKeyResolver.resolve
-  const originalConsumeAuthenticatedGraphql = apiRateLimiter.consumeAuthenticatedGraphql
+test('graphqlRoute resolves API keys and applies the authenticated rpm limit on POST', async () => {
   let nextCalls = 0
   const consumer = {
     type: 'apiKey' as const,
@@ -78,31 +77,28 @@ test('graphqlRoute resolves API keys and applies the authenticated rpm limit on 
     maxSseConnections: 2,
   }
 
-  t.after(() => {
-    apiKeyResolver.resolve = originalResolve
-    apiRateLimiter.consumeAuthenticatedGraphql = originalConsumeAuthenticatedGraphql
-  })
-
-  apiKeyResolver.resolve = async (rawApiKey: string | undefined) => {
+  vi.spyOn(apiKeyResolver, 'resolve').mockImplementation(async (rawApiKey: string | undefined) => {
     assert.equal(rawApiKey, 'eh_live_pub_secret')
     return {
       ok: true,
       consumer,
     }
-  }
+  })
 
-  apiRateLimiter.consumeAuthenticatedGraphql = async (apiKeyId: string, limit: number) => {
-    assert.equal(apiKeyId, 'key-123')
-    assert.equal(limit, 77)
-    return {
-      ok: true,
-      headers: {
-        limit,
-        remaining: 76,
-        reset: 555,
-      },
+  vi.spyOn(apiRateLimiter, 'consumeAuthenticatedGraphql').mockImplementation(
+    async (apiKeyId: string, limit: number) => {
+      assert.equal(apiKeyId, 'key-123')
+      assert.equal(limit, 77)
+      return {
+        ok: true,
+        headers: {
+          limit,
+          remaining: 76,
+          reset: 555,
+        },
+      }
     }
-  }
+  )
 
   const ctx = createContext({
     method: 'POST',
@@ -120,31 +116,25 @@ test('graphqlRoute resolves API keys and applies the authenticated rpm limit on 
   assert.equal(ctx.responseHeaders.get('X-RateLimit-Limit'), '77')
 })
 
-test('requireApiKey rate-limits repeated invalid API key attempts and returns 401 when under limit', async (t) => {
-  const originalResolve = apiKeyResolver.resolve
-  const originalConsumeInvalidApiKeyAttempt = apiRateLimiter.consumeInvalidApiKeyAttempt
-
-  t.after(() => {
-    apiKeyResolver.resolve = originalResolve
-    apiRateLimiter.consumeInvalidApiKeyAttempt = originalConsumeInvalidApiKeyAttempt
-  })
-
-  apiKeyResolver.resolve = async () => ({
+test('requireApiKey rate-limits repeated invalid API key attempts and returns 401 when under limit', async () => {
+  vi.spyOn(apiKeyResolver, 'resolve').mockImplementation(async () => ({
     ok: false,
     reason: 'invalid_api_key',
-  })
+  }))
 
-  apiRateLimiter.consumeInvalidApiKeyAttempt = async (ipAddress: string) => {
-    assert.equal(ipAddress, '203.0.113.55')
-    return {
-      ok: true,
-      headers: {
-        limit: 20,
-        remaining: 19,
-        reset: 800,
-      },
+  vi.spyOn(apiRateLimiter, 'consumeInvalidApiKeyAttempt').mockImplementation(
+    async (ipAddress: string) => {
+      assert.equal(ipAddress, '203.0.113.55')
+      return {
+        ok: true,
+        headers: {
+          limit: 20,
+          remaining: 19,
+          reset: 800,
+        },
+      }
     }
-  }
+  )
 
   const ctx = createContext({
     ip: '203.0.113.55',

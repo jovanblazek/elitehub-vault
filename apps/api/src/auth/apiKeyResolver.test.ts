@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import { test } from 'vitest'
 import { LRUCache } from 'lru-cache'
 import { ApiKeyResolver } from './apiKeyResolver.js'
 import { hashApiKeySecret } from './apiKeyCrypto.js'
