@@ -69,13 +69,31 @@ jobs:
       COOLIFY_DB_MIGRATOR_UUID: ${{ secrets.COOLIFY_DB_MIGRATOR_UUID }}
       WORKER_DRAIN_SECONDS: ${{ vars.WORKER_DRAIN_SECONDS || '20' }}
       APP_DEPLOY_DELAY_SECONDS: ${{ vars.APP_DEPLOY_DELAY_SECONDS || '10' }}
-      SENTRY_RELEASE: ${{ github.event.workflow_run.head_branch || github.ref_name }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Resolve Sentry release tag
+        shell: bash
+        run: |
+          git fetch --force --tags
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            sentry_release="${GITHUB_REF_NAME}"
+          else
+            sentry_release="$(git tag --points-at "${GITHUB_SHA}" | sort -V | tail -n 1)"
+          fi
+
+          if [[ -z "${sentry_release}" ]]; then
+            echo "Could not resolve a git tag for commit ${GITHUB_SHA}" >&2
+            exit 1
+          fi
+
+          echo "SENTRY_RELEASE=${sentry_release}" >> "$GITHUB_ENV"
 
       - name: Validate deploy configuration
         shell: bash
