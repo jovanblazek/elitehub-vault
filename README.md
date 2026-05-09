@@ -41,7 +41,7 @@ EliteHub Vault has a small free tier for GraphQL queries. You can call `POST /gr
 If you need higher GraphQL limits or access to the realtime SSE stream, request an **API key** and send it in the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: your-api-key" https://your-endpoint/graphql
+curl -H "X-API-Key: your-api-key" https://vault.elitehub.eu/graphql
 ```
 
 Contact [jovanblazek](https://github.com/jovanblazek) on Discord, username: qwerty22, or create an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) to obtain an API key.
@@ -66,7 +66,7 @@ For small-scale usage, you can query the GraphQL API without an API key. If you 
 
 Typical workflow:
 
-1. Open `https://your-endpoint/graphql` in your browser.
+1. Open `https://vault.elitehub.eu/graphql` in your browser.
 2. Explore the schema in GraphiQL and find the field you want.
 3. Build a query with only the fields you need.
 4. Run the same query from your application with `POST /graphql` and your API key.
@@ -158,7 +158,7 @@ Minimal `curl` example:
 Without API key:
 
 ```bash
-curl https://your-endpoint/graphql \
+curl https://vault.elitehub.eu/graphql \
   -H "Content-Type: application/json" \
   -d '{"query":"query MyQuery { factionByName(name: \"Anti Xeno Initiative\") { id name factionConflicts { edges { node { id factionWonDays opponentWonDays opponentFaction { id name } system { name } } cursor } } } }"}'
 ```
@@ -166,7 +166,7 @@ curl https://your-endpoint/graphql \
 With API key for higher limits:
 
 ```bash
-curl https://your-endpoint/graphql \
+curl https://vault.elitehub.eu/graphql \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-api-key" \
   -d '{"query":"query MyQuery { factionByName(name: \"Anti Xeno Initiative\") { id name factionConflicts { edges { node { id factionWonDays opponentWonDays opponentFaction { id name } system { name } } cursor } } } }"}'
@@ -200,7 +200,7 @@ Quick start:
 curl -N \
   -H "X-API-Key: your-api-key" \
   -H "Accept: text/event-stream" \
-  "https://your-endpoint/realtime/sse?eventType=systemPowerplayUpdated&powerId=<power-id>"
+  "https://vault.elitehub.eu/realtime/sse?eventType=systemPowerplayUpdated&powerId=<power-id>"
 ```
 
 General SSE frame example:
