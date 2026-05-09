@@ -222,6 +222,9 @@ const upsertRegularStation = async (
     stationBySystemAndName &&
     stationByMarketId.id !== stationBySystemAndName.id
   ) {
+    logger.info(
+      `[STATION HELPER] Deleting station ${stationByMarketId.name}:${stationByMarketId.id} for system ${data.systemId}. Updating ${stationBySystemAndName.name}:${stationBySystemAndName.id} instead.`
+    )
     await deleteStationById(tx, stationByMarketId.id)
     await updateStationById(tx, stationBySystemAndName.id, data, updatedAt)
     return
@@ -253,10 +256,16 @@ const upsertStrongholdCarrier = async (
   const [survivor, ...duplicates] = carrierRows
 
   if (duplicates.length > 0) {
+    logger.info(
+      `[STATION HELPER] Deleting ${duplicates.length} duplicate stronghold carriers for system ${data.systemId}.`
+    )
     await Promise.all(duplicates.map((duplicate) => deleteStationById(tx, duplicate.id)))
   }
 
   if (marketIdStation && marketIdStation.id !== survivor?.id) {
+    logger.info(
+      `[STATION HELPER] Deleting station ${marketIdStation.name}:${marketIdStation.id} for system ${data.systemId}. Market ID was reused.`
+    )
     await deleteStationById(tx, marketIdStation.id)
   }
 
