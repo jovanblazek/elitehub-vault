@@ -85,12 +85,20 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             sentry_release="${GITHUB_REF_NAME}"
           else
-            sentry_release="$(git tag --points-at "${GITHUB_SHA}" | sort -V | tail -n 1)"
-          fi
+            release_tag="$(git tag --points-at "${GITHUB_SHA}" | sort -V | tail -n 1)"
 
-          if [[ -z "${sentry_release}" ]]; then
-            echo "Could not resolve a git tag for commit ${GITHUB_SHA}" >&2
-            exit 1
+            if [[ -n "${release_tag}" ]]; then
+              sentry_release="${release_tag}"
+            else
+              release_tag="$(git describe --tags --abbrev=0 "${GITHUB_SHA}" 2>/dev/null || true)"
+
+              if [[ -z "${release_tag}" ]]; then
+                echo "Could not resolve any git tag reachable from commit ${GITHUB_SHA}" >&2
+                exit 1
+              fi
+
+              sentry_release="${release_tag}+${GITHUB_SHA::7}"
+            fi
           fi
 
           echo "SENTRY_RELEASE=${sentry_release}" >> "$GITHUB_ENV"
