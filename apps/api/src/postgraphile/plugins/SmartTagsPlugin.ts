@@ -91,6 +91,16 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '+orderBy',
         },
       },
+      'factionStates.updatedAt': {
+        tags: {
+          behavior: '+orderBy',
+        },
+      },
+      'factionConflicts.updatedAt': {
+        tags: {
+          behavior: '+orderBy',
+        },
+      },
     },
     procedure: {
       refresh_system_faction_control_threat: {
