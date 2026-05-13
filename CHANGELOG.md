@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/jovanblazek/elitehub-vault/compare/v0.4.1...v0.5.0) (2026-05-13)
+
+
+### Features
+
+* Add ordering by updatedAt to faction states and conflicts ([#26](https://github.com/jovanblazek/elitehub-vault/issues/26)) ([744d738](https://github.com/jovanblazek/elitehub-vault/commit/744d738f82c99c73fabc6ed09df8c8f8e4865334))
+
 ## [0.4.1](https://github.com/jovanblazek/elitehub-vault/compare/v0.4.0...v0.4.1) (2026-05-09)
 
 
