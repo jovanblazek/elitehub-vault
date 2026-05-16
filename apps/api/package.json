@@ -22,7 +22,7 @@
     "@graphile/simplify-inflection": "8.0.0",
     "@haathie/postgraphile-otel": "0.1.0",
     "@haathie/postgraphile-reasonable-limits": "0.2.0",
-    "@sentry/node": "10.51.0",
+    "@sentry/node": "10.53.1",
     "@t3-oss/env-core": "0.13.11",
     "drizzle-orm": "0.45.2",
     "ioredis": "5.10.1",
@@ -30,12 +30,12 @@
     "koa-bodyparser": "4.4.1",
     "lru-cache": "11.3.5",
     "pg": "8.20.0",
-    "postgraphile": "5.0.1",
+    "postgraphile": "5.0.3",
     "rate-limiter-flexible": "11.0.1",
-    "zod": "4.4.1"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
-    "tsx": "4.21.0"
+    "tsx": "4.22.0"
   }
 }
