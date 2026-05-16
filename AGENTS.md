@@ -74,16 +74,25 @@ If local Drizzle migration bookkeeping gets corrupted, `packages/db` also expose
 
 1. Worker-side processors write realtime candidates into `eventOutbox`
 2. `EventOutboxRelay` polls outbox rows, validates payloads, and publishes Redis channel events
-3. Redis channel format is `events:systemPowerplayUpdated:power:<powerId>`
+3. Redis channel format is event-scoped and key-scoped:
+   `events:systemPowerplayUpdated:power:<powerId>` or
+   `events:<faction-event-type>:faction:<factionId>`
 4. `/realtime/sse` authenticates the API key and opens a stream through `sseService`
 5. `SseBroker` manages active connections, Redis subscriptions, connection filtering, and SSE framing
 
 ## Realtime SSE Scope
 
 - Endpoint: `GET /realtime/sse`
-- Auth: API key required in production via `X-API-Key`
-- Supported event type: `systemPowerplayUpdated`
-- Required params: `eventType=systemPowerplayUpdated` and one to four `powerId` values
+- Auth: API key required via `X-API-Key`
+- Supported event types:
+  - `systemPowerplayUpdated`
+  - `factionPresenceChanged`
+  - `factionStateChanged`
+  - `factionControlThreatChanged`
+- Required params:
+  - always `eventType`
+  - for `systemPowerplayUpdated`: one to four `powerId` values
+  - for faction events: one to twenty `factionId` values
 - Optional params: up to twenty `systemId` values
 - Concurrent SSE quota is sourced from `apiKeys.maxSseConnections` with default `3`
 
@@ -91,7 +100,7 @@ If local Drizzle migration bookkeeping gets corrupted, `packages/db` also expose
 
 - Sends a `retry: 2000` hint on open
 - Emits keepalive comments every 15 seconds
-- Routes messages by `(eventType, powerId)` and optionally filters by `systemId`
+- Routes messages by `(eventType, routingKey)` where routing key is `powerId` or `factionId`, and optionally filters by `systemId`
 - Closes slow clients under backpressure
 - Reconciles Redis subscriptions on reconnect
 - Logs periodic broker summaries and connection lifecycle events
