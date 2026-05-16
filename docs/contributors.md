@@ -98,7 +98,7 @@ Use targeted runs when possible:
 ## Contributing Guidelines
 
 1. **Fork the repository** and create a feature branch
-2. **Follow code style** guidelines (see [AGENTS.md](../AGENTS.md))
+2. **Follow code style** guidelines in this document
 3. **Write clear commit messages**
 4. **Run verification** before submitting:
    - `pnpm typecheck`
@@ -116,3 +116,12 @@ See `.env.example` for all available configuration options. Key variables:
 - `SENTRY_DSN_API` - API Sentry DSN (optional)
 - `SENTRY_DSN_EDDN_WORKER` - EDDN worker Sentry DSN (optional)
 - `SENTRY_DSN_EDDN_LISTENER` - EDDN listener Sentry DSN (optional)
+
+## Code Style
+
+- Use ES modules and keep `.js` extensions in imports, even in `.ts` files.
+- Prefer named imports when practical.
+- Prefix logs with a component label such as `[API]` or `[EDDN Worker]`.
+- Use Drizzle for database access.
+- Use `db.transaction()` for multi-step database writes.
+- Keep app runtime instances process-local; do not share live Redis, BullMQ, or DB clients across apps.

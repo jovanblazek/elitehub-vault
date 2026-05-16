@@ -7,7 +7,7 @@ Support the development of this project by [buying me a coffee](https://buymeaco
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://buymeacoffee.com/jovanblazek)
 
 <a href="https://discord.gg/QR6Vg3J7zf" target="_blank">
-  <img src="https://www.zeeuwlogistics.nl/wp-content/uploads/2025/05/158916278-4504b838-7ecb-4ab9-a900-7dc002aade78.png" alt="Discord" width="170">
+  <img src="./docs/assets/discord.png" alt="Discord" width="170">
 </a>
 
 ## Table of Contents
