@@ -6,6 +6,10 @@ Support the development of this project by [buying me a coffee](https://buymeaco
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://buymeacoffee.com/jovanblazek)
 
+<a href="https://discord.gg/QR6Vg3J7zf" target="_blank">
+  <img src="https://www.zeeuwlogistics.nl/wp-content/uploads/2025/05/158916278-4504b838-7ecb-4ab9-a900-7dc002aade78.png" alt="Discord" width="170">
+</a>
+
 ## Table of Contents
 
 - [Why another data collection system?](#why-another-data-collection-system)
@@ -44,7 +48,7 @@ If you need higher GraphQL limits or access to the realtime SSE stream, request 
 curl -H "X-API-Key: your-api-key" https://vault.elitehub.eu/graphql
 ```
 
-Contact [jovanblazek](https://github.com/jovanblazek) on Discord, username: qwerty22, or create an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) to obtain an API key.
+Join the [support server on Discord](https://discord.gg/QR6Vg3J7zf), or create an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) to obtain an API key.
 
 ### API Endpoints
 
@@ -241,7 +245,7 @@ Event payloads are sent in the SSE `data` field as JSON and are intentionally le
 
 ### Support
 
-For API issues or questions, please open an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new).
+For issues or questions, please open an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) or join the [support server on Discord](https://discord.gg/QR6Vg3J7zf).
 
 ## For Contributors
 
