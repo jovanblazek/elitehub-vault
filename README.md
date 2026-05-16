@@ -249,6 +249,8 @@ Event payloads are sent in the SSE `data` field as JSON and are intentionally le
 
 For issues or questions, please open an [issue](https://github.com/jovanblazek/elitehub-vault/issues/new) or join the [support server on Discord](https://discord.gg/QR6Vg3J7zf).
 
+Support is provided on a best-effort basis. This project currently has no SLA or guaranteed response times.
+
 ## Contributors
 
 Contributor setup, workflow, architecture notes, and coding guidelines are documented in [docs/contributors.md](docs/contributors.md).
