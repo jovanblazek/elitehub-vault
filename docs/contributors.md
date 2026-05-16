@@ -171,12 +171,15 @@ When done modifying the schema in `packages/db/src/schema.ts`:
 
 ## Testing
 
-Current automated tests live in `apps/api/src/**/*.test.ts` and run via `pnpm test`.
+Automated tests run through `pnpm test` (Turbo) and currently live in multiple workspaces, including:
+
+- `apps/api/src/**/*.test.ts`
+- `packages/queue-contracts/src/**/*.test.ts`
 
 ## Contributing Guidelines
 
 1. **Fork the repository** and create a feature branch
-2. **Follow code style** guidelines (see README.md and CLAUDE.md)
+2. **Follow code style** guidelines
 3. **Write clear commit messages**
 4. **Run typecheck** before submitting
 5. **Run lint and format** to check for linting and formatting errors

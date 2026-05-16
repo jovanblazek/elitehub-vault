@@ -38,6 +38,8 @@ EliteHub Vault provides:
 - a **read-only GraphQL API** with Elite Dangerous galaxy data (systems, factions, stations, powerplay, conflicts)
 - a **real-time SSE stream** for selected powerplay and faction updates
 
+> **Stability notice:** EliteHub Vault is currently in the `0.x` release line. API structure, schema, and realtime payloads may change at any time between releases. If you want to be notified in advance, join the [support server on Discord](https://discord.gg/QR6Vg3J7zf).
+
 ### Authentication
 
 EliteHub Vault has a small free tier for GraphQL queries. You can call `POST /graphql` without an API key for light usage.
@@ -253,8 +255,6 @@ Contributor setup, workflow, architecture notes, and coding guidelines are docum
 
 ## Roadmap
 
-- [ ] Process stronghold carriers and megaships. Remove them when they are not present in the FSSSignalDiscovered event or update their location when they appear somewhere else.
-- [ ] Add mechanism to remove stations that are not present in the FSSSignalDiscovered event. Stations may be demolished in colonized systems.
 - [ ] Track historical data for faction states (Influence, Happiness, Active States, Recovering States, Pending States) and faction presence in systems.
 
 ## License
