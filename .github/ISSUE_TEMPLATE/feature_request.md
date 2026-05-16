@@ -1,22 +1,36 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Propose an improvement or new feature
 title: ''
 labels: enhancement
 assignees: ''
-
 ---
 
-**Is your feature request related to a problem?**
-<!--  A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+## Problem Statement
 
-**Describe the solution you'd like**
-<!--  A clear and concise description of what you want to happen. -->
+What problem are you trying to solve?
 
-**Describe alternatives you've considered**
-<!--  A clear and concise description of any alternative solutions or features you've considered. -->
+## Proposed Solution
 
-**Additional context**
-<!--  Add any other context or screenshots about the feature request here. -->
+Describe the solution you want.
+
+## Alternatives Considered
+
+Describe alternatives or workarounds you considered.
+
+## Scope and Impact
+
+- Who benefits from this?
+- Any API/schema/realtime compatibility concerns?
+- Any migration or operational impact?
+
+## Additional Context
+
+Add examples, links, screenshots, or references.
+
+## Checklist
+
+- [ ] I searched existing issues and did not find a duplicate.
+- [ ] This request is scoped to a concrete problem.
 
 - [ ] I am willing to work on this issue
