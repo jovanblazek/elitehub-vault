@@ -27,11 +27,11 @@
     "@t3-oss/env-core": "0.13.11",
     "dotenv": "17.4.2",
     "drizzle-orm": "0.45.2",
-    "zod": "4.4.1"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
     "drizzle-kit": "0.31.8",
-    "tsx": "4.21.0"
+    "tsx": "4.22.0"
   }
 }
