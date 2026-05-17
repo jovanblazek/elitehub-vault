@@ -7,6 +7,7 @@ import { ArmorPlugin } from './plugins/ArmorPlugin.js'
 import { SmartTagsPlugin } from './plugins/SmartTagsPlugin.js'
 import { PgCubePlugin } from './plugins/PgCubePlugin.js'
 import { IdToNodeIdPlugin } from './plugins/IdToNodeIdPlugin.js'
+import { StationsByDistancePlugin } from './plugins/StationsByDistancePlugin.js'
 import * as Sentry from '@sentry/node'
 import { defaultMaskError } from 'postgraphile/grafserv'
 import { OTELPlugin } from '@haathie/postgraphile-otel'
@@ -23,6 +24,7 @@ const PGL_Preset: GraphileConfig.Preset = {
     PgCubePlugin,
     IdToNodeIdPlugin,
     SmartTagsPlugin,
+    StationsByDistancePlugin,
     ReasonableLimitsPlugin,
   ],
   pgServices: [

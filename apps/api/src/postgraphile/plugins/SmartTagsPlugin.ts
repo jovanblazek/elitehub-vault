@@ -121,6 +121,17 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '-*',
         },
       },
+      stations_by_distance: {
+        tags: {
+          // Expose a curated GraphQL field via extendSchema instead of the raw procedure
+          behavior: '-*',
+        },
+      },
+      station_distance: {
+        tags: {
+          fieldName: 'distance',
+        },
+      },
     },
   },
 })
