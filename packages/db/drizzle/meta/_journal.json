@@ -148,6 +148,13 @@
       "when": 1779034805939,
       "tag": "20260517162005_system_distance_field",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1779037116477,
+      "tag": "20260517165836_stale_sunspot",
+      "breakpoints": true
     }
   ]
 }

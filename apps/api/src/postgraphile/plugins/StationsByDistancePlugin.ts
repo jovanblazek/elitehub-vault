@@ -38,7 +38,7 @@ export const StationsByDistancePlugin = extendSchema((build) => {
               )
               $stations.orderBy((sql) => ({
                 fragment: sql`(
-                  select cube_distance(station_system.position, reference_system.position)
+                  select station_system.position <-> reference_system.position
                   from public.systems as station_system
                   inner join public.systems as reference_system
                     on reference_system.id = ${referenceSystemId}

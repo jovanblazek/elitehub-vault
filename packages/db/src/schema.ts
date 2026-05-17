@@ -221,6 +221,7 @@ export const Systems = pgTable(
   },
   (table) => [
     index().on(table.name),
+    index().using('gist', table.position),
     index().on(table.controllingFactionId),
     index().on(table.controllingPowerId),
   ]
