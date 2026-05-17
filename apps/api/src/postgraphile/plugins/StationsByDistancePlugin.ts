@@ -1,27 +1,15 @@
+import { TYPES } from 'postgraphile/@dataplan/pg'
 import { connection } from 'postgraphile/grafast'
 import { extendSchema, gql } from 'postgraphile/utils'
 
 export const StationsByDistancePlugin = extendSchema((build) => {
-  const stationsByDistanceResource = build.pgResources.stations_by_distance
+  const stationsResource = build.pgResources.stations
 
-  if (!stationsByDistanceResource) {
-    throw new Error("Missing pg resource 'stations_by_distance'; run the latest database migrations.")
+  if (!stationsResource) {
+    throw new Error("Missing pg resource 'stations'.")
   }
 
-  const stationConnectionTypeName = build.inflection.tableConnectionType(
-    stationsByDistanceResource.codec
-  )
-  const resourceParameters = stationsByDistanceResource.parameters
-
-  if (!resourceParameters?.length) {
-    throw new Error("Resource 'stations_by_distance' is missing parameters.")
-  }
-
-  const referenceSystemParameter = resourceParameters[0]
-
-  if (!referenceSystemParameter?.codec) {
-    throw new Error("Resource 'stations_by_distance' is missing the reference_system_id parameter codec.")
-  }
+  const stationConnectionTypeName = build.inflection.tableConnectionType(stationsResource.codec)
 
   return {
     typeDefs: gql`
@@ -35,18 +23,38 @@ export const StationsByDistancePlugin = extendSchema((build) => {
           stationsByDistance: {
             scope: {
               isPgFieldConnection: true,
-              pgFieldResource: stationsByDistanceResource,
+              pgFieldResource: stationsResource,
             },
             plan($root, args) {
-              const $select = stationsByDistanceResource.execute([
-                {
-                  name: referenceSystemParameter.name ?? undefined,
-                  pgCodec: referenceSystemParameter.codec,
-                  step: args.getRaw('referenceSystemId'),
-                },
-              ])
+              const $stations = stationsResource.find()
+              const referenceSystemId = $stations.placeholder(args.getRaw('referenceSystemId'), TYPES.uuid)
 
-              return connection($select as never)
+              $stations.where(
+                (sql) => sql`exists(
+                  select 1
+                  from public.systems as reference_system
+                  where reference_system.id = ${referenceSystemId}
+                )`
+              )
+              $stations.orderBy((sql) => ({
+                fragment: sql`(
+                  select cube_distance(station_system.position, reference_system.position)
+                  from public.systems as station_system
+                  inner join public.systems as reference_system
+                    on reference_system.id = ${referenceSystemId}
+                  where station_system.id = ${$stations.alias}."systemId"
+                )`,
+                codec: TYPES.float,
+                direction: 'ASC',
+                nullable: false,
+              }))
+              $stations.orderBy({
+                attribute: 'id',
+                direction: 'ASC',
+              })
+              $stations.setOrderIsUnique()
+
+              return connection($stations as never)
             },
           },
         },

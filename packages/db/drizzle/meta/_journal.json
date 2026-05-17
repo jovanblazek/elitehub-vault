@@ -145,15 +145,8 @@
     {
       "idx": 20,
       "version": "7",
-      "when": 1779032313115,
-      "tag": "20260517153833_station_distance_ordering",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1779033294577,
-      "tag": "20260517155454_station_distance_field",
+      "when": 1779034805939,
+      "tag": "20260517162005_system_distance_field",
       "breakpoints": true
     }
   ]

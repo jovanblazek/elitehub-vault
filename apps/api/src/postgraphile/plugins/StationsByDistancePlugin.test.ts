@@ -12,23 +12,27 @@ test('PostGraphile preset wires the stations by distance plugin', async () => {
   assert.match(pglSource, /StationsByDistancePlugin/)
 })
 
-test('stations by distance plugin defers argument handling to field planning', async () => {
+test('stations by distance plugin queries the stations resource directly', async () => {
   const pluginSource = await readFile(path.resolve(currentDir, 'StationsByDistancePlugin.ts'), 'utf8')
 
-  assert.doesNotMatch(pluginSource, /pgGetArgDetailsFromParameters/)
-  assert.match(pluginSource, /args\.getRaw\('referenceSystemId'\)/)
+  assert.match(pluginSource, /build\.pgResources\.stations\b/)
+  assert.doesNotMatch(pluginSource, /stations_by_distance/)
+  assert.match(pluginSource, /\.placeholder\(args\.getRaw\('referenceSystemId'\), TYPES\.uuid\)/)
 })
 
-test('smart tags hide the backing stations_by_distance procedure from direct GraphQL exposure', async () => {
-  const smartTagsSource = await readFile(path.resolve(currentDir, 'SmartTagsPlugin.ts'), 'utf8')
+test('stations by distance plugin applies distance ordering in extendSchema', async () => {
+  const pluginSource = await readFile(path.resolve(currentDir, 'StationsByDistancePlugin.ts'), 'utf8')
 
-  assert.match(smartTagsSource, /stations_by_distance/)
-  assert.match(smartTagsSource, /behavior:\s*'-\*'/)
+  assert.match(pluginSource, /\.orderBy\(/)
+  assert.match(pluginSource, /cube_distance/)
+  assert.match(pluginSource, /\.setOrderIsUnique\(/)
 })
 
-test('smart tags pin the station computed distance field name', async () => {
+test('smart tags expose distance from system_distance and not station_distance', async () => {
   const smartTagsSource = await readFile(path.resolve(currentDir, 'SmartTagsPlugin.ts'), 'utf8')
 
-  assert.match(smartTagsSource, /station_distance/)
+  assert.match(smartTagsSource, /system_distance/)
   assert.match(smartTagsSource, /fieldName:\s*'distance'/)
+  assert.doesNotMatch(smartTagsSource, /station_distance/)
+  assert.doesNotMatch(smartTagsSource, /stations_by_distance/)
 })
