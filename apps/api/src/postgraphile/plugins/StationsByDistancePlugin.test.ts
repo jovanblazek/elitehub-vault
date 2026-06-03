@@ -25,6 +25,8 @@ test('stations by distance plugin applies distance ordering in extendSchema', as
 
   assert.match(pluginSource, /\.orderBy\(/)
   assert.match(pluginSource, /<->/)
+  assert.match(pluginSource, /station_system\.position <-> reference_system\.position/)
+  assert.doesNotMatch(pluginSource, /ranked_systems/)
   assert.match(pluginSource, /\.setOrderIsUnique\(/)
 })
 
