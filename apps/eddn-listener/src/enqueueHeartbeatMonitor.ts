@@ -5,7 +5,7 @@ import { env } from './env.js'
 const ENQUEUE_HEARTBEAT_INTERVAL_MS = 30_000
 const ENQUEUE_HEARTBEAT_GAP_THRESHOLD_MS = 2 * 60_000
 const ENQUEUE_STATUS_LOG_INTERVAL_MS = 60_000
-const UPTIME_KUMA_PUSH_INTERVAL_MS = 30_000
+const UPTIME_KUMA_PUSH_INTERVAL_MS = 60_000
 
 type MonitorLogger = Pick<typeof logger, 'info' | 'warn' | 'error'>
 type MonitorSentry = Pick<typeof Sentry, 'captureException' | 'captureMessage'>
