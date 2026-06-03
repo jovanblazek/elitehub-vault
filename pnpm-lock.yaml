@@ -138,6 +138,9 @@ importers:
       zeromq:
         specifier: 6.5.0
         version: 6.5.0
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
     devDependencies:
       '@elitehub/typescript-config':
         specifier: workspace:*

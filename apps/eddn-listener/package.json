@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --import ./dist/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "oxlint src"
+    "lint": "oxlint src",
+    "test": "NODE_ENV=test vitest run"
   },
   "dependencies": {
     "@elitehub/eddn-contracts": "workspace:*",
@@ -17,7 +18,8 @@
     "@sentry/node": "10.53.1",
     "@t3-oss/env-core": "0.13.11",
     "bullmq": "5.76.4",
-    "zeromq": "6.5.0"
+    "zeromq": "6.5.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
