@@ -39,20 +39,27 @@ export const StationsByDistancePlugin = extendSchema((build) => {
                     return sql`(
                       select
                         station.*,
-                        nearby_system.position <-> reference_system.position as __distance
-                      from public.systems as reference_system
-                      join public.systems as nearby_system on true
+                        nearby_system.position <-> (
+                          select reference_system.position
+                          from public.systems as reference_system
+                          where reference_system.id = ${referenceSystemId}
+                        ) as __distance
+                      from public.systems as nearby_system
                       join public.stations as station
                         on station."systemId" = nearby_system.id
-                      where reference_system.id = ${referenceSystemId}
+                      where exists (
+                        select 1
+                        from public.systems as reference_system
+                        where reference_system.id = ${referenceSystemId}
+                      )
                     )`
                   },
                 },
                 name: 'stations_by_distance',
               })
 
-              $stations.orderBy((sql) => ({
-                fragment: sql`${$stations.alias}.__distance`,
+              $stations.orderBy((innerSql) => ({
+                fragment: innerSql`${$stations.alias}.__distance`,
                 codec: TYPES.float,
                 direction: 'ASC',
                 nullable: false,

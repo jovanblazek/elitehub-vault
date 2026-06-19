@@ -91,6 +91,26 @@ const systemFirstStationsByDistanceQuery = (referenceSystemId: string) => sql<St
   limit ${RESULT_LIMIT}
 `
 
+const systemFirstScalarReferenceStationsByDistanceQuery = (referenceSystemId: string) => sql<
+  StationIdRow
+>`
+  select station.id
+  from public.systems as nearby_system
+  inner join public.stations as station
+    on station."systemId" = nearby_system.id
+  where exists (
+    select 1
+    from public.systems as reference_system
+    where reference_system.id = ${referenceSystemId}::uuid
+  )
+  order by nearby_system.position <-> (
+    select reference_system.position
+    from public.systems as reference_system
+    where reference_system.id = ${referenceSystemId}::uuid
+  ), station.id
+  limit ${RESULT_LIMIT}
+`
+
 const findNode = (
   planNode: ExplainNode,
   predicate: (node: ExplainNode) => boolean
@@ -143,29 +163,39 @@ test('stations by distance benchmark compares station-first and system-first SQL
   const oldQuery = oldStationsByDistanceQuery(referenceSystemId)
   const newQuery = newStationsByDistanceQuery(referenceSystemId)
   const systemFirstQuery = systemFirstStationsByDistanceQuery(referenceSystemId)
+  const systemFirstScalarReferenceQuery =
+    systemFirstScalarReferenceStationsByDistanceQuery(referenceSystemId)
 
   const [
     oldRowsResult,
     newRowsResult,
     systemFirstRowsResult,
+    systemFirstScalarReferenceRowsResult,
     oldExplainPlan,
     newExplainPlan,
     systemFirstExplainPlan,
+    systemFirstScalarReferenceExplainPlan,
   ] = await Promise.all([
     db.execute(oldQuery),
     db.execute(newQuery),
     db.execute(systemFirstQuery),
+    db.execute(systemFirstScalarReferenceQuery),
     extractExplainPlan(oldQuery),
     extractExplainPlan(newQuery),
     extractExplainPlan(systemFirstQuery),
+    extractExplainPlan(systemFirstScalarReferenceQuery),
   ])
 
   const oldStationIds = (oldRowsResult.rows as StationIdRow[]).map((row) => row.id)
   const newStationIds = (newRowsResult.rows as StationIdRow[]).map((row) => row.id)
   const systemFirstStationIds = (systemFirstRowsResult.rows as StationIdRow[]).map((row) => row.id)
+  const systemFirstScalarReferenceStationIds = (
+    systemFirstScalarReferenceRowsResult.rows as StationIdRow[]
+  ).map((row) => row.id)
 
   assert.deepEqual(newStationIds, oldStationIds)
   assert.deepEqual(systemFirstStationIds, oldStationIds)
+  assert.deepEqual(systemFirstScalarReferenceStationIds, oldStationIds)
 
   const newPlanUsesGistIndex = Boolean(
     findNode(newExplainPlan.Plan, (node) => node['Index Name'] === 'systems_position_index')
@@ -175,6 +205,9 @@ test('stations by distance benchmark compares station-first and system-first SQL
   )
   const systemFirstPlanUsesGistIndex = Boolean(
     findNode(systemFirstExplainPlan.Plan, (node) => node['Index Name'] === 'systems_position_index')
+  )
+  const systemFirstScalarReferencePlanUsesGistIndex = Boolean(
+    findNode(systemFirstScalarReferenceExplainPlan.Plan, (node) => node['Index Name'] === 'systems_position_index')
   )
 
   console.log([
@@ -205,6 +238,15 @@ test('stations by distance benchmark compares station-first and system-first SQL
       topNode: systemFirstExplainPlan.Plan['Node Type'] ?? 'unknown',
       usesSystemsPositionGist: systemFirstPlanUsesGistIndex,
     },
+    {
+      query: 'system-first-scalar-reference',
+      planningMs: systemFirstScalarReferenceExplainPlan['Planning Time'],
+      executionMs: systemFirstScalarReferenceExplainPlan['Execution Time'],
+      sharedHitBlocks: systemFirstScalarReferenceExplainPlan['Shared Hit Blocks'] ?? 0,
+      sharedReadBlocks: systemFirstScalarReferenceExplainPlan['Shared Read Blocks'] ?? 0,
+      topNode: systemFirstScalarReferenceExplainPlan.Plan['Node Type'] ?? 'unknown',
+      usesSystemsPositionGist: systemFirstScalarReferencePlanUsesGistIndex,
+    },
   ])
 
   console.table([
@@ -234,6 +276,15 @@ test('stations by distance benchmark compares station-first and system-first SQL
       sharedReadBlocks: systemFirstExplainPlan['Shared Read Blocks'] ?? 0,
       topNode: systemFirstExplainPlan.Plan['Node Type'] ?? 'unknown',
       usesSystemsPositionGist: systemFirstPlanUsesGistIndex,
+    },
+    {
+      query: 'system-first-scalar-reference',
+      planningMs: systemFirstScalarReferenceExplainPlan['Planning Time'],
+      executionMs: systemFirstScalarReferenceExplainPlan['Execution Time'],
+      sharedHitBlocks: systemFirstScalarReferenceExplainPlan['Shared Hit Blocks'] ?? 0,
+      sharedReadBlocks: systemFirstScalarReferenceExplainPlan['Shared Read Blocks'] ?? 0,
+      topNode: systemFirstScalarReferenceExplainPlan.Plan['Node Type'] ?? 'unknown',
+      usesSystemsPositionGist: systemFirstScalarReferencePlanUsesGistIndex,
     },
   ])
   assert.equal(typeof oldExplainPlan['Execution Time'], 'number')

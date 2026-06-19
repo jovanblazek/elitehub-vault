@@ -29,8 +29,11 @@ test('stations by distance plugin applies system-first distance ordering in exte
   assert.match(pluginSource, /<->/)
   assert.match(pluginSource, /__distance/)
   assert.match(pluginSource, /from:\s*\{\s*callback:\s*\(\$select\)\s*=>/)
-  assert.match(pluginSource, /join public\.systems as nearby_system on true/)
+  assert.match(pluginSource, /from public\.systems as nearby_system/)
   assert.match(pluginSource, /join public\.stations as station/)
+  assert.match(pluginSource, /nearby_system\.position <-> \(\s*select reference_system\.position/)
+  assert.match(pluginSource, /from public\.systems as reference_system\s+where reference_system\.id =/)
+  assert.doesNotMatch(pluginSource, /from public\.systems as reference_system\s+join public\.systems as nearby_system/)
   assert.match(pluginSource, /\.setOrderIsUnique\(/)
 })
 
