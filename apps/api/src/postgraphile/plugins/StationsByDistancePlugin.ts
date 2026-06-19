@@ -1,4 +1,4 @@
-import { TYPES } from 'postgraphile/@dataplan/pg'
+import { pgSelect, sql, TYPES } from 'postgraphile/@dataplan/pg'
 import { connection } from 'postgraphile/grafast'
 import { extendSchema, gql } from 'postgraphile/utils'
 
@@ -26,24 +26,33 @@ export const StationsByDistancePlugin = extendSchema((build) => {
               pgFieldResource: stationsResource,
             },
             plan($root, args) {
-              const $stations = stationsResource.find()
-              const referenceSystemId = $stations.placeholder(args.getRaw('referenceSystemId'), TYPES.uuid)
+              const $stations = pgSelect({
+                resource: stationsResource,
+                identifiers: [],
+                from: {
+                  callback: ($select) => {
+                    const referenceSystemId = $select.placeholder(
+                      args.getRaw('referenceSystemId'),
+                      TYPES.uuid
+                    )
 
-              $stations.where(
-                (sql) => sql`exists(
-                  select 1
-                  from public.systems as reference_system
-                  where reference_system.id = ${referenceSystemId}
-                )`
-              )
+                    return sql`(
+                      select
+                        station.*,
+                        nearby_system.position <-> reference_system.position as __distance
+                      from public.systems as reference_system
+                      join public.systems as nearby_system on true
+                      join public.stations as station
+                        on station."systemId" = nearby_system.id
+                      where reference_system.id = ${referenceSystemId}
+                    )`
+                  },
+                },
+                name: 'stations_by_distance',
+              })
+
               $stations.orderBy((sql) => ({
-                fragment: sql`(
-                  select station_system.position <-> reference_system.position
-                  from public.systems as station_system
-                  inner join public.systems as reference_system
-                    on reference_system.id = ${referenceSystemId}
-                  where station_system.id = ${$stations.alias}."systemId"
-                )`,
+                fragment: sql`${$stations.alias}.__distance`,
                 codec: TYPES.float,
                 direction: 'ASC',
                 nullable: false,

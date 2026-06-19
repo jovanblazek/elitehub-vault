@@ -12,21 +12,25 @@ test('PostGraphile preset wires the stations by distance plugin', async () => {
   assert.match(pglSource, /StationsByDistancePlugin/)
 })
 
-test('stations by distance plugin queries the stations resource directly', async () => {
+test('stations by distance plugin builds a custom pgSelect over the stations resource', async () => {
   const pluginSource = await readFile(path.resolve(currentDir, 'StationsByDistancePlugin.ts'), 'utf8')
 
   assert.match(pluginSource, /build\.pgResources\.stations\b/)
-  assert.doesNotMatch(pluginSource, /stations_by_distance/)
-  assert.match(pluginSource, /\.placeholder\(args\.getRaw\('referenceSystemId'\), TYPES\.uuid\)/)
+  assert.match(pluginSource, /pgSelect\(/)
+  assert.match(pluginSource, /stations_by_distance/)
+  assert.match(pluginSource, /\.placeholder\(\s*args\.getRaw\('referenceSystemId'\),\s*TYPES\.uuid\s*\)/)
+  assert.doesNotMatch(pluginSource, /stationsResource\.find\(/)
 })
 
-test('stations by distance plugin applies distance ordering in extendSchema', async () => {
+test('stations by distance plugin applies system-first distance ordering in extendSchema', async () => {
   const pluginSource = await readFile(path.resolve(currentDir, 'StationsByDistancePlugin.ts'), 'utf8')
 
   assert.match(pluginSource, /\.orderBy\(/)
   assert.match(pluginSource, /<->/)
-  assert.match(pluginSource, /station_system\.position <-> reference_system\.position/)
-  assert.doesNotMatch(pluginSource, /ranked_systems/)
+  assert.match(pluginSource, /__distance/)
+  assert.match(pluginSource, /from:\s*\{\s*callback:\s*\(\$select\)\s*=>/)
+  assert.match(pluginSource, /join public\.systems as nearby_system on true/)
+  assert.match(pluginSource, /join public\.stations as station/)
   assert.match(pluginSource, /\.setOrderIsUnique\(/)
 })
 
