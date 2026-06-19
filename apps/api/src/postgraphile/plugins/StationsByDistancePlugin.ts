@@ -39,6 +39,7 @@ export const StationsByDistancePlugin = extendSchema((build) => {
                     return sql`(
                       select
                         station.*,
+                        ${referenceSystemId} as "__referenceSystemId",
                         nearby_system.position <-> (
                           select reference_system.position
                           from public.systems as reference_system
