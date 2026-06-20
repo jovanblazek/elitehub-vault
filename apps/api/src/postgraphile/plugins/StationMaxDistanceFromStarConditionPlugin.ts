@@ -36,7 +36,8 @@ export const StationMaxDistanceFromStarConditionPlugin = addPgTableCondition(
   },
   'maxDistanceFromStar',
   (build) => ({
-    description: 'Filters stations to those at or below the provided distance from the arrival star.',
+    description:
+      'Filters stations to those at or below the provided distance from the arrival star.',
     type: build.graphql.GraphQLFloat,
     apply(condition, value) {
       applyMaxDistanceFromStarInput(condition as ConditionLike, value as number | null)
