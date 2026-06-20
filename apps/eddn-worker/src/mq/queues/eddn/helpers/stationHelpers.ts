@@ -1,5 +1,6 @@
 import { Stations } from '@elitehub/db/schema'
 import { and, eq } from 'drizzle-orm'
+import * as Sentry from '@sentry/node'
 import type {
   EDDNJournalLocationMessage,
   EDDNJournalDockedMessage,
@@ -20,6 +21,7 @@ import {
   isStrongholdCarrier,
   isSystemCurrentlyStronghold,
 } from './strongholdCarrierHelpers.js'
+import { buildStationWritePayload, normalizeStationServices } from './stationServices.js'
 import logger from '../../../../utils/logger.js'
 
 /**
@@ -149,7 +151,20 @@ export const upsertStationFromDocked = async (
 }
 
 const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert) => {
-  const validatedStationData = StationsInsertSchema.parse(data)
+  const normalizedServices = normalizeStationServices({
+    rawServices: Array.isArray(data.services) ? data.services : undefined,
+    sentry: Sentry,
+    stationContext: {
+      marketId: data.marketId ?? null,
+      name: data.name,
+      systemId: data.systemId,
+    },
+  })
+  const validatedStationData = StationsInsertSchema.parse({
+    ...data,
+    services: normalizedServices.legacyServices ?? data.services,
+    servicesV2: normalizedServices.servicesV2,
+  })
   const now = new Date()
 
   if (isStrongholdCarrier(validatedStationData)) {
@@ -222,11 +237,31 @@ const upsertRegularStation = async (
     stationBySystemAndName &&
     stationByMarketId.id !== stationBySystemAndName.id
   ) {
+    const writePayload = buildStationWritePayload({
+      incomingLegacyServices: data.services as string[] | undefined,
+      incomingServicesV2: data.servicesV2,
+      persistedServices: stationBySystemAndName.services as unknown[] | undefined,
+      persistedServicesV2: stationBySystemAndName.servicesV2,
+      sentry: Sentry,
+      stationContext: {
+        marketId: data.marketId ?? null,
+        name: data.name,
+        systemId: data.systemId,
+      },
+    })
     logger.info(
       `[STATION HELPER] Deleting station ${stationByMarketId.name}:${stationByMarketId.id} for system ${data.systemId}. Updating ${stationBySystemAndName.name}:${stationBySystemAndName.id} instead.`
     )
     await deleteStationById(tx, stationByMarketId.id)
-    await updateStationById(tx, stationBySystemAndName.id, data, updatedAt)
+    await updateStationById(
+      tx,
+      stationBySystemAndName.id,
+      {
+        ...data,
+        ...writePayload,
+      },
+      updatedAt
+    )
     return
   }
 
@@ -237,7 +272,28 @@ const upsertRegularStation = async (
     return
   }
 
-  await updateStationById(tx, survivor.id, data, updatedAt)
+  const writePayload = buildStationWritePayload({
+    incomingLegacyServices: data.services as string[] | undefined,
+    incomingServicesV2: data.servicesV2,
+    persistedServices: survivor.services as unknown[] | undefined,
+    persistedServicesV2: survivor.servicesV2,
+    sentry: Sentry,
+    stationContext: {
+      marketId: data.marketId ?? null,
+      name: data.name,
+      systemId: data.systemId,
+    },
+  })
+
+  await updateStationById(
+    tx,
+    survivor.id,
+    {
+      ...data,
+      ...writePayload,
+    },
+    updatedAt
+  )
 }
 
 const upsertStrongholdCarrier = async (
