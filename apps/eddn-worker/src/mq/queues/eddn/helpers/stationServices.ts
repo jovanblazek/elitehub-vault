@@ -41,6 +41,14 @@ type BuildStationWritePayloadInput = {
   stationContext: StationContext
 }
 
+type PrepareStationWritePayloadInput = {
+  incomingServices: string[] | undefined
+  persistedServices: unknown[] | undefined
+  persistedServicesV2: StationService[] | undefined
+  sentry: SentryLike
+  stationContext: StationContext
+}
+
 const normalizeServiceValues = (services: readonly unknown[]) =>
   services.flatMap((service) =>
     typeof service === 'string' ? [service.trim().toLowerCase()].filter(Boolean) : []
@@ -180,4 +188,28 @@ export const buildStationWritePayload = ({
       stationContext,
     }),
   }
+}
+
+export const prepareStationWritePayload = ({
+  incomingServices,
+  persistedServices,
+  persistedServicesV2,
+  sentry,
+  stationContext,
+}: PrepareStationWritePayloadInput) => {
+  // Transitional shim: keep `servicesV2` in sync on every write until the legacy JSON column is removed.
+  const normalizedServices = normalizeStationServices({
+    rawServices: incomingServices,
+    sentry,
+    stationContext,
+  })
+
+  return buildStationWritePayload({
+    incomingLegacyServices: normalizedServices.legacyServices,
+    incomingServicesV2: normalizedServices.servicesV2,
+    persistedServices,
+    persistedServicesV2,
+    sentry,
+    stationContext,
+  })
 }

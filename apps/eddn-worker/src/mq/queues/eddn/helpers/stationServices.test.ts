@@ -4,6 +4,7 @@ import {
   buildStationWritePayload,
   deriveServicesV2FromLegacyServices,
   normalizeStationServices,
+  prepareStationWritePayload,
 } from './stationServices.js'
 
 test('normalizeStationServices keeps supported lowercase services and reports unsupported values', () => {
@@ -43,6 +44,22 @@ test('buildStationWritePayload backfills servicesV2 from legacy services when pe
     persistedServicesV2: [],
     sentry,
     stationContext: { marketId: 7, name: 'Backfill Hub', systemId: 'sys-3' },
+  })
+
+  assert.equal(result.services, undefined)
+  assert.deepEqual(result.servicesV2, ['dock', 'repair'])
+  assert.equal(sentry.captureMessage.mock.calls.length, 1)
+})
+
+test('prepareStationWritePayload backfills servicesV2 on writes when incoming services are missing', () => {
+  const sentry = { captureMessage: vi.fn() }
+
+  const result = prepareStationWritePayload({
+    incomingServices: undefined,
+    persistedServices: ['dock', 'carrierfuel', 'repair'],
+    persistedServicesV2: [],
+    sentry,
+    stationContext: { marketId: 11, name: 'Carrier Relay', systemId: 'sys-4' },
   })
 
   assert.equal(result.services, undefined)

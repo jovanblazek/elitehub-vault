@@ -21,7 +21,7 @@ import {
   isStrongholdCarrier,
   isSystemCurrentlyStronghold,
 } from './strongholdCarrierHelpers.js'
-import { buildStationWritePayload, normalizeStationServices } from './stationServices.js'
+import { prepareStationWritePayload } from './stationServices.js'
 import logger from '../../../../utils/logger.js'
 
 /**
@@ -151,8 +151,10 @@ export const upsertStationFromDocked = async (
 }
 
 const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert) => {
-  const normalizedServices = normalizeStationServices({
-    rawServices: Array.isArray(data.services) ? data.services : undefined,
+  const writePayload = prepareStationWritePayload({
+    incomingServices: Array.isArray(data.services) ? data.services : undefined,
+    persistedServices: undefined,
+    persistedServicesV2: undefined,
     sentry: Sentry,
     stationContext: {
       marketId: data.marketId ?? null,
@@ -162,8 +164,7 @@ const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert
   })
   const validatedStationData = StationsInsertSchema.parse({
     ...data,
-    services: normalizedServices.legacyServices ?? data.services,
-    servicesV2: normalizedServices.servicesV2,
+    ...writePayload,
   })
   const now = new Date()
 
@@ -237,9 +238,8 @@ const upsertRegularStation = async (
     stationBySystemAndName &&
     stationByMarketId.id !== stationBySystemAndName.id
   ) {
-    const writePayload = buildStationWritePayload({
-      incomingLegacyServices: data.services as string[] | undefined,
-      incomingServicesV2: data.servicesV2,
+    const writePayload = prepareStationWritePayload({
+      incomingServices: data.services as string[] | undefined,
       persistedServices: stationBySystemAndName.services as unknown[] | undefined,
       persistedServicesV2: stationBySystemAndName.servicesV2,
       sentry: Sentry,
@@ -272,9 +272,8 @@ const upsertRegularStation = async (
     return
   }
 
-  const writePayload = buildStationWritePayload({
-    incomingLegacyServices: data.services as string[] | undefined,
-    incomingServicesV2: data.servicesV2,
+  const writePayload = prepareStationWritePayload({
+    incomingServices: data.services as string[] | undefined,
     persistedServices: survivor.services as unknown[] | undefined,
     persistedServicesV2: survivor.servicesV2,
     sentry: Sentry,
@@ -330,5 +329,25 @@ const upsertStrongholdCarrier = async (
     return
   }
 
-  await updateStationById(tx, survivor.id, data, updatedAt)
+  const writePayload = prepareStationWritePayload({
+    incomingServices: data.services as string[] | undefined,
+    persistedServices: survivor.services as unknown[] | undefined,
+    persistedServicesV2: survivor.servicesV2,
+    sentry: Sentry,
+    stationContext: {
+      marketId: data.marketId ?? null,
+      name: data.name,
+      systemId: data.systemId,
+    },
+  })
+
+  await updateStationById(
+    tx,
+    survivor.id,
+    {
+      ...data,
+      ...writePayload,
+    },
+    updatedAt
+  )
 }
