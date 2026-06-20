@@ -274,7 +274,7 @@ export const FactionStates = pgTable(
     createdAt: timestamp().notNull().defaultNow(),
     updatedAt: timestamp().notNull().defaultNow(),
   },
-  (table) => [unique().on(table.factionId, table.systemId)]
+  (table) => [index().on(table.systemId), unique().on(table.factionId, table.systemId)]
 )
 
 export const FactionConflicts = pgTable(
