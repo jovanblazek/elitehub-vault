@@ -55,6 +55,7 @@ export const captureSseException = (error: unknown, options: SseTelemetryCapture
   })
 }
 
+// oxlint-disable-next-line no-underscore-dangle
 export const __setSseTelemetryClientForTests = (client: SseTelemetryClient | null) => {
   telemetryClient = client ?? DEFAULT_CLIENT
 }
