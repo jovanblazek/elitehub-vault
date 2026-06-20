@@ -1,0 +1,1 @@
+CREATE INDEX "factionStates_systemId_index" ON "factionStates" USING btree ("systemId");

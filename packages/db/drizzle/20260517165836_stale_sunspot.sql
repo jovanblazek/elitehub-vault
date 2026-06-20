@@ -1,0 +1,1 @@
+CREATE INDEX "systems_position_index" ON "systems" USING gist ("position");

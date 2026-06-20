@@ -121,6 +121,11 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '-*',
         },
       },
+      system_distance: {
+        tags: {
+          fieldName: 'distance',
+        },
+      },
     },
   },
 })

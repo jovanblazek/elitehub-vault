@@ -141,6 +141,27 @@
       "when": 1777827236805,
       "tag": "20260503165356_wakeful_jigsaw",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1779034805939,
+      "tag": "20260517162005_system_distance_field",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1779037116477,
+      "tag": "20260517165836_stale_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1781966176740,
+      "tag": "20260620143616_wooden_kylun",
+      "breakpoints": true
     }
   ]
 }
