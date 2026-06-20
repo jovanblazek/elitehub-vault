@@ -60,6 +60,52 @@ export enum StationType {
 
 export const StationTypeEnum = pgEnum('stationTypeEnum', enumToPgEnum(StationType))
 
+export const stationServiceValues = [
+  'apexinterstellar',
+  'autodock',
+  'bartender',
+  'blackmarket',
+  'carriermanagement',
+  'carriervendor',
+  'colonisationcontribution',
+  'commodities',
+  'contacts',
+  'crewlounge',
+  'dock',
+  'engineer',
+  'exploration',
+  'facilitator',
+  'flightcontroller',
+  'frontlinesolutions',
+  'livery',
+  'materialtrader',
+  'missions',
+  'missionsgenerated',
+  'modulepacks',
+  'ondockmission',
+  'outfitting',
+  'pioneersupplies',
+  'powerplay',
+  'rearm',
+  'refinery',
+  'refuel',
+  'registeringcolonisation',
+  'repair',
+  'searchrescue',
+  'shipyard',
+  'shop',
+  'socialspace',
+  'stationmenu',
+  'stationoperations',
+  'techbroker',
+  'tuning',
+  'vistagenomics',
+] as const
+
+export type StationService = (typeof stationServiceValues)[number]
+
+export const StationServiceEnum = pgEnum('stationServiceEnum', stationServiceValues)
+
 export enum FactionHappiness {
   Elated = 'Elated',
   Happy = 'Happy',
@@ -335,6 +381,7 @@ export const Stations = pgTable(
     economy: EconomyEnum(),
     economies: jsonb().default([]).notNull(),
     services: jsonb().default([]).notNull(),
+    servicesV2: StationServiceEnum().array().default([]).notNull(),
     landingPadsSmall: smallint().notNull().default(0),
     landingPadsMedium: smallint().notNull().default(0),
     landingPadsLarge: smallint().notNull().default(0),
@@ -344,6 +391,7 @@ export const Stations = pgTable(
   (table) => [
     index().on(table.name),
     index().on(table.controllingFactionId),
+    index().using('gin', table.servicesV2),
     unique().on(table.systemId, table.name),
   ]
 )

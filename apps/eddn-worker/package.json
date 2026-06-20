@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --import ./dist/utils/sentry.js dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "oxlint src"
+    "lint": "oxlint src",
+    "test": "NODE_ENV=test vitest run"
   },
   "dependencies": {
     "@elitehub/db": "workspace:*",

@@ -162,6 +162,13 @@
       "when": 1781966176740,
       "tag": "20260620143616_wooden_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1781986261768,
+      "tag": "20260620201101_whole_echo",
+      "breakpoints": true
     }
   ]
 }
