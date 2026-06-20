@@ -1,6 +1,6 @@
 import { jsonPgSmartTags } from 'postgraphile/utils'
 
-export const SmartTagsPlugin = jsonPgSmartTags({
+export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
   version: 1,
   config: {
     class: {
@@ -76,6 +76,11 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '+filterBy',
         },
       },
+      'stations.stationType': {
+        tags: {
+          behavior: '+filterBy',
+        },
+      },
       'stations.allegiance': {
         tags: {
           behavior: '+filterBy',
@@ -128,4 +133,6 @@ export const SmartTagsPlugin = jsonPgSmartTags({
       },
     },
   },
-})
+} as const
+
+export const SmartTagsPlugin = jsonPgSmartTags(smartTagsConfig)

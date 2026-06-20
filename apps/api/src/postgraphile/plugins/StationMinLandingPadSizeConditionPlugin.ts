@@ -10,9 +10,7 @@ type ConditionLike = {
   where: (fragment: ReturnType<typeof sql>) => void
 }
 
-export const getLandingPadColumnsForMinimumSize = (
-  size: LandingPadSize
-): Array<LandingPadColumn> => {
+export const getLandingPadColumnsForMinSize = (size: LandingPadSize): Array<LandingPadColumn> => {
   switch (size) {
     case 'SMALL':
       return ['landingPadsSmall', 'landingPadsMedium', 'landingPadsLarge']
@@ -23,17 +21,14 @@ export const getLandingPadColumnsForMinimumSize = (
   }
 }
 
-export const applyMinimumLandingPadSizeCondition = (
-  condition: ConditionLike,
-  size: LandingPadSize
-) => {
-  const columns = getLandingPadColumnsForMinimumSize(size)
+export const applyMinLandingPadSizeCondition = (condition: ConditionLike, size: LandingPadSize) => {
+  const columns = getLandingPadColumnsForMinSize(size)
   const checks = columns.map((column) => sql`${condition.alias}.${sql.identifier(column)} > 0`)
 
   condition.where(sql`(${sql.join(checks, ' or ')})`)
 }
 
-export const applyMinimumLandingPadSizeInput = (
+export const applyMinLandingPadSizeInput = (
   condition: ConditionLike,
   size: LandingPadSize | null | undefined
 ) => {
@@ -41,15 +36,15 @@ export const applyMinimumLandingPadSizeInput = (
     return
   }
 
-  applyMinimumLandingPadSizeCondition(condition, size)
+  applyMinLandingPadSizeCondition(condition, size)
 }
 
-export const StationMinimumLandingPadSizeConditionPlugin = addPgTableCondition(
+export const StationMinLandingPadSizeConditionPlugin = addPgTableCondition(
   {
     schemaName: 'public',
     tableName: 'stations',
   },
-  'minimumLandingPadSize',
+  'minLandingPadSize',
   (build) => {
     const { GraphQLEnumType } = build.graphql
 
@@ -74,7 +69,7 @@ export const StationMinimumLandingPadSizeConditionPlugin = addPgTableCondition(
         },
       }),
       apply(condition, value) {
-        applyMinimumLandingPadSizeInput(condition as ConditionLike, value as LandingPadSize | null)
+        applyMinLandingPadSizeInput(condition as ConditionLike, value as LandingPadSize | null)
       },
     }
   }
