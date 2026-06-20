@@ -3,6 +3,7 @@ import { makePgService } from 'postgraphile/adaptors/pg'
 import { PostGraphileAmberPreset } from 'postgraphile/presets/amber'
 import { PgSimplifyInflectionPreset } from '@graphile/simplify-inflection'
 import { ReasonableLimitsPlugin } from '@haathie/postgraphile-reasonable-limits'
+import { TargetedConditionsPlugin } from '@haathie/postgraphile-targeted-conditions'
 import { ArmorPlugin } from './plugins/ArmorPlugin.js'
 import { SmartTagsPlugin } from './plugins/SmartTagsPlugin.js'
 import { PgCubePlugin } from './plugins/PgCubePlugin.js'
@@ -31,6 +32,7 @@ const PGL_Preset: GraphileConfig.Preset = {
     PgCubePlugin,
     IdToNodeIdPlugin,
     SmartTagsPlugin,
+    TargetedConditionsPlugin,
     FactionsByDistancePlugin,
     FactionStatesByDistancePlugin,
     ...FactionStateConditionPlugins,

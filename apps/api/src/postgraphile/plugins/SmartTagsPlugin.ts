@@ -34,6 +34,12 @@ export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
           behavior: '-*',
         },
       },
+      factionStates: {
+        tags: {
+          // TODO: Try this out with system distance filter
+          ref: 'factionFilter via:("factionId")->factions(id) singular behavior:filterable',
+        },
+      },
     },
     attribute: {
       'systems.government': {
