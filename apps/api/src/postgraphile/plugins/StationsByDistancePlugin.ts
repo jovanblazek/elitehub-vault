@@ -64,11 +64,6 @@ export const StationsByDistancePlugin = extendSchema((build) => {
                 direction: 'ASC',
                 nullable: false,
               }))
-              $stations.orderBy({
-                attribute: 'id',
-                direction: 'ASC',
-              })
-              $stations.setOrderIsUnique()
 
               return connection($stations as never)
             },

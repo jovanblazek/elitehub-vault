@@ -49,7 +49,8 @@ test('systems by distance plugin applies distance ordering in extendSchema', asy
     pluginSource,
     /from public\.systems as reference_system\s+where reference_system\.id =/
   )
-  assert.match(pluginSource, /\.setOrderIsUnique\(/)
+  assert.doesNotMatch(pluginSource, /attribute:\s*'id'/)
+  assert.doesNotMatch(pluginSource, /\.setOrderIsUnique\(/)
 })
 
 test('smart tags expose distance from system_distance', async () => {

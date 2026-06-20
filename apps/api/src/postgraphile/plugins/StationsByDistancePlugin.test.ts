@@ -34,7 +34,8 @@ test('stations by distance plugin applies system-first distance ordering in exte
   assert.match(pluginSource, /nearby_system\.position <-> \(\s*select reference_system\.position/)
   assert.match(pluginSource, /from public\.systems as reference_system\s+where reference_system\.id =/)
   assert.doesNotMatch(pluginSource, /from public\.systems as reference_system\s+join public\.systems as nearby_system/)
-  assert.match(pluginSource, /\.setOrderIsUnique\(/)
+  assert.doesNotMatch(pluginSource, /attribute:\s*'id'/)
+  assert.doesNotMatch(pluginSource, /\.setOrderIsUnique\(/)
 })
 
 test('smart tags expose distance from system_distance and not station_distance', async () => {

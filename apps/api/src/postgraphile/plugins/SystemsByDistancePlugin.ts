@@ -58,11 +58,6 @@ export const SystemsByDistancePlugin = extendSchema((build) => {
                 ],
                 direction: 'ASC',
               })
-              $systems.orderBy({
-                attribute: 'id',
-                direction: 'ASC',
-              })
-              $systems.setOrderIsUnique()
 
               return connection($systems as never)
             },
