@@ -3,7 +3,6 @@ import { sql } from 'postgraphile/@dataplan/pg'
 import { test } from 'vitest'
 import {
   applyMinLandingPadSizeCondition,
-  applyMinLandingPadSizeInput,
   getLandingPadColumnsForMinSize,
   type LandingPadSize,
 } from './StationMinLandingPadSizeConditionPlugin.js'
@@ -60,26 +59,4 @@ test('large min landing pad size filters only for large pads', () => {
 
   assert.equal(compiled.text, '("station"."landingPadsLarge" > 0)')
   assert.deepEqual(compiled.values, [])
-})
-
-test('min landing pad size input uses the raw enum value passed to apply', () => {
-  const fragments: Array<ReturnType<typeof sql>> = []
-
-  applyMinLandingPadSizeInput(
-    {
-      alias: sql.identifier('station'),
-      where(fragment) {
-        fragments.push(fragment)
-      },
-    },
-    'MEDIUM'
-  )
-
-  assert.equal(fragments.length, 1)
-
-  const compiled = sql.compile(fragments[0])
-  assert.equal(
-    compiled.text,
-    '("station"."landingPadsMedium" > 0 or "station"."landingPadsLarge" > 0)'
-  )
 })

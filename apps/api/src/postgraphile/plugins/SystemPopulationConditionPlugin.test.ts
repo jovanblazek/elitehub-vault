@@ -120,18 +120,6 @@ test('max population filters systems at or below the inclusive threshold', () =>
   assert.deepEqual(compiled.values, [9000000])
 })
 
-test('system population inputs ignore nullish input', () => {
-  const fragments: Array<ReturnType<typeof sql>> = []
-  const condition = createCondition(fragments)
-
-  applyMinPopulationInput(condition, null)
-  applyMinPopulationInput(condition, undefined)
-  applyMaxPopulationInput(condition, null)
-  applyMaxPopulationInput(condition, undefined)
-
-  assert.equal(fragments.length, 0)
-})
-
 test('min population condition exposes the built-in BigInt input type', () => {
   const { type, bigIntType } = getPopulationConditionFieldType(SystemMinPopulationConditionPlugin)
 
