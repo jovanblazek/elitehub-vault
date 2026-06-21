@@ -20,6 +20,7 @@ import {
   SystemMinPopulationConditionPlugin,
 } from './plugins/SystemPopulationConditionPlugin.js'
 import { SystemPowerplayStateConditionPlugin } from './plugins/SystemPowerplayStateConditionPlugin.js'
+import { SystemsFactionStatesFilterRefPlugin } from './plugins/SystemsFactionStatesFilterRefPlugin.js'
 import { StationsByDistancePlugin } from './plugins/StationsByDistancePlugin.js'
 import { SystemsByDistancePlugin } from './plugins/SystemsByDistancePlugin.js'
 import * as Sentry from '@sentry/node'
@@ -38,6 +39,7 @@ const PGL_Preset: GraphileConfig.Preset = {
     PgCubePlugin,
     IdToNodeIdPlugin,
     SmartTagsPlugin,
+    SystemsFactionStatesFilterRefPlugin,
     TargetedConditionsPlugin,
     FactionsByDistancePlugin,
     FactionStatesByDistancePlugin,

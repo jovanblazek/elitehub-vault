@@ -36,7 +36,10 @@ export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
       },
       factionStates: {
         tags: {
-          ref: 'factionFilter via:("factionId")->factions(id) singular behavior:"filterable -singularRelation:resource:single"',
+          ref: [
+            'factionFilter via:("factionId")->factions(id) singular behavior:"filterable -singularRelation:resource:single"',
+            'systemFilter via:("systemId")->systems(id) singular behavior:"filterable -singularRelation:resource:single"',
+          ],
         },
       },
     },
