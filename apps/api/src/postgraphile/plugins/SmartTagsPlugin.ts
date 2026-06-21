@@ -62,11 +62,6 @@ export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
           behavior: '+filterBy',
         },
       },
-      'systems.powerplayState': {
-        tags: {
-          behavior: '+filterBy',
-        },
-      },
       'factions.government': {
         tags: {
           behavior: '+filterBy',
@@ -82,9 +77,9 @@ export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
           behavior: '+filterBy',
         },
       },
-      'stations.stationType': {
+      'stations.distanceFromStar': {
         tags: {
-          behavior: '+filterBy',
+          behavior: '+orderBy',
         },
       },
       'stations.allegiance': {

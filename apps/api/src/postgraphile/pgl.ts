@@ -14,6 +14,12 @@ import { FactionStateConditionPlugins } from './plugins/FactionStateConditionsPl
 import { StationMaxDistanceFromStarConditionPlugin } from './plugins/StationMaxDistanceFromStarConditionPlugin.js'
 import { StationMinLandingPadSizeConditionPlugin } from './plugins/StationMinLandingPadSizeConditionPlugin.js'
 import { StationServicesConditionPlugin } from './plugins/StationServicesConditionPlugin.js'
+import { StationTypeConditionPlugin } from './plugins/StationTypeConditionPlugin.js'
+import {
+  SystemMaxPopulationConditionPlugin,
+  SystemMinPopulationConditionPlugin,
+} from './plugins/SystemPopulationConditionPlugin.js'
+import { SystemPowerplayStateConditionPlugin } from './plugins/SystemPowerplayStateConditionPlugin.js'
 import { StationsByDistancePlugin } from './plugins/StationsByDistancePlugin.js'
 import { SystemsByDistancePlugin } from './plugins/SystemsByDistancePlugin.js'
 import * as Sentry from '@sentry/node'
@@ -39,6 +45,10 @@ const PGL_Preset: GraphileConfig.Preset = {
     StationMaxDistanceFromStarConditionPlugin,
     StationMinLandingPadSizeConditionPlugin,
     StationServicesConditionPlugin,
+    StationTypeConditionPlugin,
+    SystemMinPopulationConditionPlugin,
+    SystemMaxPopulationConditionPlugin,
+    SystemPowerplayStateConditionPlugin,
     StationsByDistancePlugin,
     SystemsByDistancePlugin,
     ReasonableLimitsPlugin,

@@ -1,5 +1,6 @@
 import { addPgTableCondition } from 'postgraphile/utils'
 import { sql, sqlValueWithCodec } from 'postgraphile/@dataplan/pg'
+import { isEnumType } from 'postgraphile/graphql'
 
 type SqlFragment = ReturnType<typeof sql>
 type SqlIdentifier = ReturnType<typeof sql.identifier>
@@ -49,15 +50,13 @@ export const StationServicesConditionPlugin = addPgTableCondition(
     const itemCodec = arrayCodec?.arrayOfCodec
     const itemType = itemCodec ? build.getGraphQLTypeByPgCodec(itemCodec, 'input') : null
 
-    if (!arrayCodec || !itemType) {
+    if (!arrayCodec || !itemType || !isEnumType(itemType)) {
       throw new Error('Missing GraphQL input type for stations.servicesV2.')
     }
 
     return {
       description: 'Matches stations whose servicesV2 array contains all provided services.',
-      type: new build.graphql.GraphQLList(
-        new build.graphql.GraphQLNonNull(itemType as never)
-      ) as never,
+      type: new build.graphql.GraphQLList(new build.graphql.GraphQLNonNull(itemType)),
       apply(condition, value) {
         applyStationServicesInput(
           condition as ConditionLike,

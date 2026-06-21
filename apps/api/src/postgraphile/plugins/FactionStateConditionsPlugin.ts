@@ -1,5 +1,5 @@
 import { addPgTableCondition } from 'postgraphile/utils'
-import { sql, sqlValueWithCodec } from 'postgraphile/@dataplan/pg'
+import { PgCodec, sql, sqlValueWithCodec } from 'postgraphile/@dataplan/pg'
 
 type FactionStateArrayColumn = 'pendingStates' | 'activeStates' | 'recoveringStates'
 
@@ -39,11 +39,11 @@ export const applyFactionStateArrayCondition = (
   column: FactionStateArrayColumn,
   mode: FactionStateArrayFilterMode,
   states: readonly string[],
-  codec?: unknown
+  codec?: PgCodec
 ) => {
   const operator = mode === 'any' ? sql`&&` : sql`@>`
   const placeholder =
-    codec === undefined ? sql.value([...states]) : sqlValueWithCodec(states, codec as never)
+    codec === undefined ? sql.value([...states]) : sqlValueWithCodec(states, codec)
 
   $condition.where(sql`${$condition.alias}.${sql.identifier(column)} ${operator} ${placeholder}`)
 }
@@ -64,15 +64,13 @@ export const FactionStateConditionPlugins = FILTER_COLUMNS.flatMap((column) =>
         const itemCodec = arrayCodec?.arrayOfCodec
         const itemType = itemCodec ? build.getGraphQLTypeByPgCodec(itemCodec, 'input') : null
 
-        if (!arrayCodec || !itemType) {
+        if (!arrayCodec || !itemType || !build.graphql.isEnumType(itemType)) {
           throw new Error(`Missing GraphQL input type for factionStates.${column}.`)
         }
 
         return {
           description,
-          type: new build.graphql.GraphQLList(
-            new build.graphql.GraphQLNonNull(itemType as never)
-          ) as never,
+          type: new build.graphql.GraphQLList(new build.graphql.GraphQLNonNull(itemType)),
           apply($condition: ConditionLike, states: readonly string[] | null | undefined) {
             if (states == null) {
               return
