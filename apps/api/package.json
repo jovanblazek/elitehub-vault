@@ -22,6 +22,7 @@
     "@graphile/simplify-inflection": "8.0.0",
     "@haathie/postgraphile-otel": "0.1.0",
     "@haathie/postgraphile-reasonable-limits": "0.2.0",
+    "@haathie/postgraphile-targeted-conditions": "0.1.1",
     "@sentry/node": "10.53.1",
     "@t3-oss/env-core": "0.13.11",
     "drizzle-orm": "0.45.2",

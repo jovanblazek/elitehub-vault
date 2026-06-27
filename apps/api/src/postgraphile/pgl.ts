@@ -3,12 +3,24 @@ import { makePgService } from 'postgraphile/adaptors/pg'
 import { PostGraphileAmberPreset } from 'postgraphile/presets/amber'
 import { PgSimplifyInflectionPreset } from '@graphile/simplify-inflection'
 import { ReasonableLimitsPlugin } from '@haathie/postgraphile-reasonable-limits'
+import { TargetedConditionsPlugin } from '@haathie/postgraphile-targeted-conditions'
 import { ArmorPlugin } from './plugins/ArmorPlugin.js'
 import { SmartTagsPlugin } from './plugins/SmartTagsPlugin.js'
 import { PgCubePlugin } from './plugins/PgCubePlugin.js'
 import { IdToNodeIdPlugin } from './plugins/IdToNodeIdPlugin.js'
 import { FactionsByDistancePlugin } from './plugins/FactionsByDistancePlugin.js'
 import { FactionStatesByDistancePlugin } from './plugins/FactionStatesByDistancePlugin.js'
+import { FactionStateConditionPlugins } from './plugins/FactionStateConditionsPlugin.js'
+import { StationMaxDistanceFromStarConditionPlugin } from './plugins/StationMaxDistanceFromStarConditionPlugin.js'
+import { StationMinLandingPadSizeConditionPlugin } from './plugins/StationMinLandingPadSizeConditionPlugin.js'
+import { StationServicesConditionPlugin } from './plugins/StationServicesConditionPlugin.js'
+import { StationTypeConditionPlugin } from './plugins/StationTypeConditionPlugin.js'
+import {
+  SystemMaxPopulationConditionPlugin,
+  SystemMinPopulationConditionPlugin,
+} from './plugins/SystemPopulationConditionPlugin.js'
+import { SystemPowerplayStateConditionPlugin } from './plugins/SystemPowerplayStateConditionPlugin.js'
+import { SystemsFactionStatesFilterRefPlugin } from './plugins/SystemsFactionStatesFilterRefPlugin.js'
 import { StationsByDistancePlugin } from './plugins/StationsByDistancePlugin.js'
 import { SystemsByDistancePlugin } from './plugins/SystemsByDistancePlugin.js'
 import * as Sentry from '@sentry/node'
@@ -27,8 +39,18 @@ const PGL_Preset: GraphileConfig.Preset = {
     PgCubePlugin,
     IdToNodeIdPlugin,
     SmartTagsPlugin,
+    SystemsFactionStatesFilterRefPlugin,
+    TargetedConditionsPlugin,
     FactionsByDistancePlugin,
     FactionStatesByDistancePlugin,
+    ...FactionStateConditionPlugins,
+    StationMaxDistanceFromStarConditionPlugin,
+    StationMinLandingPadSizeConditionPlugin,
+    StationServicesConditionPlugin,
+    StationTypeConditionPlugin,
+    SystemMinPopulationConditionPlugin,
+    SystemMaxPopulationConditionPlugin,
+    SystemPowerplayStateConditionPlugin,
     StationsByDistancePlugin,
     SystemsByDistancePlugin,
     ReasonableLimitsPlugin,

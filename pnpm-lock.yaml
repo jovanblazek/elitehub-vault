@@ -74,6 +74,9 @@ importers:
       '@haathie/postgraphile-reasonable-limits':
         specifier: 0.2.0
         version: 0.2.0(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))
+      '@haathie/postgraphile-targeted-conditions':
+        specifier: 0.1.1
+        version: 0.1.1(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))
       '@sentry/node':
         specifier: 10.53.1
         version: 10.53.1
@@ -912,6 +915,11 @@ packages:
       graphql-ws:
         optional: true
 
+  '@haathie/postgraphile-common-utils@0.1.2':
+    resolution: {integrity: sha512-WnuI1uuhgEQZ7+/VjaZm2QYhdVsUQzWVmwTcKZB/wLs3BfxvriGPeBxGdujCoOBhbp+2xie7CO53vaT/3FOMxQ==}
+    peerDependencies:
+      postgraphile: '*'
+
   '@haathie/postgraphile-otel@0.1.0':
     resolution: {integrity: sha512-hdfczF7oweMheiGWT/Ayb5icJLPNxCoVoTaq/1Ovf0htT+DlSEoGBbngd+It90MCQjZQe+MQK/nT07TAq5y9JQ==}
     peerDependencies:
@@ -919,6 +927,11 @@ packages:
 
   '@haathie/postgraphile-reasonable-limits@0.2.0':
     resolution: {integrity: sha512-9MOwM8lPpLm5u/6Sp7eK24+fVLDYF5WOTfMWVjSNHV/CSn+cOIAVZVxXNzRiZ/3aCRBma29LdVvdrCAUwSrz9Q==}
+    peerDependencies:
+      postgraphile: '*'
+
+  '@haathie/postgraphile-targeted-conditions@0.1.1':
+    resolution: {integrity: sha512-/gz3F2Do6vRCq+dkKqZOm1UUBT1i3dLq/HDMRu6KsAUdCuUB9tpmWqAYgQSSXQg4dZLReE+zANTrFzwTHGBVCA==}
     peerDependencies:
       postgraphile: '*'
 
@@ -5036,6 +5049,10 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
+  '@haathie/postgraphile-common-utils@0.1.2(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))':
+    dependencies:
+      postgraphile: 5.0.3(2ftw6bcsmzszuw2smjruvblb5q)
+
   '@haathie/postgraphile-otel@0.1.0(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))':
     dependencies:
       '@opentelemetry/api': 1.9.1
@@ -5043,6 +5060,11 @@ snapshots:
 
   '@haathie/postgraphile-reasonable-limits@0.2.0(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))':
     dependencies:
+      postgraphile: 5.0.3(2ftw6bcsmzszuw2smjruvblb5q)
+
+  '@haathie/postgraphile-targeted-conditions@0.1.1(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))':
+    dependencies:
+      '@haathie/postgraphile-common-utils': 0.1.2(postgraphile@5.0.3(2ftw6bcsmzszuw2smjruvblb5q))
       postgraphile: 5.0.3(2ftw6bcsmzszuw2smjruvblb5q)
 
   '@hapi/bourne@3.0.0': {}

@@ -1,6 +1,6 @@
 import { jsonPgSmartTags } from 'postgraphile/utils'
 
-export const SmartTagsPlugin = jsonPgSmartTags({
+export const smartTagsConfig: Parameters<typeof jsonPgSmartTags>[0] = {
   version: 1,
   config: {
     class: {
@@ -34,6 +34,14 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '-*',
         },
       },
+      factionStates: {
+        tags: {
+          ref: [
+            'factionFilter via:("factionId")->factions(id) singular behavior:"filterable -singularRelation:resource:single"',
+            'systemFilter via:("systemId")->systems(id) singular behavior:"filterable -singularRelation:resource:single"',
+          ],
+        },
+      },
     },
     attribute: {
       'systems.government': {
@@ -56,11 +64,6 @@ export const SmartTagsPlugin = jsonPgSmartTags({
           behavior: '+filterBy',
         },
       },
-      'systems.powerplayState': {
-        tags: {
-          behavior: '+filterBy',
-        },
-      },
       'factions.government': {
         tags: {
           behavior: '+filterBy',
@@ -74,6 +77,11 @@ export const SmartTagsPlugin = jsonPgSmartTags({
       'stations.government': {
         tags: {
           behavior: '+filterBy',
+        },
+      },
+      'stations.distanceFromStar': {
+        tags: {
+          behavior: '+orderBy',
         },
       },
       'stations.allegiance': {
@@ -128,4 +136,6 @@ export const SmartTagsPlugin = jsonPgSmartTags({
       },
     },
   },
-})
+} as const
+
+export const SmartTagsPlugin = jsonPgSmartTags(smartTagsConfig)
