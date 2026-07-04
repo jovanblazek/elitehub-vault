@@ -323,6 +323,34 @@ export const FactionStates = pgTable(
   (table) => [index().on(table.systemId), unique().on(table.factionId, table.systemId)]
 )
 
+export const FactionStateHistory = pgTable(
+  'factionStateHistory',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    factionId: uuid()
+      .notNull()
+      .references(() => Factions.id, { onDelete: 'cascade' }),
+    systemId: uuid()
+      .notNull()
+      .references(() => Systems.id, { onDelete: 'cascade' }),
+    isPresent: boolean().notNull().default(true),
+    happiness: FactionHappinessEnum(),
+    influence: doublePrecision().notNull(),
+    activeStates: FactionStateEnum().array().default([]).notNull(),
+    recoveringStates: FactionStateEnum().array().default([]).notNull(),
+    pendingStates: FactionStateEnum().array().default([]).notNull(),
+    activeStatesRaw: jsonb().default([]).notNull(),
+    recoveringStatesRaw: jsonb().default([]).notNull(),
+    pendingStatesRaw: jsonb().default([]).notNull(),
+    createdAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [
+    index().on(table.systemId, table.createdAt),
+    index().on(table.factionId, table.createdAt),
+    index().on(table.isPresent, table.createdAt),
+  ]
+)
+
 export const FactionConflicts = pgTable(
   'factionConflicts',
   {

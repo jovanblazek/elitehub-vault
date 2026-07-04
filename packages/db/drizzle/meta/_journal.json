@@ -169,6 +169,13 @@
       "when": 1781986261768,
       "tag": "20260620201101_whole_echo",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1783186108503,
+      "tag": "20260704172828_last_giant_girl",
+      "breakpoints": true
     }
   ]
 }
