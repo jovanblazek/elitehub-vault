@@ -5,14 +5,9 @@ import {
   FactionStates,
   FactionConflicts,
   Stations,
-  FactionState,
   Systems,
 } from '@elitehub/db/schema'
 import { eq, and, notInArray, sql } from 'drizzle-orm'
-import type {
-  EDDNJournalLocationMessage,
-  EDDNJournalFSDJumpMessage,
-} from '@elitehub/eddn-contracts'
 import {
   FactionsInsertSchema,
   FactionStatesInsertSchema,
@@ -21,14 +16,15 @@ import {
 import {
   mapGovernment,
   mapAllegiance,
-  mapHappiness,
-  mapFactionState,
   mapFactionConflictType,
   mapFactionConflictStatus,
 } from '../constants.js'
 import type { Transaction } from './systemHelpers.js'
-
-type FactionMessage = EDDNJournalLocationMessage | EDDNJournalFSDJumpMessage
+import {
+  appendFactionStateHistory,
+  buildFactionStateWriteRows,
+  type FactionMessage,
+} from './factionHistory.js'
 
 /**
  * Upserts factions and returns the inserted/updated factions
@@ -139,12 +135,6 @@ const syncSystemControllingFaction = async (
 }
 
 /**
- * Maps faction states from message format to database format
- */
-const mapFactionStates = (states: { State: string }[] | undefined) =>
-  (states ?? []).map((state) => mapFactionState(state.State)).filter(Boolean) as FactionState[]
-
-/**
  * Upserts faction states for all factions in the system
  */
 const upsertFactionStates = async (
@@ -155,19 +145,7 @@ const upsertFactionStates = async (
 ) => {
   if (!message.Factions) return
 
-  const factionStatesData = message.Factions.map((faction) => ({
-    factionId: factionIdMap[faction.Name],
-    systemId,
-    happiness: mapHappiness(faction.Happiness),
-    influence: faction.Influence,
-    activeStates: mapFactionStates(faction.ActiveStates),
-    recoveringStates: mapFactionStates(faction.RecoveringStates),
-    pendingStates: mapFactionStates(faction.PendingStates),
-    activeStatesRaw: faction.ActiveStates ?? [],
-    recoveringStatesRaw: faction.RecoveringStates ?? [],
-    pendingStatesRaw: faction.PendingStates ?? [],
-  }))
-
+  const factionStatesData = buildFactionStateWriteRows(systemId, message, factionIdMap)
   const validatedFactionStatesData = FactionStatesInsertSchema.array().parse(factionStatesData)
 
   await tx
@@ -347,8 +325,9 @@ export const processFactionsData = async (
     : null
 
   await upsertSystemFactions(tx, systemId, factions)
-  await cleanupFactionStates(tx, systemId, factions)
   await syncSystemControllingFaction(tx, systemId, controllingFactionId)
+  await appendFactionStateHistory(tx, systemId, message, factionIdMap)
+  await cleanupFactionStates(tx, systemId, factions)
   await upsertFactionStates(tx, systemId, message, factionIdMap)
   await upsertFactionConflicts(tx, systemId, message)
 }

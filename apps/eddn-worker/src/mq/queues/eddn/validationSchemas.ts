@@ -3,6 +3,7 @@ import {
   Systems,
   Factions,
   FactionStates,
+  FactionStateHistory,
   FactionConflicts,
   Stations,
   PowerplayConflicts,
@@ -13,6 +14,7 @@ import { z } from 'zod'
 export const SystemsInsertSchema = createInsertSchema(Systems)
 export const FactionsInsertSchema = createInsertSchema(Factions)
 export const FactionStatesInsertSchema = createInsertSchema(FactionStates)
+export const FactionStateHistoryInsertSchema = createInsertSchema(FactionStateHistory)
 export const FactionConflictsInsertSchema = createInsertSchema(FactionConflicts)
 export const StationServiceSchema = z.enum(stationServiceValues)
 export const StationServicesV2Schema = z.array(StationServiceSchema)
