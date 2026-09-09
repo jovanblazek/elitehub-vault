@@ -3,22 +3,47 @@ import { and, desc, eq } from 'drizzle-orm'
 import type { Transaction } from './systemHelpers.js'
 
 const STRONGHOLD_CARRIER_NAME = 'Stronghold Carrier'
+const STRONGHOLD_CARRIER_NAMES = new Set([
+  STRONGHOLD_CARRIER_NAME,
+  'Hochburg-Carrier',
+  'Portanaves bastión',
+  'Porte-vaisseaux de forteresse',
+  'Transportadora da potência',
+  'Носитель-база',
+])
 const STRONGHOLD_CARRIER_SMALL_PADS = 4
 const STRONGHOLD_CARRIER_MEDIUM_PADS = 4
 const STRONGHOLD_CARRIER_LARGE_PADS = 2
 
-type StationCarrierShape = Pick<
+type StrongholdCarrierShape = Pick<
   typeof Stations.$inferInsert,
   'name' | 'stationType' | 'economy' | 'landingPadsSmall' | 'landingPadsMedium' | 'landingPadsLarge'
 >
 
-export const isStrongholdCarrier = (station: StationCarrierShape) =>
+const hasStrongholdCarrierCharacteristics = (station: StrongholdCarrierShape) =>
   station.stationType === StationType.PlanetaryOutpost &&
-  station.name === STRONGHOLD_CARRIER_NAME &&
   station.economy === Economy.HighTech &&
   station.landingPadsSmall === STRONGHOLD_CARRIER_SMALL_PADS &&
   station.landingPadsMedium === STRONGHOLD_CARRIER_MEDIUM_PADS &&
   station.landingPadsLarge === STRONGHOLD_CARRIER_LARGE_PADS
+
+export const isStrongholdCarrier = (station: StrongholdCarrierShape) =>
+  station.name === STRONGHOLD_CARRIER_NAME && hasStrongholdCarrierCharacteristics(station)
+
+export const normalizeStrongholdCarrierName = <T extends StrongholdCarrierShape>(station: T): T => {
+  if (
+    !STRONGHOLD_CARRIER_NAMES.has(station.name) ||
+    !hasStrongholdCarrierCharacteristics(station) ||
+    station.name === STRONGHOLD_CARRIER_NAME
+  ) {
+    return station
+  }
+
+  return {
+    ...station,
+    name: STRONGHOLD_CARRIER_NAME,
+  }
+}
 
 const getStrongholdCarrierPredicate = (systemId: string) =>
   and(

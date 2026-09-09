@@ -20,6 +20,7 @@ import {
   findStrongholdCarriersInSystem,
   isStrongholdCarrier,
   isSystemCurrentlyStronghold,
+  normalizeStrongholdCarrierName,
 } from './strongholdCarrierHelpers.js'
 import { prepareStationWritePayload } from './stationServices.js'
 import logger from '../../../../utils/logger.js'
@@ -162,10 +163,12 @@ const upsertStation = async (tx: Transaction, data: typeof Stations.$inferInsert
       systemId: data.systemId,
     },
   })
-  const validatedStationData = StationsInsertSchema.parse({
-    ...data,
-    ...writePayload,
-  })
+  const validatedStationData = normalizeStrongholdCarrierName(
+    StationsInsertSchema.parse({
+      ...data,
+      ...writePayload,
+    })
+  )
   const now = new Date()
 
   if (isStrongholdCarrier(validatedStationData)) {
