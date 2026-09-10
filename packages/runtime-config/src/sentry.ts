@@ -5,7 +5,7 @@ type InitializeSentryOptions = {
   serviceName: string
   dsn: string | undefined
   release?: string
-  integrations?: ReturnType<typeof Sentry.koaIntegration>[]
+  integrations?: NonNullable<Parameters<typeof Sentry.init>[0]>['integrations']
 }
 
 export const initializeSentry = ({
