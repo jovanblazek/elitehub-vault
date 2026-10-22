@@ -38,7 +38,7 @@
     "tsconfig-paths": "4.2.0",
     "turbo": "2.10.12",
     "typescript": "6.0.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   },
   "engines": {
     "node": "^22.14.0"
