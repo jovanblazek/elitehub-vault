@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  undici@>=6.23.0 <6.29.1: 6.29.1
-
 importers:
 
   .:
@@ -1833,6 +1830,9 @@ packages:
   '@types/node@22.20.1':
     resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
 
+  '@types/node@22.20.5':
+    resolution: {integrity: sha512-U2+DNr+wSjpsTS/wZGYHq7GcwfuSmKiKvoPvK22zwTlRhU91yOniN4qRR5KhIjvif7ysw/dz/hKmfDH0Ris4aA==}
+
   '@types/node@24.19.2':
     resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
@@ -1938,8 +1938,8 @@ packages:
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
-  argparse@3.0.3:
-    resolution: {integrity: sha512-Sn98ftV3KfsO8xfLPHG6oT8y+b0yvbrLgZjgPDXsharNY15tTAjqIsIju4S32nl6/iEUNNE4v+yL2Zhm8ooP3w==}
+  argparse@3.0.4:
+    resolution: {integrity: sha512-fwWK3Zq22l4XJJjx5mcBHGikIk+hJqO+32dPm0Jur7+rtG5x1scOjSfdT9ZKeWHPpsya/l0HHK4tDImBkTrtvA==}
 
   argv-formatter@1.0.0:
     resolution: {integrity: sha512-F2+Hkm9xFaRg+GkaNnbwXNDV5O6pnCFEmqyhvfC/Ic5LbgOWjJh3L+mN/s91rxVL3znE7DYVpW0GJFT+4YBgWw==}
@@ -3544,6 +3544,11 @@ packages:
   postgres-range@1.1.4:
     resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
 
+  prettier@3.9.10:
+    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.9.6:
     resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
     engines: {node: '>=14'}
@@ -3948,8 +3953,8 @@ packages:
     resolution: {integrity: sha512-zFObLMyZeEwzAoKCyu1B91U79K2t7ApXuQfo8OuxwXLDgcKxuwM+YvcbIhm6QWqz7mHUH1TVytR1PwVVjEuMig==}
     engines: {node: '>=14.18'}
 
-  tabbable@6.5.0:
-    resolution: {integrity: sha512-wieBHXygIm7OyQOu5hQlkk62/WyCFYGlWg7L6/ZCUZwx0o398Zkn4pVmMyfYhfMG8kGrj/Krt8eIk6UKC6VzwA==}
+  tabbable@6.5.1:
+    resolution: {integrity: sha512-dMCuwDUY6Noz3zVKLefBC4wq+aJV20yc7vWmM7uTNGwtQSFF5kX7OUIUsxuVajz/bdt5Xqdah3/0NLjth+cM5A==}
 
   tagged-tag@1.0.0:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
@@ -4008,8 +4013,8 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
-  transliteration@2.6.2:
-    resolution: {integrity: sha512-nS94BsBPRF1AwZG9ZfY7zl1mu9S3Opj8NqfM251J3pz4IdeAtIz4J1gZNhP5IpXAew7qevNlGvdQ4X1BZLDykw==}
+  transliteration@2.7.0:
+    resolution: {integrity: sha512-rCVoWvYXlRMKdwymthS6IR25z2XQnV3Iad3mQPpC+CEdvF7Q8yhq4a3HRPCIDf42nij2v5w7lItxn6cwqcSKiw==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -4091,8 +4096,8 @@ packages:
     resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
     engines: {node: '>=18.17'}
 
-  undici@7.29.1:
-    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
+  undici@7.30.1:
+    resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
     engines: {node: '>=20.18.1'}
 
   unicode-emoji-modifier-base@1.0.0:
@@ -4391,7 +4396,7 @@ snapshots:
     dependencies:
       '@dataplan/json': 1.0.0(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))
       '@graphile/lru': 5.0.0
-      '@types/node': 22.20.1
+      '@types/node': 22.20.5
       chalk: 4.1.2
       debug: 4.4.3
       eventemitter3: 5.0.4
@@ -4747,7 +4752,7 @@ snapshots:
       '@floating-ui/utils': 0.2.12
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
-      tabbable: 6.5.0
+      tabbable: 6.5.1
 
   '@floating-ui/utils@0.2.12': {}
 
@@ -4802,8 +4807,8 @@ snapshots:
       jsonc-parser: 3.3.1
       markdown-it: 15.0.3
       monaco-editor: 0.52.2
-      monaco-graphql: 1.9.0(graphql@16.14.2)(monaco-editor@0.52.2)(prettier@3.9.6)
-      prettier: 3.9.6
+      monaco-graphql: 1.9.0(graphql@16.14.2)(monaco-editor@0.52.2)(prettier@3.9.10)
+      prettier: 3.9.10
       react: 19.2.6
       react-compiler-runtime: 19.1.0-rc.3(react@19.2.6)
       react-dom: 19.2.6(react@19.2.6)
@@ -5422,7 +5427,7 @@ snapshots:
       p-filter: 4.1.0
       semantic-release: 25.0.9(typescript@6.0.3)
       tinyglobby: 0.2.17
-      undici: 7.29.1
+      undici: 7.30.1
       url-join: 5.0.0
     transitivePeerDependencies:
       - kerberos
@@ -5624,6 +5629,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@22.20.5':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@24.19.2':
     dependencies:
       undici-types: 7.24.6
@@ -5738,7 +5747,7 @@ snapshots:
 
   argparse@2.0.1: {}
 
-  argparse@3.0.3: {}
+  argparse@3.0.4: {}
 
   argv-formatter@1.0.0: {}
 
@@ -6342,7 +6351,7 @@ snapshots:
   graphile-build-pg@5.0.2(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2)))(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2)(pg-sql2@5.0.1)(pg@8.23.0))(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-build@5.0.2(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2)(pg-sql2@5.0.1)(pg@8.23.0)(tamedevil@0.1.1):
     dependencies:
       '@dataplan/pg': 1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2)))(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2)(pg-sql2@5.0.1)(pg@8.23.0)
-      '@types/node': 22.20.1
+      '@types/node': 22.20.5
       debug: 4.4.3
       grafast: 1.0.2(@envelop/core@5.6.0)(graphql@16.14.2)
       graphile-build: 5.0.2(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2)
@@ -6360,7 +6369,7 @@ snapshots:
 
   graphile-build@5.0.2(grafast@1.0.2(@envelop/core@5.6.0)(graphql@16.14.2))(graphile-config@1.0.1)(graphql@16.14.2):
     dependencies:
-      '@types/node': 22.20.1
+      '@types/node': 22.20.5
       '@types/pluralize': 0.0.33
       '@types/semver': 7.8.0
       chalk: 4.1.2
@@ -6372,7 +6381,7 @@ snapshots:
       pluralize: 7.0.0
       semver: 7.8.5
       tamedevil: 0.1.1
-      transliteration: 2.6.2
+      transliteration: 2.7.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -6804,7 +6813,7 @@ snapshots:
 
   markdown-it@15.0.3:
     dependencies:
-      argparse: 3.0.3
+      argparse: 3.0.4
       entities: 8.1.0
       linkify-it: 6.1.0
       mdurl: 2.1.0
@@ -6867,13 +6876,13 @@ snapshots:
 
   monaco-editor@0.52.2: {}
 
-  monaco-graphql@1.9.0(graphql@16.14.2)(monaco-editor@0.52.2)(prettier@3.9.6):
+  monaco-graphql@1.9.0(graphql@16.14.2)(monaco-editor@0.52.2)(prettier@3.9.10):
     dependencies:
       graphql: 16.14.2
       graphql-language-service: 5.7.0(graphql@16.14.2)
       monaco-editor: 0.52.2
       picomatch-browser: 2.2.6
-      prettier: 3.9.6
+      prettier: 3.9.10
 
   motion-dom@13.5.1:
     dependencies:
@@ -7213,6 +7222,8 @@ snapshots:
       xtend: 4.0.2
 
   postgres-range@1.1.4: {}
+
+  prettier@3.9.10: {}
 
   prettier@3.9.6: {}
 
@@ -7661,7 +7672,7 @@ snapshots:
       has-flag: 4.0.0
       supports-color: 7.2.0
 
-  tabbable@6.5.0: {}
+  tabbable@6.5.1: {}
 
   tagged-tag@1.0.0: {}
 
@@ -7717,7 +7728,7 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
-  transliteration@2.6.2: {}
+  transliteration@2.7.0: {}
 
   traverse@0.6.8: {}
 
@@ -7785,7 +7796,7 @@ snapshots:
 
   undici@6.29.1: {}
 
-  undici@7.29.1: {}
+  undici@7.30.1: {}
 
   unicode-emoji-modifier-base@1.0.0: {}
 
