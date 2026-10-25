@@ -19,7 +19,7 @@
     "@t3-oss/env-core": "0.13.11",
     "bullmq": "5.76.4",
     "zeromq": "6.7.0",
-    "zod": "4.5.4"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@elitehub/typescript-config": "workspace:*",
