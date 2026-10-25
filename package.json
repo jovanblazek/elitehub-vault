@@ -30,7 +30,7 @@
     "@semantic-release/release-notes-generator": "14.1.1",
     "@types/koa": "3.0.3",
     "@types/koa-bodyparser": "4.3.13",
-    "@types/node": "22.19.7",
+    "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
     "oxlint": "1.82.0",
     "prettier": "3.9.6",
@@ -41,7 +41,7 @@
     "vitest": "4.1.12"
   },
   "engines": {
-    "node": "^22.14.0"
+    "node": "^24.22.1"
   },
   "packageManager": "pnpm@9.15.9"
 }
