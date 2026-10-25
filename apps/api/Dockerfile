@@ -34,4 +34,8 @@ COPY --from=build /repo /app
 WORKDIR /app/apps/api
 USER node
 EXPOSE 3000
+
+# Slim image has no curl/wget, so use Node's built-in fetch.
+HEALTHCHECK --start-period=5s --interval=10s --timeout=5s --retries=6 \
+    CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/healthcheck').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 CMD ["node", "--import", "./dist/utils/sentry.js", "dist/index.js"]

@@ -29,7 +29,7 @@ ENV NODE_ENV=production
 COPY --from=build /repo /app
 WORKDIR /app/packages/db
 USER node
-# Coolify polls with these values: waits start-period, then up to retries x interval (~5 min)
+
 HEALTHCHECK --start-period=5s --interval=5s --timeout=3s --retries=60 \
     CMD ["test", "-f", "/tmp/migrations-applied"]
 CMD ["sh", "-c", "set -e; ./node_modules/.bin/drizzle-kit migrate; touch /tmp/migrations-applied; trap 'exit 0' TERM; sleep infinity & wait"]
