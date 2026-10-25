@@ -43,5 +43,10 @@
   "engines": {
     "node": "^24.22.1"
   },
+  "pnpm": {
+    "overrides": {
+      "undici@>=6.23.0 <6.29.1": "6.29.1"
+    }
+  },
   "packageManager": "pnpm@9.15.9"
 }
